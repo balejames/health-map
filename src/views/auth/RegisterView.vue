@@ -103,17 +103,21 @@ const validateEmail = (email) => {
                   variant="outlined"
                 ></v-text-field>
 
-                <v-btn
-                  type="submit"
-                  style="background-color: #0dceda; color: white"
-                  class="custom-create my-2 mx-auto d-block"
+                <RouterLink to="/" style="text-decoration: none"
+                  ><v-btn
+                    type="submit"
+                    style="background-color: #0dceda; color: white"
+                    class="custom-create my-2 mx-auto d-block"
+                  >
+                    Create Account
+                  </v-btn></RouterLink
                 >
-                  Create Account
-                </v-btn>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Already have an account?
-                  <RouterLink class="text-primary" to="/">Sign in!</RouterLink>
+                  <RouterLink class="text-primary" to="/" style="text-decoration: none"
+                    >Sign in!</RouterLink
+                  >
                 </h4>
               </v-form>
             </v-card-text>

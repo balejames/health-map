@@ -104,16 +104,21 @@ const validateEmail = (email) => {
                   required
                   variant="outlined"
                 ></v-select>
-                <v-btn
-                  type="submit"
-                  style="background-color: #0dceda; color: white"
-                  class="custom-login my-2 mx-auto d-block"
-                  >Log In</v-btn
-                >
+                <router-link to="/dashboard" style="text-decoration: none">
+                  <v-btn
+                    type="submit"
+                    style="background-color: #0dceda; color: white"
+                    class="custom-login my-2 mx-auto d-block"
+                  >
+                    Log In
+                  </v-btn>
+                </router-link>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Don't have an account?
-                  <RouterLink class="text-primary" to="/register">Sign up!</RouterLink>
+                  <router-link class="text-primary" to="/register" style="text-decoration: none">
+                    Sign up!
+                  </router-link>
                 </h4>
               </v-form>
             </v-card-text>
@@ -125,13 +130,6 @@ const validateEmail = (email) => {
 </template>
 
 <style>
-.login-wrapper {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .custom-login {
   height: 50px;
   width: 150px;
