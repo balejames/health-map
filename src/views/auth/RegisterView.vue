@@ -63,7 +63,7 @@ const validateEmail = (email) => {
         <v-col cols="12" sm="4" md="5" lg="4" class="text-center mb-4">
           <v-card class="mx-auto" elevation="24">
             <template v-slot:title>
-              <h2 class="text-center">Create Account</h2>
+              <h2 class="text-center">James Bale</h2>
             </template>
             <v-card-text>
               <v-form fast-fail @submit.prevent="submit">
