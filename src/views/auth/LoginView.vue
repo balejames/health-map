@@ -143,7 +143,7 @@ const validateEmail = (email) => {
   background-color: #ebfffa;
 }
 body {
-  background-image: url('C:\Users\admin\Desktop\Health Map\public\images\Background (3).png');
+  background-image: url('images/Background (3).png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
