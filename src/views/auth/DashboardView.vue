@@ -1,28 +1,100 @@
-<script setup></script>
 <template>
-  <div class="dashboard-wrapper">
-    <v-container fluid>
-      <v-container>
+  <v-app>
+    <!-- Sidebar -->
+    <v-navigation-drawer permanent class="healthmap-sidebar" width="100">
+      <div class="nav-icons">
+        <v-btn
+          icon
+          variant="flat"
+          class="nav-btn"
+          :class="{ active: activeTab === 'home' }"
+          @click="activeTab = 'home'"
+        >
+          <v-icon size="40">mdi-home</v-icon>
+        </v-btn>
+
+        <v-btn
+          icon
+          variant="flat"
+          class="nav-btn"
+          :class="{ active: activeTab === 'calendar' }"
+          @click="activeTab = 'calendar'"
+        >
+          <v-icon size="40">mdi-calendar-month</v-icon>
+        </v-btn>
+
+        <v-btn
+          icon
+          variant="flat"
+          class="nav-btn"
+          :class="{ active: activeTab === 'map' }"
+          @click="activeTab = 'map'"
+        >
+          <v-icon size="40">mdi-map-marker</v-icon>
+        </v-btn>
+      </div>
+    </v-navigation-drawer>
+
+    <!-- Main Content -->
+    <v-main class="main-content">
+      <v-container fluid>
         <v-row justify="center" align="center">
-          <v-col
-            ><RouterLink to="/"><span>Logout</span></RouterLink></v-col
-          >
+          <v-col cols="12" sm="10" md="8" lg="6" xl="5">
+            <v-card class="schedule-card">
+              <v-card-text>
+                <h2>Schedule Today:</h2>
+                <!-- You can add schedule content here -->
+              </v-card-text>
+            </v-card>
+          </v-col>
         </v-row>
       </v-container>
-    </v-container>
-  </div>
+    </v-main>
+  </v-app>
 </template>
-<style>
-.dashboard-wrapper {
-  height: 100vh;
+
+<script setup>
+import { ref } from 'vue'
+
+const activeTab = ref('home')
+</script>
+
+<style scoped>
+.healthmap-sidebar {
+  background-color: #0cd3dc;
   display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  justify-content: center;
-  background-color: #0dceda;
-  /*background-image: url('/images/Background (3).png');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-attachment: fixed;*/
+  padding-top: 10px;
+}
+
+.nav-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-btn {
+  background-color: transparent;
+  color: white;
+}
+
+.nav-btn.active {
+  background-color: white;
+  color: #0cd3dc;
+  border-radius: 12px;
+}
+
+.main-content {
+  padding: 40px;
+}
+
+.schedule-card {
+  background-color: #c6fce6;
+  border-radius: 40px;
+  padding: 40px;
+  margin-top: 30px;
 }
 </style>
