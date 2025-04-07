@@ -57,12 +57,12 @@ const validateEmail = (email) => {
         <v-col cols="12" md="6" class="text-section pt-1">
           <div class="align-center">
             <h1 class="header mb-0">Health Map</h1>
+            <p>
+              Whether you are a Barangay clinic aiming to share your services or a resident seeking
+              healthcare updates, Health Map connects you with the health resources in your
+              community.
+            </p>
           </div>
-          <br />
-          <p>
-            Easily register your Barangay clinic to start sharing schedules and services with your
-            community.
-          </p>
         </v-col>
         <v-col cols="1"></v-col>
         <v-col cols="12" sm="8" md="5" lg="4">
@@ -159,13 +159,14 @@ const validateEmail = (email) => {
 }
 
 .header {
-  color: #6a777b;
-  font-family: 'Times New Roman', Times, serif;
+  text-align: center;
+  color: white;
+  font-family: 'Merriweather', serif;
 }
 
 p {
   color: white;
-  font-size: 150%;
+  font-size: 125%;
   font-family: 'Times New Roman', Times, serif;
 }
 </style>
