@@ -49,6 +49,7 @@ const validateEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 </script>
+
 <template>
   <div class="login-wrapper">
     <v-container fluid>
@@ -61,8 +62,8 @@ const validateEmail = (email) => {
           <p>
             Easily register your Barangay clinic to start sharing schedules and services with your
             community.
-          </p></v-col
-        >
+          </p>
+        </v-col>
         <v-col cols="1"></v-col>
         <v-col cols="12" sm="8" md="5" lg="4">
           <v-card class="mx-auto" elevation="24">
@@ -70,7 +71,7 @@ const validateEmail = (email) => {
               <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
-              <v-form fast-fail @submit.prevent>
+              <v-form @submit.prevent="submit">
                 <v-text-field
                   v-model="email"
                   label="Email"
@@ -99,7 +100,6 @@ const validateEmail = (email) => {
                   v-model="role"
                   :items="roles"
                   :rules="[(v) => !!v || 'Role is required']"
-                  s
                   label="Role"
                   required
                   variant="outlined"
@@ -123,6 +123,7 @@ const validateEmail = (email) => {
     </v-container>
   </div>
 </template>
+
 <style>
 .login-wrapper {
   height: 100vh;
@@ -137,22 +138,26 @@ const validateEmail = (email) => {
   font-size: 16px;
   border-radius: 8px;
 }
+
 .v-card {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   background-color: #ebfffa;
 }
+
 body {
-  background-image: url('images/Background (3).png');
+  background-image: url('/images/Background (3).png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
 }
+
 .header {
   color: #6a777b;
   font-family: 'Times New Roman', Times, serif;
 }
+
 p {
   color: white;
   font-size: 150%;

@@ -113,7 +113,7 @@ const validateEmail = (email) => {
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Already have an account?
-                  <RouterLink class="text-primary" to="/login">Sign in!</RouterLink>
+                  <RouterLink class="text-primary" to="/">Sign in!</RouterLink>
                 </h4>
               </v-form>
             </v-card-text>
