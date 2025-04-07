@@ -143,4 +143,17 @@ h2 {
   color: #6a777b;
   font-family: 'Times New Roman', Times, serif;
 }
+
+.create-account-wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-image: url('/images/Background-Register.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
 </style>

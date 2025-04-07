@@ -145,7 +145,12 @@ const validateEmail = (email) => {
   background-color: #ebfffa;
 }
 
-body {
+.login-wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   background-image: url('/images/Background (3).png');
   background-size: cover;
   background-repeat: no-repeat;
