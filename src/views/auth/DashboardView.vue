@@ -1,3 +1,8 @@
+<script setup>
+import { ref } from 'vue'
+
+const activeTab = ref('home')
+</script>
 <template>
   <v-app>
     <!-- Sidebar -->
@@ -24,14 +29,10 @@
         </v-btn>
       </div>
     </v-navigation-drawer>
+
+    <!-- Main Content -->
   </v-app>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-
-const activeTab = ref('home')
-</script>
 
 <style scoped>
 .healthmap-sidebar {
