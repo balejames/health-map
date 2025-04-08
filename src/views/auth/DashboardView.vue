@@ -18,10 +18,109 @@
           <v-icon size="36" color="white">mdi-map-marker</v-icon>
         </v-btn>
       </div>
-    </v-navigation-drawer>
-    <!--Calendar-->
-    <
-  </v-app>
+    </v-col>
+
+    <!-- Calendar -->
+    <v-col cols="10" class="pa-10">
+      <div class="calendar-wrapper mx-auto">
+        <!-- Header -->
+        <div
+          class="calendar-header d-flex justify-space-between align-center px-6 py-4"
+          style="background-color: black; color: white"
+        >
+          <h2 class="text-h5 font-weight-bold">{{ monthNames[currentMonth] }} {{ currentYear }}</h2>
+          <div>
+            <v-btn icon @click="prevMonth">
+              <v-icon>mdi-chevron-double-left</v-icon>
+            </v-btn>
+            <v-btn icon @click="nextMonth">
+              <v-icon>mdi-chevron-double-right</v-icon>
+            </v-btn>
+          </div>
+        </div>
+
+        <!-- Days of Week -->
+        <div class="d-flex text-center text-subtitle-2 font-weight-bold">
+          <div class="calendar-cell" v-for="day in days" :key="day">
+            {{ day }}
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="d-flex flex-wrap text-center">
+          <div
+            class="calendar-cell"
+            v-for="(day, index) in calendarDays"
+            :key="index"
+            @click="selectDay(day)"
+            style="cursor: pointer"
+          >
+            <span v-if="day" class="font-weight-bold">{{ day }}</span>
+            <div
+              v-if="events[`${currentYear}-${currentMonth}-${day}`]"
+              class="mt-1 text-caption text-left"
+              style="color: #333; font-size: 12px"
+            >
+              <div v-for="(ev, i) in events[`${currentYear}-${currentMonth}-${day}`]" :key="i">
+                • {{ ev.service }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </v-col>
+
+    <!-- Event Details and Add Dialog -->
+    <v-dialog v-model="eventDialog" max-width="600">
+      <v-card>
+        <v-card-title class="font-weight-bold">
+          Events for {{ monthNames[currentMonth] }} {{ selectedDay }}
+        </v-card-title>
+        <v-card-text>
+          <div v-if="currentEvents.length" class="mb-4">
+            <v-expansion-panels multiple>
+              <v-expansion-panel v-for="(ev, index) in currentEvents" :key="index">
+                <v-expansion-panel-title>
+                  {{ ev.service }}
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <p><strong>Description:</strong> {{ ev.description }}</p>
+                  <p><strong>Doctor:</strong> {{ ev.doctor }}</p>
+                  <p><strong>Barangay:</strong> {{ ev.barangay }}</p>
+                  <p><strong>Time:</strong> {{ ev.time }}</p>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </div>
+
+          <v-divider class="my-4"></v-divider>
+
+          <p class="text-subtitle-2 font-weight-bold mb-2">Add New Event:</p>
+          <v-text-field label="Service" v-model="eventForm.service" clearable></v-text-field>
+          <v-text-field
+            label="Description"
+            v-model="eventForm.description"
+            clearable
+          ></v-text-field>
+          <v-text-field label="Doctor" v-model="eventForm.doctor" clearable></v-text-field>
+          <v-text-field label="Barangay" v-model="eventForm.barangay" clearable></v-text-field>
+          <v-text-field label="Time" v-model="eventForm.time" clearable></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text @click="eventDialog = false">Close</v-btn>
+          <v-btn color="primary" @click="saveEvent">Add</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Counter Example -->
+    <v-col cols="12" class="text-center">
+      <p>Counter: {{ counter.count }}</p>
+      <p>Double Count: {{ counter.doubleCount }}</p>
+      <v-btn color="success" @click="counter.increment">Increment</v-btn>
+    </v-col>
+  </v-container>
 </template>
 
 <script setup>
