@@ -24,8 +24,6 @@
         </v-btn>
       </div>
     </v-navigation-drawer>
-
-    <!-- Main Content -->
   </v-app>
 </template>
 
@@ -43,7 +41,6 @@ const activeTab = ref('home')
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-
   padding-top: 50px;
 }
 
