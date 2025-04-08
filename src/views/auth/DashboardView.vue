@@ -29,25 +29,8 @@ const activeTab = ref('home')
         </v-btn>
       </div>
     </v-navigation-drawer>
-
-    <!-- Main Content -->
-    <v-main class="main-content">
-      <v-container fluid>
-        <v-row justify="center" align="center">
-          <v-col cols="12" sm="10" md="8" lg="6" xl="5">
-            <v-card class="schedule-card">
-              <v-card-text>
-                <h2>Schedule Today:</h2>
-                <router-link to="/" style="text-decoration: none"
-                  ><span>Log out</span>
-                </router-link>
-                <!-- You can add schedule content here -->
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-main>
+    <!--Calendar-->
+    <
   </v-app>
 </template>
 
@@ -59,7 +42,6 @@ const activeTab = ref('home')
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-
   padding-top: 50px;
 }
 
