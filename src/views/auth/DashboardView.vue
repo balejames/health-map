@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <!-- Sidebar -->
-    <v-navigation-drawer permanent class="healthmap-sidebar" width="100">
+    <v-navigation-drawer permanent class="healthmap-sidebar" width="200">
       <div class="nav-icons">
         <v-btn
           icon
@@ -66,7 +66,8 @@ const activeTab = ref('home')
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: 10px;
+  padding-top: 50px;
+  border-radius: 0 60px 60px 0;
 }
 
 .nav-icons {
