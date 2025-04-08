@@ -56,7 +56,7 @@ const validateEmail = (email) => {
       <v-row justify="center" align="center" class="fill-height">
         <v-col cols="12" md="6" class="text-section pt-1">
           <div class="align-center">
-            <h1 class="header mb-0 text-start">Jamonia</h1>
+            <h1 class="header mb-0 text-start">Health Map</h1>
             <p>
               Health Map connects you with the health resources in your community, helping barangay
               clinics share their services with residents in the area while also keeping residents

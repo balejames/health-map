@@ -37,12 +37,17 @@ const activeTab = ref('home')
 
 <style scoped>
 .healthmap-sidebar {
+  border-radius: 0 60px 60px 0;
   background-color: #0cd3dc;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+<<<<<<< HEAD
   padding-top: 10px;
+=======
+  padding-top: 50px;
+>>>>>>> 37c12e8e666e4a5a15562af29ffff9faad741562
 }
 
 .nav-icons {
