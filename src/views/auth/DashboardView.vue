@@ -6,18 +6,8 @@ const activeTab = ref('home')
 <template>
   <v-app>
     <!-- Sidebar -->
-    <v-navigation-drawer permanent class="healthmap-sidebar" width="200">
+    <v-navigation-drawer permanent class="healthmap-sidebar" width="100">
       <div class="nav-icons">
-        <v-btn
-          icon
-          variant="flat"
-          class="nav-btn"
-          :class="{ active: activeTab === 'home' }"
-          @click="activeTab = 'home'"
-        >
-          <v-icon size="40">mdi-home</v-icon>
-        </v-btn>
-
         <v-btn
           icon
           variant="flat"
@@ -69,6 +59,7 @@ const activeTab = ref('home')
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+
   padding-top: 50px;
 }
 
@@ -88,10 +79,6 @@ const activeTab = ref('home')
   background-color: white;
   color: #0cd3dc;
   border-radius: 12px;
-}
-
-.main-content {
-  padding: 40px;
 }
 
 .schedule-card {
