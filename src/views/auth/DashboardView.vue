@@ -30,7 +30,6 @@ const activeTab = ref('home')
       </div>
     </v-navigation-drawer>
     <!--Calendar-->
-    <
   </v-app>
 </template>
 
