@@ -67,7 +67,6 @@ const activeTab = ref('home')
   justify-content: flex-start;
   align-items: center;
   padding-top: 50px;
-  border-radius: 0 60px 60px 0;
 }
 
 .nav-icons {
