@@ -58,9 +58,10 @@ const validateEmail = (email) => {
           <div class="align-center">
             <h1 class="header mb-0">Health Map</h1>
             <p>
-              Whether you are a Barangay clinic aiming to share your services or a resident seeking
-              healthcare updates, Health Map connects you with the health resources in your
-              community.
+              Health Map connects you with the health resources in your community, helping barangay
+              clinics share their services with residents in the area while also keeping residents
+              updated on medical schedules in their barangay, ensuring they don't miss any health
+              assistance.
             </p>
           </div>
         </v-col>
