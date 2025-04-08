@@ -1,3 +1,8 @@
+<script setup>
+import { ref } from 'vue'
+
+const activeTab = ref('home')
+</script>
 <template>
   <v-app>
     <!-- Sidebar -->
@@ -43,6 +48,9 @@
             <v-card class="schedule-card">
               <v-card-text>
                 <h2>Schedule Today:</h2>
+                <router-link to="/" style="text-decoration: none"
+                  ><span>Log out</span>
+                </router-link>
                 <!-- You can add schedule content here -->
               </v-card-text>
             </v-card>
@@ -52,12 +60,6 @@
     </v-main>
   </v-app>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-
-const activeTab = ref('home')
-</script>
 
 <style scoped>
 .healthmap-sidebar {
