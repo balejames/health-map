@@ -43,11 +43,8 @@ const activeTab = ref('home')
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-<<<<<<< HEAD
-  padding-top: 10px;
-=======
+
   padding-top: 50px;
->>>>>>> 37c12e8e666e4a5a15562af29ffff9faad741562
 }
 
 .nav-icons {
