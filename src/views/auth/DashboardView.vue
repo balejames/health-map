@@ -121,6 +121,15 @@ loadEventsFromLocalStorage()
 
 // Watch for any changes in the events and save them to localStorage
 watch(events, saveEventsToLocalStorage, { deep: true })
+
+const today = computed(() => {
+  const date = new Date()
+  return {
+    day: date.getDate(),
+    month: date.getMonth(),
+    year: date.getFullYear(),
+  }
+})
 </script>
 
 <template>
@@ -174,13 +183,17 @@ watch(events, saveEventsToLocalStorage, { deep: true })
         <!-- Dates -->
         <div class="d-flex flex-wrap text-center">
           <div
-            class="calendar-cell"
+            class="calendar-cell day-name"
+            :class="{
+              'current-day':
+                day === today.day && currentMonth === today.month && currentYear === today.year,
+            }"
             v-for="(day, index) in calendarDays"
             :key="index"
             @click="selectDay(day)"
             style="cursor: pointer"
           >
-            <span v-if="day" class="font-weight-bold">{{ day }}</span>
+            <span v-if="day" class="font-weight-bold" style="font-size: 20px">{{ day }}</span>
             <div
               v-if="events[`${currentYear}-${currentMonth}-${day}`]"
               class="mt-1 text-caption text-left"
@@ -249,6 +262,18 @@ watch(events, saveEventsToLocalStorage, { deep: true })
 </template>
 
 <style scoped>
+.day-name {
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px; /* adjust depending on your design */
+}
+.calendar-cell span {
+  font-size: 20px; /* or any size you want */
+}
 .calendar-wrapper {
   width: 100%;
   max-width: 900px;
@@ -271,5 +296,12 @@ watch(events, saveEventsToLocalStorage, { deep: true })
 .calendar-cell:hover {
   background-color: #e0e0e0;
   transition: 0.2s;
+}
+.current-day {
+  background-color: #0dceda;
+  color: rgb(0, 0, 0);
+  font-weight: bold;
+  border: 2px solid#0dceda;
+  border-radius: 100%;
 }
 </style>
