@@ -138,14 +138,24 @@ const today = computed(() => {
     <v-col
       cols="2"
       class="d-flex flex-column justify-space-between align-center py-10"
-      style="background-color: #00d1d1"
+      style="
+        background-color: #00d1d1;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 10;
+      "
     >
-      <div class="mt-4">
+      <!-- Top logo + title -->
+      <div class="mt-4 d-flex flex-column align-center">
         <v-img src="@/assets/healthmap-logo.png" contain width="80" />
-        <h1 class="text-white font-weight-bold text-h6 mt-2">HealthMap</h1>
+        <h1 class="text-white font-weight-bold text-h6 mt-2 text-center">HealthMap</h1>
       </div>
-      <div class="mb-4">
-        <v-btn icon class="mb-6">
+
+      <!-- Bottom icons -->
+      <div class="mb-4 d-flex flex-column align-center">
+        <v-btn icon class="mb-4">
           <v-icon size="36" color="white">mdi-calendar</v-icon>
         </v-btn>
         <v-btn icon>
@@ -155,6 +165,7 @@ const today = computed(() => {
     </v-col>
 
     <!-- Calendar -->
+
     <v-col cols="10" class="pa-10">
       <div class="calendar-wrapper mx-auto">
         <!-- Header -->
@@ -162,7 +173,7 @@ const today = computed(() => {
           class="calendar-header d-flex justify-space-between align-center px-6 py-4"
           style="background-color: black; color: white"
         >
-          <h2 class="text-h5 font-weight-bold">{{ monthNames[currentMonth] }} {{ currentYear }}</h2>
+          <h2 class="text-h4 font-weight-bold">{{ monthNames[currentMonth] }} {{ currentYear }}</h2>
           <div>
             <v-btn icon @click="prevMonth">
               <v-icon>mdi-chevron-double-left</v-icon>
