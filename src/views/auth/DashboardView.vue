@@ -3,6 +3,8 @@ import { ref, computed, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCounterStore } from '@/stores/counter'
 
+const drawer = ref(true)
+
 const counter = useCounterStore()
 const router = useRouter()
 
@@ -136,23 +138,38 @@ const today = computed(() => {
   <v-layout>
     <!-- Navigation Drawer -->
     <v-navigation-drawer
+      v-model="drawer"
+      :permanent="$vuetify.display.mdAndUp"
+      temporary
+      app
       image="https://cdn.vuetifyjs.com/images/backgrounds/bg-2.jpg"
       theme="dark"
-      permanent
+      class="pa-0"
     >
-      <v-list nav>
-        <v-list-item
-          prepend-icon="mdi-view-dashboard"
-          title="dashboard"
-          value="dashboard"
-        ></v-list-item>
-        <v-list-item prepend-icon="mdi-google-maps" title="map" value="map"></v-list-item>
-        <v-list-item prepend-icon="mdi-clock-start" title="Clock-in" value="clockin"></v-list-item>
-      </v-list>
+      <!-- Flex wrapper to center content vertically -->
+      <div class="d-flex flex-column justify-center align-center" style="height: 100%">
+        <v-list nav class="text-center w-100">
+          <!-- Dashboard -->
+          <v-list-item value="dashboard" class="py-6">
+            <v-list-item-content class="text-center">
+              <v-icon size="40" class="mb-2">mdi-view-dashboard</v-icon>
+              <v-list-item-title class="text-h6">Dashboard</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+          <!-- Map -->
+          <v-list-item value="map" class="py-6">
+            <v-list-item-content class="text-center">
+              <v-icon size="40" class="mb-2">mdi-google-maps</v-icon>
+              <v-list-item-title class="text-h6">Map</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </div>
     </v-navigation-drawer>
 
     <!-- Main Content -->
-    <v-main>
+    <v-main class="overflow-auto">
       <v-container
         fluid
         class="ma-0 pa-0 d-flex justify-center align-center"
@@ -289,6 +306,8 @@ const today = computed(() => {
   font-size: 20px; /* or any size you want */
 }
 .calendar-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
   width: 100%;
   max-width: none;
   padding: 0;
