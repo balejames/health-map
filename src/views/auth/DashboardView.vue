@@ -159,10 +159,12 @@ const today = computed(() => {
 
           <!-- Map -->
           <v-list-item value="map" class="py-6">
-            <v-list-item-content class="text-center">
-              <v-icon size="40" class="mb-2">mdi-google-maps</v-icon>
-              <v-list-item-title class="text-h6">Map</v-list-item-title>
-            </v-list-item-content>
+            <RouterLink to="/location"
+              ><v-list-item-content class="text-center">
+                <v-icon size="40" class="mb-2">mdi-google-maps</v-icon>
+                <v-list-item-title class="text-h6">Map</v-list-item-title>
+              </v-list-item-content></RouterLink
+            >
           </v-list-item>
         </v-list>
       </div>
