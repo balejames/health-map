@@ -142,9 +142,9 @@ const today = computed(() => {
       :permanent="$vuetify.display.mdAndUp"
       temporary
       app
-      image="https://cdn.vuetifyjs.com/images/backgrounds/bg-2.jpg"
       theme="dark"
       class="pa-0"
+      style="background-color: #29a9f9"
     >
       <!-- Flex wrapper to center content vertically -->
       <div class="d-flex flex-column justify-center align-center" style="height: 100%">
@@ -194,7 +194,7 @@ const today = computed(() => {
     </v-navigation-drawer>
 
     <!-- Main Content -->
-    <v-main class="overflow-auto">
+    <v-main class="overflow-auto" style="background-color: #c6fce5">
       <v-container
         fluid
         class="ma-0 pa-0 d-flex justify-center align-center"
