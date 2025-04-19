@@ -60,7 +60,7 @@ const drawer = ref(true)
     </v-navigation-drawer>
 
     <!-- Main Content -->
-    <v-main class="overflow-auto" style="background-color: #c6fce5"></v-main>
+    <v-main class="overflow-auto" style="background-color: #c6fce5"> </v-main>
   </v-layout>
 </template>
 <style scoped>
