@@ -58,10 +58,10 @@
             <!-- Event Display -->
             <v-card class="mb-4">
               <v-card-title>
-                Events on {{ selectedDate || 'Select a Date' }}
+                Service Today
                 <v-spacer />
                 <v-btn v-if="selectedDate" color="primary" @click="openEventDialog" small>
-                  Add Event for {{ selectedDateFormatted }}
+                  Add Service
                 </v-btn>
               </v-card-title>
               <v-card-text>
@@ -79,7 +79,7 @@
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>
-                <div v-else>No events for this day.</div>
+                <div v-else>No service for this day.</div>
               </v-card-text>
             </v-card>
 
@@ -120,7 +120,7 @@
         <!-- Add Event Dialog -->
         <v-dialog v-model="dialog" max-width="500">
           <v-card>
-            <v-card-title>Add Event for {{ selectedDate }}</v-card-title>
+            <v-card-title>Add Event Today</v-card-title>
             <v-card-text>
               <v-text-field v-model="newEvent.title" label="Event Title" />
               <v-text-field v-model="newEvent.description" label="Description" />
