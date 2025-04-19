@@ -1,504 +1,338 @@
-<<<<<<< HEAD
 <template>
-  <v-container fluid class="pa-0 ma-0 d-flex" style="min-height: 100vh">
+  <v-app>
     <!-- Sidebar -->
-    <v-col
-      cols="2"
-      class="d-flex flex-column justify-space-between align-center py-10"
-      style="background-color: #00d1d1"
-    >
-      <div class="mt-4">
-        <v-img src="@/assets/images/H-LOGO.png" contain width="80" />
-        <p class="text-white font-weight-bold text-h6 mt-2">HealthMap</p>
-      </div>
-      <div class="mb-4">
-        <v-btn icon class="mb-6">
-          <v-icon size="36" color="white">mdi-calendar</v-icon>
-        </v-btn>
-        <v-btn icon>
-          <v-icon size="36" color="white">mdi-map-marker</v-icon>
-        </v-btn>
-      </div>
-    </v-col>
-
-    <!-- Calendar -->
-    <v-col cols="10" class="pa-10">
-      <div class="calendar-wrapper mx-auto">
-        <!-- Header -->
-        <div
-          class="calendar-header d-flex justify-space-between align-center px-6 py-4"
-          style="background-color: black; color: white"
-        >
-          <h2 class="text-h5 font-weight-bold">{{ monthNames[currentMonth] }} {{ currentYear }}</h2>
-          <div>
-            <v-btn icon @click="prevMonth">
-              <v-icon>mdi-chevron-double-left</v-icon>
-            </v-btn>
-            <v-btn icon @click="nextMonth">
-              <v-icon>mdi-chevron-double-right</v-icon>
-            </v-btn>
-          </div>
-        </div>
-
-        <!-- Days of Week -->
-        <div class="d-flex text-center text-subtitle-2 font-weight-bold">
-          <div class="calendar-cell" v-for="day in days" :key="day">
-            {{ day }}
-          </div>
-        </div>
-
-        <!-- Dates -->
-        <div class="d-flex flex-wrap text-center">
-          <div
-            class="calendar-cell"
-            v-for="(day, index) in calendarDays"
-            :key="index"
-            @click="selectDay(day)"
+    <v-navigation-drawer app permanent color="#03a9f4" dark>
+      <v-container class="text-center py-5">
+        <!-- Profile Picture as Clickable Circle -->
+        <div style="position: relative; display: inline-block">
+          <v-avatar
+            size="80"
+            class="mx-auto mb-4"
+            @click="toggleChangePicture"
             style="cursor: pointer"
           >
-            <span v-if="day" class="font-weight-bold">{{ day }}</span>
-            <div
-              v-if="events[`${currentYear}-${currentMonth}-${day}`]"
-              class="mt-1 text-caption text-left"
-              style="color: #333; font-size: 12px"
-            >
-              <div v-for="(ev, i) in events[`${currentYear}-${currentMonth}-${day}`]" :key="i">
-                • {{ ev.service }}
-              </div>
-            </div>
-          </div>
+            <img
+              :src="profileImage"
+              alt="Profile"
+              width="80"
+              height="80"
+              style="object-fit: cover"
+            />
+          </v-avatar>
+
+          <!-- Hidden File Input for Changing Profile Picture -->
+          <v-file-input
+            v-if="showChangePicture"
+            v-model="profileFile"
+            accept="image/*"
+            label="Change Profile Picture"
+            hide-details
+            dense
+            prepend-icon="mdi-camera"
+            @change="onFileSelected"
+            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
+          />
         </div>
-      </div>
-    </v-col>
 
-    <!-- Event Details and Add Dialog -->
-    <v-dialog v-model="eventDialog" max-width="600">
-      <v-card>
-        <v-card-title class="font-weight-bold">
-          Events for {{ monthNames[currentMonth] }} {{ selectedDay }}
-        </v-card-title>
-        <v-card-text>
-          <div v-if="currentEvents.length" class="mb-4">
-            <v-expansion-panels multiple>
-              <v-expansion-panel v-for="(ev, index) in currentEvents" :key="index">
-                <v-expansion-panel-title>
-                  {{ ev.service }}
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  <p><strong>Description:</strong> {{ ev.description }}</p>
-                  <p><strong>Doctor:</strong> {{ ev.doctor }}</p>
-                  <p><strong>Barangay:</strong> {{ ev.barangay }}</p>
-                  <p><strong>Time:</strong> {{ ev.time }}</p>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
-          </div>
-
-          <v-divider class="my-4"></v-divider>
-
-          <p class="text-subtitle-2 font-weight-bold mb-2">Add New Event:</p>
-          <v-text-field label="Service" v-model="eventForm.service" clearable></v-text-field>
-          <v-text-field
-            label="Description"
-            v-model="eventForm.description"
-            clearable
-          ></v-text-field>
-          <v-text-field label="Doctor" v-model="eventForm.doctor" clearable></v-text-field>
-          <v-text-field label="Barangay" v-model="eventForm.barangay" clearable></v-text-field>
-          <v-text-field label="Time" v-model="eventForm.time" clearable></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn text @click="eventDialog = false">Close</v-btn>
-          <v-btn color="primary" @click="saveEvent">Add</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Counter Example -->
-    <v-col cols="12" class="text-center">
-      <p>Counter: {{ counter.count }}</p>
-      <p>Double Count: {{ counter.doubleCount }}</p>
-      <v-btn color="success" @click="counter.increment">Increment</v-btn>
-    </v-col>
-  </v-container>
-</template>
-
-=======
->>>>>>> 5b87d06e32a666f974cc3acf2c3dc7a69b9a5618
-<script setup>
-import { ref, computed, reactive, watch } from 'vue'
-// Removed unused useRouter import
-import { useCounterStore } from '@/stores/counter'
-
-const drawer = ref(true)
-
-const counter = useCounterStore()
-// Removed unused router declaration
-
-const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
-const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
-
-const currentDate = ref(new Date())
-const currentMonth = ref(currentDate.value.getMonth())
-const currentYear = ref(currentDate.value.getFullYear())
-
-const calendarDays = computed(() => {
-  const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
-  const lastDate = new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
-  const daysArray = Array(firstDay).fill('')
-  for (let i = 1; i <= lastDate; i++) {
-    daysArray.push(i)
-  }
-  return daysArray
-})
-
-const nextMonth = () => {
-  currentMonth.value++
-  if (currentMonth.value > 11) {
-    currentMonth.value = 0
-    currentYear.value++
-  }
-}
-
-const prevMonth = () => {
-  currentMonth.value--
-  if (currentMonth.value < 0) {
-    currentMonth.value = 11
-    currentYear.value--
-  }
-}
-
-const eventDialog = ref(false)
-const selectedDay = ref(null)
-const currentEvents = ref([])
-const events = reactive({})
-
-const eventForm = reactive({
-  service: '',
-  description: '',
-  doctor: '',
-  barangay: '',
-  time: '',
-})
-
-// Load events from localStorage when the page loads
-const loadEventsFromLocalStorage = () => {
-  const storedEvents = localStorage.getItem('events')
-  if (storedEvents) {
-    Object.assign(events, JSON.parse(storedEvents))
-  }
-}
-
-const saveEventsToLocalStorage = () => {
-  localStorage.setItem('events', JSON.stringify(events))
-}
-
-const selectDay = (day) => {
-  if (!day) return
-  selectedDay.value = day
-  const key = `${currentYear.value}-${currentMonth.value}-${day}`
-  currentEvents.value = events[key] || []
-  Object.assign(eventForm, {
-    service: '',
-    description: '',
-    doctor: '',
-    barangay: '',
-    time: '',
-  })
-  eventDialog.value = true
-}
-
-const saveEvent = () => {
-  const key = `${currentYear.value}-${currentMonth.value}-${selectedDay.value}`
-  if (!events[key]) events[key] = []
-  if (eventForm.service.trim() !== '') {
-    events[key].push({
-      service: eventForm.service.trim(),
-      description: eventForm.description.trim(),
-      doctor: eventForm.doctor.trim(),
-      barangay: eventForm.barangay.trim(),
-      time: eventForm.time.trim(),
-    })
-  }
-  currentEvents.value = events[key]
-  // Save updated events to localStorage
-  saveEventsToLocalStorage()
-  Object.assign(eventForm, {
-    service: '',
-    description: '',
-    doctor: '',
-    barangay: '',
-    time: '',
-  })
-}
-
-// Load events from localStorage when the component is mounted
-loadEventsFromLocalStorage()
-
-// Watch for any changes in the events and save them to localStorage
-watch(events, saveEventsToLocalStorage, { deep: true })
-
-const today = computed(() => {
-  const date = new Date()
-  return {
-    day: date.getDate(),
-    month: date.getMonth(),
-    year: date.getFullYear(),
-  }
-})
-</script>
-
-<template>
-  <v-layout>
-    <!-- Navigation Drawer -->
-    <v-navigation-drawer
-      v-model="drawer"
-      :permanent="$vuetify.display.mdAndUp"
-      temporary
-      app
-      theme="dark"
-      class="pa-0"
-      style="background-color: #29a9f9"
-    >
-      <!-- Flex wrapper to center content vertically -->
-      <div class="d-flex flex-column justify-center align-center" style="height: 100%">
-        <v-list nav class="text-center w-100">
-          <!-- Dashboard -->
-
-          <div v-if="$route.path !== '/dashboard'">
-            <RouterLink to="/dashboard" class="text-decoration-none">
-              <v-list-item class="py-6" link>
-                <v-list-item-content class="text-center">
-                  <v-icon size="40" class="mb-2">mdi-view-dashboard</v-icon>
-                  <v-list-item-title class="text-h6">Dashboard</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </RouterLink>
-          </div>
-          <div v-else>
-            <v-list-item class="py-6 active-tab">
-              <v-list-item-content class="text-center">
-                <v-icon size="40" class="mb-2">mdi-view-dashboard</v-icon>
-                <v-list-item-title class="text-h6">Dashboard</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </div>
-
-          <!-- Map -->
-          <RouterLink to="/map" class="text-decoration-none">
-            <v-list-item class="py-6" link :class="{ 'active-tab': $route.path === '/map' }">
-              <v-list-item-content class="text-center">
-                <v-icon
-                  size="40"
-                  class="mb-2 transition-fast-in-fast-out"
-                  :color="$route.path === '/map' ? '#0dceda' : 'white'"
-                  :class="{ 'active-icon': $route.path === '/map' }"
-                  >mdi-google-maps</v-icon
-                >
-                <v-list-item-title
-                  class="text-h6"
-                  :style="{ color: $route.path === '/map' ? '#0dceda' : 'white' }"
-                  >Map</v-list-item-title
-                >
-              </v-list-item-content>
-            </v-list-item>
-          </RouterLink>
-        </v-list>
-      </div>
+        <!-- Navigation Buttons -->
+        <v-btn block class="mt-9 mb-3" style="background-color: #0288d1" variant="elevated">
+          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
+        </v-btn>
+        <v-btn block class="mb-3" color="white" variant="text">
+          <v-icon left>mdi-map</v-icon> Map View
+        </v-btn>
+        <v-btn block class="mb-3" color="white" variant="text">
+          <v-icon left>mdi-comment-question</v-icon> Inquiry
+        </v-btn>
+        <v-btn block class="mt-9" color="white" variant="text">
+          <v-icon left>mdi-logout</v-icon> Log out
+        </v-btn>
+      </v-container>
     </v-navigation-drawer>
 
     <!-- Main Content -->
-    <v-main class="overflow-auto" style="background-color: #c6fce5">
-      <v-container
-        fluid
-        class="ma-0 pa-0 d-flex justify-center align-center"
-        style="min-height: 100vh"
-      >
-        <!-- Centered & Smaller Card -->
-        <v-card flat class="pa-0" style="width: 100%; max-width: 800px; border-radius: 12px">
-          <v-row no-gutters>
-            <v-col cols="12">
-              <!-- Calendar Wrapper -->
-              <div class="calendar-wrapper mx-auto">
-                <!-- Header -->
-                <div
-                  class="calendar-header d-flex justify-space-between align-center px-6 py-4"
-                  style="background-color: black; color: white"
-                >
-                  <h2 class="text-h4 font-weight-bold">
-                    {{ monthNames[currentMonth] }} {{ currentYear }}
-                  </h2>
-                  <div>
-                    <v-btn icon @click="prevMonth">
-                      <v-icon>mdi-chevron-double-left</v-icon>
-                    </v-btn>
-                    <v-btn icon @click="nextMonth">
-                      <v-icon>mdi-chevron-double-right</v-icon>
-                    </v-btn>
-                  </div>
-                </div>
-
-                <!-- Days of Week -->
-                <div class="d-flex text-center text-subtitle-2 font-weight-bold">
-                  <div class="calendar-cell" v-for="day in days" :key="day">
-                    {{ day }}
-                  </div>
-                </div>
-
-                <!-- Dates -->
-                <div class="d-flex flex-wrap text-center">
-                  <div
-                    class="calendar-cell day-name"
-                    :class="{
-                      'current-day':
-                        day === today.day &&
-                        currentMonth === today.month &&
-                        currentYear === today.year,
-                    }"
-                    v-for="(day, index) in calendarDays"
-                    :key="index"
-                    @click="selectDay(day)"
-                    style="cursor: pointer"
-                  >
-                    <span v-if="day" class="font-weight-bold" style="font-size: 20px">
-                      {{ day }}
-                    </span>
-                    <div
-                      v-if="events[`${currentYear}-${currentMonth}-${day}`]"
-                      class="mt-1 text-caption text-left"
-                      style="color: #333; font-size: 12px"
-                    >
-                      <div
-                        v-for="(ev, i) in events[`${currentYear}-${currentMonth}-${day}`]"
-                        :key="i"
-                      >
-                        • {{ ev.service }}
+    <v-main>
+      <v-container>
+        <v-row>
+          <v-col cols="12" md="8" offset-md="2">
+            <!-- Event Display -->
+            <v-card class="mb-4">
+              <v-card-title>
+                Events on {{ selectedDate || 'Select a Date' }}
+                <v-spacer />
+                <v-btn v-if="selectedDate" color="primary" @click="openEventDialog" small>
+                  Add Event for {{ selectedDateFormatted }}
+                </v-btn>
+              </v-card-title>
+              <v-card-text>
+                <v-list v-if="dailyEvents.length">
+                  <v-list-item v-for="(event, index) in dailyEvents" :key="index">
+                    <v-list-item-content>
+                      <div>
+                        <strong>{{ event.title }}</strong>
                       </div>
-                    </div>
-                  </div>
+                      <div>{{ event.description }}</div>
+                      <div>
+                        <em>Doctor: {{ event.doctor }}</em>
+                      </div>
+                      <div>Time: {{ event.startTime }} - {{ event.endTime }}</div>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
+                <div v-else>No events for this day.</div>
+              </v-card-text>
+            </v-card>
+
+            <!-- Calendar -->
+            <div class="calendar-wrapper">
+              <div class="calendar-header">
+                <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
+                <span>{{ monthYearLabel }}</span>
+                <v-btn icon @click="goToNextMonth"><v-icon>mdi-chevron-right</v-icon></v-btn>
+              </div>
+              <div class="calendar-weekdays">
+                <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
+              </div>
+              <div class="calendar-days">
+                <div
+                  v-for="blank in blankDays"
+                  :key="'b-' + blank"
+                  class="calendar-day empty"
+                ></div>
+                <div
+                  v-for="day in daysInMonth"
+                  :key="day"
+                  class="calendar-day"
+                  @click="onDateClick(getDate(day))"
+                  :class="{
+                    selected: selectedDate === getDate(day),
+                    today: getDate(day) === getDate(today.getDate()), // Check if it's today's date
+                  }"
+                >
+                  <span>{{ day }}</span>
+                  <span v-if="hasEvents(getDate(day))" class="event-dot"></span>
                 </div>
               </div>
+            </div>
+          </v-col>
+        </v-row>
 
-              <!-- Event Dialog -->
-              <v-dialog v-model="eventDialog" max-width="600">
-                <v-card>
-                  <v-card-title class="font-weight-bold">
-                    Events for {{ monthNames[currentMonth] }} {{ selectedDay }}
-                  </v-card-title>
-                  <v-card-text>
-                    <div v-if="currentEvents.length" class="mb-4">
-                      <v-expansion-panels multiple>
-                        <v-expansion-panel v-for="(ev, index) in currentEvents" :key="index">
-                          <v-expansion-panel-title>{{ ev.service }}</v-expansion-panel-title>
-                          <v-expansion-panel-text>
-                            <p><strong>Description:</strong> {{ ev.description }}</p>
-                            <p><strong>Doctor:</strong> {{ ev.doctor }}</p>
-                            <p><strong>Barangay:</strong> {{ ev.barangay }}</p>
-                            <p><strong>Time:</strong> {{ ev.time }}</p>
-                          </v-expansion-panel-text>
-                        </v-expansion-panel>
-                      </v-expansion-panels>
-                    </div>
-
-                    <v-divider class="my-4" />
-
-                    <p class="text-subtitle-2 font-weight-bold mb-2">Add New Event:</p>
-                    <v-text-field label="Service" v-model="eventForm.service" clearable />
-                    <v-text-field label="Description" v-model="eventForm.description" clearable />
-                    <v-text-field label="Doctor" v-model="eventForm.doctor" clearable />
-                    <v-text-field label="Barangay" v-model="eventForm.barangay" clearable />
-                    <v-text-field label="Time" v-model="eventForm.time" clearable />
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer />
-                    <v-btn text @click="eventDialog = false">Close</v-btn>
-                    <v-btn color="primary" @click="saveEvent">Add</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-
-              <!-- Counter -->
-              <div class="text-center mt-10">
-                <p>Counter: {{ counter.count }}</p>
-                <p>Double Count: {{ counter.doubleCount }}</p>
-                <v-btn color="success" @click="counter.increment">Increment</v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
+        <!-- Add Event Dialog -->
+        <v-dialog v-model="dialog" max-width="500">
+          <v-card>
+            <v-card-title>Add Event for {{ selectedDate }}</v-card-title>
+            <v-card-text>
+              <v-text-field v-model="newEvent.title" label="Event Title" />
+              <v-text-field v-model="newEvent.description" label="Description" />
+              <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
+              <v-text-field v-model="newEvent.startTime" label="Start Time (e.g. 9:00 AM)" />
+              <v-text-field v-model="newEvent.endTime" label="End Time (e.g. 11:00 AM)" />
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn text @click="dialog = false">Cancel</v-btn>
+              <v-btn color="primary" @click="addEvent">Add</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-container>
     </v-main>
-  </v-layout>
+  </v-app>
 </template>
 
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+
+const selectedDate = ref('')
+const newEvent = ref({
+  title: '',
+  description: '',
+  doctor: '',
+  startTime: '',
+  endTime: '',
+})
+const events = ref({})
+const dailyEvents = ref([])
+const dialog = ref(false)
+
+const today = new Date()
+const currentMonth = ref(today.getMonth())
+const currentYear = ref(today.getFullYear())
+
+const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
+const monthYearLabel = computed(() =>
+  new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  }),
+)
+
+const daysInMonth = computed(() => {
+  return new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
+})
+
+const blankDays = computed(() => {
+  const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
+  return Array.from({ length: firstDay }, (_, i) => i)
+})
+
+const getDate = (day) => {
+  const date = new Date(currentYear.value, currentMonth.value, day)
+  return date.toISOString().split('T')[0]
+}
+
+const goToNextMonth = () => {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value++
+  } else {
+    currentMonth.value++
+  }
+}
+
+const goToPrevMonth = () => {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value--
+  } else {
+    currentMonth.value--
+  }
+}
+
+const hasEvents = (date) => {
+  return events.value[date] && events.value[date].length > 0
+}
+
+onMounted(() => {
+  const stored = localStorage.getItem('events')
+  if (stored) {
+    events.value = JSON.parse(stored)
+  }
+
+  const storedImage = localStorage.getItem('profileImage')
+  if (storedImage) {
+    profileImage.value = storedImage
+  }
+})
+
+const onDateClick = (date) => {
+  selectedDate.value = date
+  getEventsForDate()
+}
+
+const openEventDialog = () => {
+  dialog.value = true
+}
+
+const getEventsForDate = () => {
+  dailyEvents.value = events.value[selectedDate.value] || []
+}
+
+const addEvent = () => {
+  const { title, description, doctor, startTime, endTime } = newEvent.value
+  if (!title.trim()) return
+
+  if (!events.value[selectedDate.value]) {
+    events.value[selectedDate.value] = []
+  }
+
+  events.value[selectedDate.value].push({ title, description, doctor, startTime, endTime })
+  localStorage.setItem('events', JSON.stringify(events.value))
+
+  newEvent.value = { title: '', description: '', doctor: '', startTime: '', endTime: '' }
+  dialog.value = false
+  getEventsForDate()
+}
+
+const profileImage = ref('https://via.placeholder.com/200')
+const profileFile = ref(null)
+const showChangePicture = ref(false)
+
+const toggleChangePicture = () => {
+  showChangePicture.value = !showChangePicture.value
+}
+
+const onFileSelected = () => {
+  if (profileFile.value) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      profileImage.value = e.target.result
+      localStorage.setItem('profileImage', profileImage.value)
+    }
+    reader.readAsDataURL(profileFile.value)
+  }
+}
+</script>
+
 <style scoped>
-.day-name {
-  font-size: 18px;
-  font-weight: bold;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 60px; /* adjust depending on your design */
-}
-.calendar-cell span {
-  font-size: 20px; /* or any size you want */
-}
 .calendar-wrapper {
-  overflow-x: auto;
-  overflow-y: auto;
-  width: 100%;
-  max-width: none;
-  padding: 0;
-  margin: 0;
-  background-color: #d3d3d3;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #e0fff4;
+  border-radius: 12px;
+  padding: 20px;
 }
 
-.calendar-cell {
-  width: calc(100% / 7);
-  height: 90px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-center;
-  justify-content: flex-center;
-  padding: 8px;
-  border: 1px solid #999;
-  box-sizing: border-box;
-}
-
-.calendar-cell:hover {
-  background-color: #e0e0e0;
-  transition: 0.2s;
-}
-.current-day {
-  background-color: #0dceda;
-  color: rgb(0, 0, 0);
+.calendar-header {
+  font-size: 20px;
   font-weight: bold;
-  border: 2px solid#0dceda;
-  border-radius: 100%;
-}
-.active-tab {
-  background-color: rgba(13, 206, 218, 0.1); /* light teal background */
-  border-left: 4px solid #0dceda;
+  text-align: center;
+  color: white;
+  background-color: #00bcd4;
   border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.active-icon {
-  transform: scale(1.2);
-  transition: transform 0.2s ease-in-out;
+
+.calendar-weekdays,
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.weekday {
+  font-weight: bold;
+  color: #333;
+}
+
+.calendar-day {
+  background-color: white;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.calendar-day.selected {
+  background-color: #0288d1;
+  color: white;
+}
+
+.calendar-day.today {
+  background-color: #b3e5fc; /* Light blue color */
+  color: #0277bd; /* Dark blue for text */
+  font-weight: bold;
+}
+
+.event-dot {
+  width: 8px;
+  height: 8px;
+  background-color: red;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+}
+
+.empty {
+  background-color: transparent;
+}
+
+.v-btn {
+  margin-top: 12px;
 }
 </style>
