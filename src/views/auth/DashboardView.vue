@@ -7,7 +7,7 @@
       style="background-color: #00d1d1"
     >
       <div class="mt-4">
-        <v-img src="@/assets/healthmap-logo.png" contain width="80" />
+        <v-img src="@/assets/images/H-LOGO.png" contain width="80" />
         <p class="text-white font-weight-bold text-h6 mt-2">HealthMap</p>
       </div>
       <div class="mb-4">
@@ -125,11 +125,11 @@
 
 <script setup>
 import { ref, computed, reactive, watch } from 'vue'
-import { useRouter } from 'vue-router'
+// Removed unused useRouter import
 import { useCounterStore } from '@/stores/counter'
 
 const counter = useCounterStore()
-const router = useRouter()
+// Removed unused router declaration
 
 const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 const monthNames = [
