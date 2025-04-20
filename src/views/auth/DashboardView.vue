@@ -75,6 +75,9 @@
                       <div>
                         <em>Doctor: {{ event.doctor }}</em>
                       </div>
+                      <div>
+                        <em>Barangay: {{ event.barangay }}</em>
+                      </div>
                       <div>Time: {{ event.startTime }} - {{ event.endTime }}</div>
                     </v-list-item-content>
                   </v-list-item>
@@ -125,6 +128,7 @@
               <v-text-field v-model="newEvent.title" label="Event Title" />
               <v-text-field v-model="newEvent.description" label="Description" />
               <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
+              <v-text-field v-model="newEvent.barangay" label="Barangay" /> <!-- Added Barangay field -->
               <v-text-field v-model="newEvent.startTime" label="Start Time (e.g. 9:00 AM)" />
               <v-text-field v-model="newEvent.endTime" label="End Time (e.g. 11:00 AM)" />
             </v-card-text>
@@ -147,6 +151,7 @@ const selectedDate = ref('')
 const newEvent = ref({
   title: '',
   description: '',
+  barangay: '',
   doctor: '',
   startTime: '',
   endTime: '',
@@ -230,17 +235,17 @@ const getEventsForDate = () => {
 }
 
 const addEvent = () => {
-  const { title, description, doctor, startTime, endTime } = newEvent.value
+  const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
   if (!title.trim()) return
 
   if (!events.value[selectedDate.value]) {
     events.value[selectedDate.value] = []
   }
 
-  events.value[selectedDate.value].push({ title, description, doctor, startTime, endTime })
+  events.value[selectedDate.value].push({ title, description, barangay, doctor, startTime, endTime })
   localStorage.setItem('events', JSON.stringify(events.value))
 
-  newEvent.value = { title: '', description: '', doctor: '', startTime: '', endTime: '' }
+  newEvent.value = { title: '', description: '', barangay: '', doctor: '', startTime: '', endTime: '' }
   dialog.value = false
   getEventsForDate()
 }
