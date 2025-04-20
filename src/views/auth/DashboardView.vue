@@ -38,13 +38,13 @@
         <v-btn block class="mt-9 mb-3" style="background-color: #0288d1" variant="elevated">
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text">
+        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
         <v-btn block class="mb-3" color="white" variant="text">
           <v-icon left>mdi-comment-question</v-icon> Inquiry
         </v-btn>
-        <v-btn block class="mt-9" color="white" variant="text">
+        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
           <v-icon left>mdi-logout</v-icon> Log out
         </v-btn>
       </v-container>
