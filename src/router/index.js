@@ -3,7 +3,8 @@ import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import DashboardView from '@/views/auth/DashboardView.vue'
 import MapView from '@/views/auth/MapView.vue'
-import InquiryView from '@/views/auth/InquiryView.vue'
+import Viewer from '@/views/auth/ViewerDashboard.vue'
+
 
 
 const router = createRouter({
@@ -34,9 +35,9 @@ const router = createRouter({
       component: MapView,
     },
     {
-      path: '/inquiry',
-      name: 'InquiryView',
-      component: InquiryView,
+      path: '/viewer',
+      name: 'Viewer',
+      component: Viewer,
     },
   ],
 })

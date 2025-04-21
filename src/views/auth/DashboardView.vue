@@ -41,9 +41,6 @@
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/inquiry')">
-          <v-icon left>mdi-comment-question</v-icon> Inquiry
-        </v-btn>
         <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
           <v-icon left>mdi-logout</v-icon> Log out
         </v-btn>
@@ -128,8 +125,7 @@
               <v-text-field v-model="newEvent.title" label="Event Title" />
               <v-text-field v-model="newEvent.description" label="Description" />
               <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
-              <v-text-field v-model="newEvent.barangay" label="Barangay" />
-              <!-- Added Barangay field -->
+              <v-text-field v-model="newEvent.barangay" label="Barangay" /> <!-- Added Barangay field -->
               <v-text-field v-model="newEvent.startTime" label="Start Time (e.g. 9:00 AM)" />
               <v-text-field v-model="newEvent.endTime" label="End Time (e.g. 11:00 AM)" />
             </v-card-text>
@@ -244,14 +240,7 @@ const addEvent = async () => {
     events.value[selectedDate.value] = []
   }
 
-  events.value[selectedDate.value].push({
-    title,
-    description,
-    barangay,
-    doctor,
-    startTime,
-    endTime,
-  })
+  events.value[selectedDate.value].push({ title, description, barangay, doctor, startTime, endTime })
   localStorage.setItem('events', JSON.stringify(events.value))
 
   // Send the event to the backend via a POST request (JSON)
@@ -274,24 +263,17 @@ const addEvent = async () => {
 
     const result = await response.json()
     if (result.success) {
-      alert('Event saved successfully!')
+      alert('Event saved successfully!');
     } else {
-      alert('Failed to save event.')
+      alert('Failed to save event.');
     }
   } catch (error) {
     console.error('Error saving event:', error)
-    alert('Something went wrong.')
+    alert('Something went wrong.');
   }
 
   // Reset the form and close the dialog
-  newEvent.value = {
-    title: '',
-    description: '',
-    barangay: '',
-    doctor: '',
-    startTime: '',
-    endTime: '',
-  }
+  newEvent.value = { title: '', description: '', barangay: '', doctor: '', startTime: '', endTime: '' }
   dialog.value = false
   getEventsForDate()
 }
