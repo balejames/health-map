@@ -1,5 +1,8 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -12,7 +15,7 @@ const barangayError = ref('')
 
 const roles = ref(['Viewer', 'Barangay'])
 
-const submit = () => {
+const handleLogin = () => {
   let valid = true
 
   // Email Validation
@@ -41,7 +44,15 @@ const submit = () => {
 
   // If all fields are valid
   if (valid) {
-    alert(`Submitted: ${email.value}, Role: ${role.value}`)
+    const user = {
+      email: email.value,
+      role: role.value,
+      barangay: barangay.value,
+    }
+    localStorage.setItem('user', JSON.stringify(user))
+
+    // Redirect to dashboard
+    router.push('/dashboard')
   }
 }
 
@@ -72,7 +83,7 @@ const validateEmail = (email) => {
               <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
-              <v-form @submit.prevent="submit">
+              <v-form @submit.prevent="handleLogin">
                 <v-text-field
                   v-model="email"
                   label="Email"
@@ -100,20 +111,17 @@ const validateEmail = (email) => {
                 <v-select
                   v-model="role"
                   :items="roles"
-                  :rules="[(v) => !!v || 'Role is required']"
                   label="Role"
                   required
                   variant="outlined"
                 ></v-select>
-                <router-link to="/dashboard" style="text-decoration: none">
-                  <v-btn
-                    type="submit"
-                    style="background-color: #0dceda; color: white"
-                    class="custom-login my-2 mx-auto d-block"
-                  >
-                    Log In
-                  </v-btn>
-                </router-link>
+                <v-btn
+                  type="submit"
+                  style="background-color: #0dceda; color: white"
+                  class="custom-login my-2 mx-auto d-block"
+                >
+                  Log In
+                </v-btn>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Don't have an account?
