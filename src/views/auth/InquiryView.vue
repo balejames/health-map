@@ -1,8 +1,7 @@
 <template>
   <v-app>
-    <v-row no-gutters>
-     <!-- Sidebar -->
-     <v-navigation-drawer app permanent color="#03a9f4" dark>
+    <!-- Sidebar -->
+    <v-navigation-drawer app permanent color="#03a9f4" dark>
       <v-container class="text-center py-5">
         <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
@@ -36,7 +35,13 @@
         </div>
 
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" color="white" variant="text" @click="$router.push('/dashboard')">
+        <v-btn
+          block
+          class="mt-9 mb-3"
+          color="white"
+          variant="text"
+          @click="$router.push('/dashboard')"
+        >
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
@@ -51,21 +56,26 @@
       </v-container>
     </v-navigation-drawer>
 
+    <!-- Main Chat Area -->
+    <!-- Main Content -->
+    <v-main>
+      <v-container fluid class="pa-0 fill-height">
+        <div id="map" class="map-container">
+          <v-text cols="9" class="pa-6" style="background-color: #ccf5e7">
+            <div class="chat-bubble left">Hello, how can I help you?</div>
+            <div class="chat-bubble right">I need assistance with the map.</div>
+            <div class="chat-bubble right">Can you guide me?</div>
 
-      <!-- Main Chat Area -->
-      <v-col cols="9" class="pa-6" style="background-color: #ccf5e7;">
-        <div class="chat-bubble left">Hello, how can I help you?</div>
-        <div class="chat-bubble right">I need assistance with the map.</div>
-        <div class="chat-bubble right">Can you guide me?</div>
-
-        <v-text-field
-          class="mt-10"
-          placeholder="What do you want to ask the team?"
-          variant="outlined"
-          hide-details
-        />
-      </v-col>
-    </v-row>
+            <v-text-field
+              class="mt-10"
+              placeholder="What do you want to ask the team?"
+              variant="outlined"
+              hide-details
+            />
+          </v-text>
+        </div>
+      </v-container>
+    </v-main>
   </v-app>
 </template>
 
