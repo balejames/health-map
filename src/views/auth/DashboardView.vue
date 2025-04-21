@@ -41,9 +41,6 @@
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/inquiry')">
-          <v-icon left>mdi-comment-question</v-icon> Inquiry
-        </v-btn>
         <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
           <v-icon left>mdi-logout</v-icon> Log out
         </v-btn>
