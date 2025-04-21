@@ -179,12 +179,12 @@ const showEventDetails = (barangay) => {
     if (barangayEvents.length > 0) {
       const eventDetails = barangayEvents
         .map(
-          (event) => `
-      Event: ${event.title}
-      Doctor: ${event.doctor}
-      Start Time: ${event.startTime}
-      End Time: ${event.endTime}
-      Description: ${event.description}
+          (ev) => `
+      Event: ${ev.title}
+      Doctor: ${ev.doctor}
+      Start Time: ${ev.startTime}
+      End Time: ${ev.endTime}
+      Description: ${ev.description}
       `,
         )
         .join('\n\n')
