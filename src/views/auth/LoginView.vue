@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
+const isPasswordVisible = ref(false)
 const email = ref('')
 const password = ref('')
 const barangay = ref('')
@@ -82,12 +83,14 @@ const validateEmail = (email) => {
                   variant="outlined"
                 ></v-text-field>
                 <v-text-field
-                  v-model="password"
                   label="Password"
                   required
-                  type="password"
                   :error-messages="passwordError"
                   variant="outlined"
+                  v-model="password"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 ></v-text-field>
                 <v-text-field
                   v-model="barangay"
