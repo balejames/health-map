@@ -234,10 +234,11 @@ const getEventsForDate = () => {
   dailyEvents.value = events.value[selectedDate.value] || []
 }
 
-const addEvent = () => {
+const addEvent = async () => {
   const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
   if (!title.trim()) return
 
+  // Update the local events object
   if (!events.value[selectedDate.value]) {
     events.value[selectedDate.value] = []
   }
@@ -245,12 +246,42 @@ const addEvent = () => {
   events.value[selectedDate.value].push({ title, description, barangay, doctor, startTime, endTime })
   localStorage.setItem('events', JSON.stringify(events.value))
 
+  // Send the event to the backend via a POST request (JSON)
+  try {
+    const response = await fetch('http://localhost/save_event.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        barangay,
+        doctor,
+        startTime,
+        endTime,
+        date: selectedDate.value,
+      }),
+    })
+
+    const result = await response.json()
+    if (result.success) {
+      alert('Event saved successfully!');
+    } else {
+      alert('Failed to save event.');
+    }
+  } catch (error) {
+    console.error('Error saving event:', error)
+    alert('Something went wrong.');
+  }
+
+  // Reset the form and close the dialog
   newEvent.value = { title: '', description: '', barangay: '', doctor: '', startTime: '', endTime: '' }
   dialog.value = false
   getEventsForDate()
 }
 
-const profileImage = ref('https://via.placeholder.com/200')
+const profileImage = ref('https://via.placeholder.com/150')
 const profileFile = ref(null)
 const showChangePicture = ref(false)
 
@@ -258,58 +289,46 @@ const toggleChangePicture = () => {
   showChangePicture.value = !showChangePicture.value
 }
 
-const onFileSelected = () => {
-  if (profileFile.value) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
-      localStorage.setItem('profileImage', profileImage.value)
-    }
-    reader.readAsDataURL(profileFile.value)
+const onFileSelected = (file) => {
+  const reader = new FileReader()
+  reader.onload = () => {
+    profileImage.value = reader.result
+    localStorage.setItem('profileImage', reader.result)
   }
+  reader.readAsDataURL(file)
 }
 </script>
 
 <style scoped>
+/* Calendar Styles */
 .calendar-wrapper {
-  background-color: #e0fff4;
-  border-radius: 12px;
-  padding: 20px;
+  margin-top: 20px;
+  font-family: 'Roboto', sans-serif;
 }
 
 .calendar-header {
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
-  color: white;
-  background-color: #00bcd4;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.calendar-weekdays,
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  text-align: center;
-}
-
-.weekday {
-  font-weight: bold;
-  color: #333;
 }
 
 .calendar-day {
-  background-color: white;
+  text-align: center;
   padding: 10px;
-  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
 .calendar-day.selected {
@@ -318,26 +337,18 @@ const onFileSelected = () => {
 }
 
 .calendar-day.today {
-  background-color: #b3e5fc; /* Light blue color */
-  color: #0277bd; /* Dark blue for text */
-  font-weight: bold;
+  background-color: #f1c40f;
+  color: white;
 }
 
 .event-dot {
-  width: 8px;
-  height: 8px;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
   background-color: red;
   border-radius: 50%;
   position: absolute;
-  bottom: 4px;
-  right: 4px;
-}
-
-.empty {
-  background-color: transparent;
-}
-
-.v-btn {
-  margin-top: 12px;
+  top: 5px;
+  right: 5px;
 }
 </style>

@@ -36,7 +36,7 @@
 
         <!-- Navigation Buttons -->
         <v-btn block class="mt-9 mb-3" color="white" variant="text" @click="$router.push('/dashboard')">
-                  <v-icon left>mdi-view-dashboard</v-icon> Dashboard
+          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" style="background-color: #0288d1" variant="elevated">
           <v-icon left>mdi-map</v-icon> Map View
@@ -64,6 +64,7 @@
 import { ref, onMounted } from 'vue'
 import L from 'leaflet'
 
+// Profile Picture Logic
 const profileImage = ref('https://via.placeholder.com/200')
 const profileFile = ref(null)
 const showChangePicture = ref(false)
@@ -81,6 +82,15 @@ const onFileSelected = () => {
     }
     reader.readAsDataURL(profileFile.value)
   }
+}
+
+// Barangay Coordinates
+const barangayCoordinates = {
+  Ambago: [8.9706, 125.5334],
+  Ampayon: [8.9801, 125.5530],
+  Libertad: [8.9489, 125.5372],
+  BaanRiverside: [8.9567, 125.5521],
+  // Add more barangays as needed
 }
 
 onMounted(() => {
@@ -113,7 +123,72 @@ onMounted(() => {
       )
       .openPopup()
   })
+
+  // Add markers for each barangay
+  for (const [name, coords] of Object.entries(barangayCoordinates)) {
+    L.marker(coords).addTo(map).bindPopup(`📍 ${name}`)
+  }
+
+  // Your code for displaying event indicators
+  const storedEvents = localStorage.getItem('events')
+  if (storedEvents) {
+    const events = JSON.parse(storedEvents)
+
+    // Track which barangays have at least one event
+    const activeBarangays = new Set()
+
+    Object.values(events).forEach(dayEvents => {
+      dayEvents.forEach(event => {
+        if (event.barangay) {
+          activeBarangays.add(event.barangay.trim())
+        }
+      })
+    })
+
+    // Show indicator for each barangay with event
+    activeBarangays.forEach(barangay => {
+      const coords = barangayCoordinates[barangay]
+      if (coords) {
+        L.circleMarker(coords, {
+          radius: 10,
+          color: '#f44336',
+          fillColor: '#f44336',
+          fillOpacity: 0.7,
+        })
+          .addTo(map)
+          .bindPopup(`<b>Barangay ${barangay}</b><br>Has event today or upcoming.`)
+          .on('click', () => showEventDetails(barangay))
+      }
+    })
+  }
 })
+
+// Function to display event details when a barangay is clicked
+const selectedDate = ref(new Date().toISOString().split('T')[0]) // Initialize with today's date
+const showEventDetails = (barangay) => {
+  const storedEvents = localStorage.getItem('events')
+  if (storedEvents) {
+    const events = JSON.parse(storedEvents)
+    const todayEvents = events[selectedDate.value] || []
+    const barangayEvents = todayEvents.filter(event => event.barangay === barangay)
+
+    if (barangayEvents.length > 0) {
+      const eventDetails = barangayEvents.map(event => `
+      Event: ${event.title}
+      Doctor: ${event.doctor}
+      Start Time: ${event.startTime}
+      End Time: ${event.endTime}
+      Description: ${event.description}
+      `).join('\n\n')
+
+      alert(`Events in Barangay ${barangay}:\n\n${eventDetails}`)
+    } else {
+      alert(`No events today in Barangay ${barangay}.`)
+    }
+  } else {
+    alert('No events data found.')
+  }
+}
 </script>
 
 <style scoped>
