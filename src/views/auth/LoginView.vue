@@ -1,18 +1,11 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { requiredValidation, emailValidator } from '@/utils/validations'
 
 const router = useRouter()
 
 const isPasswordVisible = ref(false)
-const refVForm = ref()
 
-const onFormSubmit = () => {
-  refVForm.value?.validate().then(({ valid: isValid }) => {
-    if (isValid) onSubmit()
-  })
-}
 const email = ref('')
 const password = ref('')
 const barangay = ref('')
