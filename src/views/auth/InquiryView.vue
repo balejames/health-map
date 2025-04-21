@@ -57,7 +57,6 @@
     </v-navigation-drawer>
 
     <!-- Main Chat Area -->
-    <!-- Main Content -->
     <v-main>
       <v-container fluid class="pa-0 fill-height">
         <div id="map" class="map-container">
