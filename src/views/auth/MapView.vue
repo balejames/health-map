@@ -35,7 +35,13 @@
         </div>
 
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" color="white" variant="text" @click="$router.push('/dashboard')">
+        <v-btn
+          block
+          class="mt-9 mb-3"
+          color="white"
+          variant="text"
+          @click="$router.push('/dashboard')"
+        >
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" style="background-color: #0288d1" variant="elevated">
@@ -54,7 +60,8 @@
     <v-main>
       <v-container fluid class="pa-0 fill-height">
         <!-- Map Section -->
-        <div id="map" class="map-container"></div> <!-- Placeholder for the map -->
+        <div id="map" class="map-container"></div>
+        <!-- Placeholder for the map -->
       </v-container>
     </v-main>
   </v-app>
@@ -87,7 +94,7 @@ const onFileSelected = () => {
 // Barangay Coordinates
 const barangayCoordinates = {
   Ambago: [8.9706, 125.5334],
-  Ampayon: [8.9801, 125.5530],
+  Ampayon: [8.9801, 125.553],
   Libertad: [8.9489, 125.5372],
   BaanRiverside: [8.9567, 125.5521],
   // Add more barangays as needed
@@ -104,10 +111,7 @@ onMounted(() => {
   }).addTo(map)
 
   // Add default marker at Butuan City center
-  L.marker([8.9475, 125.5406])
-    .addTo(map)
-    .bindPopup('📍 Butuan City, Mindanao')
-    .openPopup()
+  L.marker([8.9475, 125.5406]).addTo(map).bindPopup('📍 Butuan City, Mindanao').openPopup()
 
   // Handle click events on the map
   map.on('click', function (e) {
@@ -118,8 +122,8 @@ onMounted(() => {
       .addTo(map)
       .bindPopup(
         `📍 You clicked here:<br><strong>Lat:</strong> ${lat.toFixed(
-          5
-        )}<br><strong>Lng:</strong> ${lng.toFixed(5)}`
+          5,
+        )}<br><strong>Lng:</strong> ${lng.toFixed(5)}`,
       )
       .openPopup()
   })
@@ -137,8 +141,8 @@ onMounted(() => {
     // Track which barangays have at least one event
     const activeBarangays = new Set()
 
-    Object.values(events).forEach(dayEvents => {
-      dayEvents.forEach(event => {
+    Object.values(events).forEach((dayEvents) => {
+      dayEvents.forEach((event) => {
         if (event.barangay) {
           activeBarangays.add(event.barangay.trim())
         }
@@ -146,7 +150,7 @@ onMounted(() => {
     })
 
     // Show indicator for each barangay with event
-    activeBarangays.forEach(barangay => {
+    activeBarangays.forEach((barangay) => {
       const coords = barangayCoordinates[barangay]
       if (coords) {
         L.circleMarker(coords, {
@@ -170,16 +174,20 @@ const showEventDetails = (barangay) => {
   if (storedEvents) {
     const events = JSON.parse(storedEvents)
     const todayEvents = events[selectedDate.value] || []
-    const barangayEvents = todayEvents.filter(event => event.barangay === barangay)
+    const barangayEvents = todayEvents.filter((event) => event.barangay === barangay)
 
     if (barangayEvents.length > 0) {
-      const eventDetails = barangayEvents.map(event => `
+      const eventDetails = barangayEvents
+        .map(
+          (event) => `
       Event: ${event.title}
       Doctor: ${event.doctor}
       Start Time: ${event.startTime}
       End Time: ${event.endTime}
       Description: ${event.description}
-      `).join('\n\n')
+      `,
+        )
+        .join('\n\n')
 
       alert(`Events in Barangay ${barangay}:\n\n${eventDetails}`)
     } else {
