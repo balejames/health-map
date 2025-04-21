@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 
+const isPasswordVisible = ref(false)
+const isPasswordConfirmVisible = ref(false)
+
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -89,18 +92,22 @@ const validateEmail = (email) => {
                   v-model="password"
                   label="Password"
                   required
-                  type="password"
                   :error-messages="passwordError"
                   variant="outlined"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 ></v-text-field>
 
                 <v-text-field
                   v-model="confirmPassword"
-                  label="Confirm Password"
+                  label="Password Confirmation"
                   required
-                  type="password"
                   :error-messages="confirmPasswordError"
                   variant="outlined"
+                  :type="isPasswordConfirmVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordConfirmVisible ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="isPasswordConfirmVisible = !isPasswordConfirmVisible"
                 ></v-text-field>
 
                 <RouterLink to="/" style="text-decoration: none"
