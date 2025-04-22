@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+
 import { requiredValidator, emailValidator, confirmedValidator } from '@/utils/validators.js'
 //import { supabase, formActionDefault } from '@/utils/supabase.js'
 
