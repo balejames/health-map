@@ -12,13 +12,13 @@ const formDataDefault = {
 }
 const formData = ref({ ...formDataDefault })
 
-const onLogin = () => {
-  // alert(formData.value.email)
+const onSubmit = () => {
+  alert(formData.value.email)
 }
 
 const onFormSubmit = () => {
   refVForm.value?.validate().then(({ valid }) => {
-    if (Valid) onLogin()
+    if (Valid) onSubmit()
   })
 }
 
@@ -54,7 +54,7 @@ const roles = ref(['Viewer', 'Barangay'])
               <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
-              <v-form ref="refVForm" fast-fail @submit.prevent="onFormSubmit">
+              <v-form ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.email"
                   label="Email"
@@ -79,6 +79,7 @@ const roles = ref(['Viewer', 'Barangay'])
                   required
                   type="text"
                   variant="outlined"
+                  :rules="[requiredValidator]"
                 ></v-text-field>
                 <v-select
                   v-model="role"
@@ -86,6 +87,7 @@ const roles = ref(['Viewer', 'Barangay'])
                   label="Role"
                   required
                   variant="outlined"
+                  :rules="[requiredValidator]"
                 ></v-select>
                 <v-btn
                   type="submit"

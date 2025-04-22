@@ -1,10 +1,12 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { requiredValidator, emailValidator, confirmedValidator } from '@/utils/validators.js'
-import { supabase, formActionDefault } from '@/utils/supabase.js'
+//import { supabase, formActionDefault } from '@/utils/supabase.js'
 
 const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
+const refVForm = ref()
 
 const formDataDefault = {
   firstName: '',
@@ -16,6 +18,16 @@ const formDataDefault = {
 }
 
 const formData = ref({ ...formDataDefault })
+
+const onSubmit = () => {
+  alert(formData.value.email)
+}
+
+const onFormSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (Valid) onSubmit()
+  })
+}
 </script>
 <template>
   <div class="create-account-wrapper">
@@ -27,17 +39,25 @@ const formData = ref({ ...formDataDefault })
               <h2 class="text-center">Create account</h2>
             </template>
             <v-card-text>
-              <v-form fast-fail @submit.prevent>
+              <v-form ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.firstname"
                   label="First Name"
                   required
                   variant="outlined"
+                  :rules="[requiredValidator]"
                 >
                 </v-text-field>
-                <v-text-field v-model="formData.lastname" label="Last Name"> </v-text-field>
                 <v-text-field
-                  v-model="formData"
+                  v-model="formData.lastname"
+                  label="Last Name"
+                  required
+                  variant="outlined"
+                  :rules="[requiredValidator]"
+                >
+                </v-text-field>
+                <v-text-field
+                  v-model="formData.email"
                   label="Email"
                   required
                   type="email"
@@ -46,18 +66,18 @@ const formData = ref({ ...formDataDefault })
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="barangay"
+                  v-model="formData.barangay"
                   label="Barangay"
                   required
                   type="text"
                   variant="outlined"
+                  :rules="[requiredValidator]"
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="password"
+                  v-model="formData.password"
                   label="Password"
                   required
-                  :error-messages="passwordError"
                   variant="outlined"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
@@ -66,26 +86,26 @@ const formData = ref({ ...formDataDefault })
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="confirmPassword"
+                  v-model="formData.password_confirmation"
                   label="Password Confirmation"
                   required
-                  :error-messages="confirmPasswordError"
                   variant="outlined"
                   :type="isPasswordConfirmVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordConfirmVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordConfirmVisible = !isPasswordConfirmVisible"
-                  :rules="[requiredValidator, confirmedValidator()]"
+                  :rules="[
+                    requiredValidator,
+                    confirmedValidator(formData.password_confirmation, formData.password),
+                  ]"
                 ></v-text-field>
 
-                <RouterLink to="/" style="text-decoration: none"
-                  ><v-btn
-                    type="submit"
-                    style="background-color: #0dceda; color: white"
-                    class="custom-create my-2 mx-auto d-block"
-                  >
-                    Create Account
-                  </v-btn></RouterLink
+                <v-btn
+                  type="submit"
+                  style="background-color: #0dceda; color: white"
+                  class="custom-create my-2 mx-auto d-block"
                 >
+                  Create Account
+                </v-btn>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Already have an account?
