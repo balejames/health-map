@@ -4,10 +4,21 @@ import { useRouter } from 'vue-router'
 import { requiredValidator, emailValidator } from '@/utils/validators.js'
 
 const refVForm = ref()
+const formDataDefault = {
+  email: '',
+  password: '',
+  barangay: '',
+  role: '',
+}
+const formData = ref({ ...formDataDefault })
+
+const onLogin = () => {
+  // alert(formData.value.email)
+}
 
 const onFormSubmit = () => {
-  refVForm.value?.validate().then(({ valid: isValid }) => {
-    if (isValid) onSubmit()
+  refVForm.value?.validate().then(({ valid }) => {
+    if (Valid) onLogin()
   })
 }
 
@@ -15,8 +26,6 @@ const router = useRouter()
 
 const isPasswordVisible = ref(false)
 
-const email = ref('')
-const password = ref('')
 const barangay = ref('')
 const role = ref('')
 
@@ -45,9 +54,9 @@ const roles = ref(['Viewer', 'Barangay'])
               <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
-              <v-form fast-fail @submit.prevent>
+              <v-form ref="refVForm" fast-fail @submit.prevent="onFormSubmit">
                 <v-text-field
-                  v-model="email"
+                  v-model="formData.email"
                   label="Email"
                   required
                   type="email"
@@ -58,7 +67,7 @@ const roles = ref(['Viewer', 'Barangay'])
                   label="Password"
                   required
                   variant="outlined"
-                  v-model="password"
+                  v-model="formData.password"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"

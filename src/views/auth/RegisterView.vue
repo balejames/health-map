@@ -1,64 +1,21 @@
 <script setup>
 import { ref } from 'vue'
+import { requiredValidator, emailValidator, confirmedValidator } from '@/utils/validators.js'
 import { supabase, formActionDefault } from '@/utils/supabase.js'
 
 const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const barangay = ref('')
-
-const emailError = ref('')
-const passwordError = ref('')
-const barangayError = ref('')
-const confirmPasswordError = ref('')
-
-const submit = () => {
-  let valid = true
-
-  // Email Validation
-  if (!validateEmail(email.value)) {
-    emailError.value = 'Please enter a valid email address.'
-    valid = false
-  } else {
-    emailError.value = ''
-  }
-
-  // Password Validation
-  if (!password.value) {
-    passwordError.value = 'Password is required.'
-    valid = false
-  } else {
-    passwordError.value = ''
-  }
-
-  // Confirm Password Validation
-  if (password.value !== confirmPassword.value) {
-    confirmPasswordError.value = 'Passwords do not match.'
-    valid = false
-  } else {
-    confirmPasswordError.value = ''
-  }
-
-  // Barangay Validation
-  if (!barangay.value) {
-    barangayError.value = 'Barangay is required.'
-    valid = false
-  } else {
-    barangayError.value = ''
-  }
-
-  // If all fields are valid
-  if (valid) {
-    alert(`Submitted: ${email.value}`)
-  }
+const formDataDefault = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  barangay: '',
+  password: '',
+  password_confirmation: '',
 }
 
-const validateEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
+const formData = ref({ ...formDataDefault })
 </script>
 <template>
   <div class="create-account-wrapper">
@@ -70,14 +27,17 @@ const validateEmail = (email) => {
               <h2 class="text-center">Create account</h2>
             </template>
             <v-card-text>
-              <v-form fast-fail @submit.prevent="submit">
+              <v-form fast-fail @submit.prevent>
+                <v-text-field v-model="formData" label="First Name" required variant="outlined">
+                </v-text-field>
+                <v-text-field v-model="formData" label="Last Name"> </v-text-field>
                 <v-text-field
-                  v-model="email"
+                  v-model="formData"
                   label="Email"
                   required
                   type="email"
-                  :error-messages="emailError"
                   variant="outlined"
+                  :rules="[requiredValidator, emailValidator]"
                 ></v-text-field>
 
                 <v-text-field
@@ -85,7 +45,6 @@ const validateEmail = (email) => {
                   label="Barangay"
                   required
                   type="text"
-                  :error-messages="barangayError"
                   variant="outlined"
                 ></v-text-field>
 
@@ -98,6 +57,7 @@ const validateEmail = (email) => {
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  :rules="[requiredValidator, passwordValidator]"
                 ></v-text-field>
 
                 <v-text-field
@@ -109,6 +69,7 @@ const validateEmail = (email) => {
                   :type="isPasswordConfirmVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordConfirmVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordConfirmVisible = !isPasswordConfirmVisible"
+                  :rules="[requiredValidator, confirmedValidator()]"
                 ></v-text-field>
 
                 <RouterLink to="/" style="text-decoration: none"
