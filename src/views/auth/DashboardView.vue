@@ -21,16 +21,12 @@
           </v-avatar>
 
           <!-- Hidden File Input for Changing Profile Picture -->
-          <v-file-input
+          <input
             v-if="showChangePicture"
-            v-model="profileFile"
+            type="file"
             accept="image/*"
-            label="Change Profile Picture"
-            hide-details
-            dense
-            prepend-icon="mdi-camera"
             @change="onFileSelected"
-            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
+            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0; cursor: pointer"
           />
         </div>
 
@@ -106,8 +102,9 @@
                   @click="onDateClick(getDate(day))"
                   :class="{
                     selected: selectedDate === getDate(day),
-                    today: getDate(day) === getDate(today.getDate()), // Check if it's today's date
+                    today: isToday(getDate(day)),
                   }"
+                  style="position: relative"
                 >
                   <span>{{ day }}</span>
                   <span v-if="hasEvents(getDate(day))" class="event-dot"></span>
@@ -126,7 +123,6 @@
               <v-text-field v-model="newEvent.description" label="Description" />
               <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
               <v-text-field v-model="newEvent.barangay" label="Barangay" />
-              <!-- Added Barangay field -->
               <v-text-field v-model="newEvent.startTime" label="Start Time (e.g. 9:00 AM)" />
               <v-text-field v-model="newEvent.endTime" label="End Time (e.g. 11:00 AM)" />
             </v-card-text>
@@ -143,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const selectedDate = ref('')
 const newEvent = ref({
@@ -168,12 +164,12 @@ const monthYearLabel = computed(() =>
   new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric',
-  }),
+  })
 )
 
-const daysInMonth = computed(() => {
-  return new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
-})
+const daysInMonth = computed(() =>
+  new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
+)
 
 const blankDays = computed(() => {
   const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
@@ -185,58 +181,29 @@ const getDate = (day) => {
   return date.toISOString().split('T')[0]
 }
 
-const goToNextMonth = () => {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value++
-  } else {
-    currentMonth.value++
-  }
+const isToday = (dateString) => {
+  const todayDate = new Date()
+  const todayFormatted = todayDate.toISOString().split('T')[0]
+  return dateString === todayFormatted
 }
-
-const goToPrevMonth = () => {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value--
-  } else {
-    currentMonth.value--
-  }
-}
-
-const hasEvents = (date) => {
-  return events.value[date] && events.value[date].length > 0
-}
-
-onMounted(() => {
-  const stored = localStorage.getItem('events')
-  if (stored) {
-    events.value = JSON.parse(stored)
-  }
-
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-})
 
 const onDateClick = (date) => {
   selectedDate.value = date
   getEventsForDate()
 }
 
-const openEventDialog = () => {
-  dialog.value = true
-}
-
 const getEventsForDate = () => {
   dailyEvents.value = events.value[selectedDate.value] || []
 }
 
-const addEvent = async () => {
+const openEventDialog = () => {
+  dialog.value = true
+}
+
+const addEvent = () => {
   const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
   if (!title.trim()) return
 
-  // Update the local events object
   if (!events.value[selectedDate.value]) {
     events.value[selectedDate.value] = []
   }
@@ -251,36 +218,6 @@ const addEvent = async () => {
   })
   localStorage.setItem('events', JSON.stringify(events.value))
 
-  // Send the event to the backend via a POST request (JSON)
-  try {
-    const response = await fetch('http://localhost/save_event.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        barangay,
-        doctor,
-        startTime,
-        endTime,
-        date: selectedDate.value,
-      }),
-    })
-
-    const result = await response.json()
-    if (result.success) {
-      alert('Event saved successfully!')
-    } else {
-      alert('Failed to save event.')
-    }
-  } catch (error) {
-    console.error('Error saving event:', error)
-    alert('Something went wrong.')
-  }
-
-  // Reset the form and close the dialog
   newEvent.value = {
     title: '',
     description: '',
@@ -293,54 +230,101 @@ const addEvent = async () => {
   getEventsForDate()
 }
 
-const profileImage = ref('https://via.placeholder.com/150')
-const profileFile = ref(null)
+const hasEvents = (date) => {
+  return events.value[date] && events.value[date].length > 0
+}
+
+// Profile image logic
+const profileImage = ref('https://via.placeholder.com/200')
+// Removed unused profileFile declaration
 const showChangePicture = ref(false)
 
 const toggleChangePicture = () => {
   showChangePicture.value = !showChangePicture.value
 }
 
-const onFileSelected = (file) => {
-  const reader = new FileReader()
-  reader.onload = () => {
-    profileImage.value = reader.result
-    localStorage.setItem('profileImage', reader.result)
+const onFileSelected = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      profileImage.value = e.target.result
+      localStorage.setItem('profileImage', profileImage.value)
+    }
+    reader.readAsDataURL(file)
   }
-  reader.readAsDataURL(file)
+}
+
+onMounted(() => {
+  const stored = localStorage.getItem('events')
+  if (stored) {
+    events.value = JSON.parse(stored)
+  }
+
+  const storedImage = localStorage.getItem('profileImage')
+  if (storedImage) {
+    profileImage.value = storedImage
+  }
+})
+const goToPrevMonth = () => {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value -= 1
+  } else {
+    currentMonth.value -= 1
+  }
+}
+const goToNextMonth = () => {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value += 1
+  } else {
+    currentMonth.value += 1
+  }
 }
 </script>
 
 <style scoped>
-/* Calendar Styles */
 .calendar-wrapper {
-  margin-top: 20px;
-  font-family: 'Roboto', sans-serif;
+  background-color: #e0fff4;
+  border-radius: 12px;
+  padding: 20px;
 }
 
 .calendar-header {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  color: white;
+  background-color: #00bcd4;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.calendar-weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  text-align: center;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
+.calendar-weekdays,
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.weekday {
+  font-weight: bold;
+  color: #333;
 }
 
 .calendar-day {
-  text-align: center;
+  background-color: white;
   padding: 10px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: relative;
 }
 
 .calendar-day.selected {
@@ -349,18 +333,26 @@ const onFileSelected = (file) => {
 }
 
 .calendar-day.today {
-  background-color: #f1c40f;
-  color: white;
+  background-color: #b3e5fc;
+  color: #0277bd;
+  font-weight: bold;
 }
 
 .event-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  background-color: red;
+  width: 8px;
+  height: 8px;
+  background-color: rgb(84, 101, 255);
   border-radius: 50%;
   position: absolute;
-  top: 5px;
-  right: 5px;
+  bottom: 4px;
+  right: 4px;
+}
+
+.empty {
+  background-color: transparent;
+}
+
+.v-btn {
+  margin-top: 12px;
 }
 </style>
