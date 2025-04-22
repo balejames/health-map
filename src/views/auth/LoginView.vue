@@ -1,6 +1,15 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { requiredValidator, emailValidator } from '@/utils/validators.js'
+
+const refVForm = ref()
+
+const onFormSubmit = () => {
+  refVForm.value?.validate().then(({ valid: isValid }) => {
+    if (isValid) onSubmit()
+  })
+}
 
 const router = useRouter()
 
@@ -11,56 +20,7 @@ const password = ref('')
 const barangay = ref('')
 const role = ref('')
 
-const emailError = ref('')
-const passwordError = ref('')
-const barangayError = ref('')
-
 const roles = ref(['Viewer', 'Barangay'])
-
-const handleLogin = () => {
-  let valid = true
-
-  // Email Validation
-  if (!validateEmail(email.value)) {
-    emailError.value = 'Please enter a valid email address.'
-    valid = false
-  } else {
-    emailError.value = ''
-  }
-
-  // Password Validation
-  if (!password.value) {
-    passwordError.value = 'Password is required.'
-    valid = false
-  } else {
-    passwordError.value = ''
-  }
-
-  // Barangay Validation
-  if (!barangay.value) {
-    barangayError.value = 'Barangay is required.'
-    valid = false
-  } else {
-    barangayError.value = ''
-  }
-
-  // If all fields are valid
-  if (valid) {
-    const user = {
-      email: email.value,
-      role: role.value,
-      barangay: barangay.value,
-    }
-    localStorage.setItem('user', JSON.stringify(user))
-
-    // Redirect to dashboard
-    router.push('/dashboard')
-  }
-}
-
-const validateEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
 </script>
 
 <template>
@@ -85,33 +45,30 @@ const validateEmail = (email) => {
               <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
-              <v-form @submit.prevent="handleLogin">
+              <v-form fast-fail @submit.prevent>
                 <v-text-field
                   v-model="email"
                   label="Email"
                   required
                   type="email"
-                  :error-messages="emailError"
                   variant="outlined"
-                  :rules="[requiredValidation, emailValidator]"
+                  :rules="[requiredValidator, emailValidator]"
                 ></v-text-field>
                 <v-text-field
                   label="Password"
                   required
-                  :error-messages="passwordError"
                   variant="outlined"
                   v-model="password"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                  :rules="[requiredValidation]"
+                  :rules="[requiredValidator]"
                 ></v-text-field>
                 <v-text-field
                   v-model="barangay"
                   label="Barangay"
                   required
                   type="text"
-                  :error-messages="barangayError"
                   variant="outlined"
                 ></v-text-field>
                 <v-select
