@@ -90,10 +90,12 @@ const onFileSelected = () => {
 
 // Barangay Coordinates
 const barangayCoordinates = {
-  Ambago: [8.9706, 125.5334],
-  Ampayon: [8.9801, 125.553],
-  Libertad: [8.9489, 125.5372],
-  BaanRiverside: [8.9567, 125.5521],
+  Ambago: [8.9724, 125.4946],
+  Ampayon: [8.9592, 125.6150],
+  BaanKM3: [8.9491, 125.57809],
+  Antongalon: [8.9493, 125.6209],
+  Taligaman: [8.9409, 125.6289],
+  Maon: [8.9316, 125.5447],
   // Add more barangays as needed
 }
 
@@ -106,24 +108,6 @@ onMounted(() => {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map)
-
-  // Add default marker at Butuan City center
-  L.marker([8.9475, 125.5406]).addTo(map).bindPopup('📍 Butuan City, Mindanao').openPopup()
-
-  // Handle click events on the map
-  map.on('click', function (e) {
-    const { lat, lng } = e.latlng
-
-    // Add a marker at the clicked location
-    L.marker([lat, lng])
-      .addTo(map)
-      .bindPopup(
-        `📍 You clicked here:<br><strong>Lat:</strong> ${lat.toFixed(
-          5,
-        )}<br><strong>Lng:</strong> ${lng.toFixed(5)}`,
-      )
-      .openPopup()
-  })
 
   // Add markers for each barangay
   for (const [name, coords] of Object.entries(barangayCoordinates)) {
