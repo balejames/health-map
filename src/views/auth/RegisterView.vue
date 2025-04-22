@@ -28,9 +28,14 @@ const formData = ref({ ...formDataDefault })
             </template>
             <v-card-text>
               <v-form fast-fail @submit.prevent>
-                <v-text-field v-model="formData" label="First Name" required variant="outlined">
+                <v-text-field
+                  v-model="formData.firstname"
+                  label="First Name"
+                  required
+                  variant="outlined"
+                >
                 </v-text-field>
-                <v-text-field v-model="formData" label="Last Name"> </v-text-field>
+                <v-text-field v-model="formData.lastname" label="Last Name"> </v-text-field>
                 <v-text-field
                   v-model="formData"
                   label="Email"
