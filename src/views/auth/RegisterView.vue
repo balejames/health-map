@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { supabase, formActionDefault } from '@/utils/supabase.js'
 
 const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)

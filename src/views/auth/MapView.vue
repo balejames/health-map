@@ -95,7 +95,7 @@ onMounted(() => {
 // Barangay Coordinates
 const barangayCoordinates = {
   Ambago: [8.9724, 125.4946],
-  Ampayon: [8.9592, 125.6150],
+  Ampayon: [8.9592, 125.615],
   BaanKM3: [8.9491, 125.57809],
   Antongalon: [8.9493, 125.6209],
   Taligaman: [8.9409, 125.6289],
