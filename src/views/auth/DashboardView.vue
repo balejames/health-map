@@ -21,16 +21,12 @@
           </v-avatar>
 
           <!-- Hidden File Input for Changing Profile Picture -->
-          <v-file-input
+          <input
             v-if="showChangePicture"
-            v-model="profileFile"
+            type="file"
             accept="image/*"
-            label="Change Profile Picture"
-            hide-details
-            dense
-            prepend-icon="mdi-camera"
             @change="onFileSelected"
-            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
+            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0; cursor: pointer"
           />
         </div>
 
@@ -40,9 +36,6 @@
         </v-btn>
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
-        </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text">
-          <v-icon left>mdi-comment-question</v-icon> Inquiry
         </v-btn>
         <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
           <v-icon left>mdi-logout</v-icon> Log out
@@ -109,8 +102,9 @@
                   @click="onDateClick(getDate(day))"
                   :class="{
                     selected: selectedDate === getDate(day),
-                    today: getDate(day) === getDate(today.getDate()), // Check if it's today's date
+                    today: isToday(getDate(day)),
                   }"
+                  style="position: relative"
                 >
                   <span>{{ day }}</span>
                   <span v-if="hasEvents(getDate(day))" class="event-dot"></span>
@@ -128,7 +122,7 @@
               <v-text-field v-model="newEvent.title" label="Event Title" />
               <v-text-field v-model="newEvent.description" label="Description" />
               <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
-              <v-text-field v-model="newEvent.barangay" label="Barangay" /> <!-- Added Barangay field -->
+              <v-text-field v-model="newEvent.barangay" label="Barangay" />
               <v-text-field v-model="newEvent.startTime" label="Start Time (e.g. 9:00 AM)" />
               <v-text-field v-model="newEvent.endTime" label="End Time (e.g. 11:00 AM)" />
             </v-card-text>
@@ -145,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const selectedDate = ref('')
 const newEvent = ref({
@@ -170,12 +164,12 @@ const monthYearLabel = computed(() =>
   new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric',
-  }),
+  })
 )
 
-const daysInMonth = computed(() => {
-  return new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
-})
+const daysInMonth = computed(() =>
+  new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
+)
 
 const blankDays = computed(() => {
   const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
@@ -187,26 +181,78 @@ const getDate = (day) => {
   return date.toISOString().split('T')[0]
 }
 
-const goToNextMonth = () => {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value++
-  } else {
-    currentMonth.value++
-  }
+const isToday = (dateString) => {
+  const todayDate = new Date()
+  const todayFormatted = todayDate.toISOString().split('T')[0]
+  return dateString === todayFormatted
 }
 
-const goToPrevMonth = () => {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value--
-  } else {
-    currentMonth.value--
+const onDateClick = (date) => {
+  selectedDate.value = date
+  getEventsForDate()
+}
+
+const getEventsForDate = () => {
+  dailyEvents.value = events.value[selectedDate.value] || []
+}
+
+const openEventDialog = () => {
+  dialog.value = true
+}
+
+const addEvent = () => {
+  const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
+  if (!title.trim()) return
+
+  if (!events.value[selectedDate.value]) {
+    events.value[selectedDate.value] = []
   }
+
+  events.value[selectedDate.value].push({
+    title,
+    description,
+    barangay,
+    doctor,
+    startTime,
+    endTime,
+  })
+  localStorage.setItem('events', JSON.stringify(events.value))
+
+  newEvent.value = {
+    title: '',
+    description: '',
+    barangay: '',
+    doctor: '',
+    startTime: '',
+    endTime: '',
+  }
+  dialog.value = false
+  getEventsForDate()
 }
 
 const hasEvents = (date) => {
   return events.value[date] && events.value[date].length > 0
+}
+
+// Profile image logic
+const profileImage = ref('https://via.placeholder.com/200')
+// Removed unused profileFile declaration
+const showChangePicture = ref(false)
+
+const toggleChangePicture = () => {
+  showChangePicture.value = !showChangePicture.value
+}
+
+const onFileSelected = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      profileImage.value = e.target.result
+      localStorage.setItem('profileImage', profileImage.value)
+    }
+    reader.readAsDataURL(file)
+  }
 }
 
 onMounted(() => {
@@ -220,52 +266,20 @@ onMounted(() => {
     profileImage.value = storedImage
   }
 })
-
-const onDateClick = (date) => {
-  selectedDate.value = date
-  getEventsForDate()
-}
-
-const openEventDialog = () => {
-  dialog.value = true
-}
-
-const getEventsForDate = () => {
-  dailyEvents.value = events.value[selectedDate.value] || []
-}
-
-const addEvent = () => {
-  const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
-  if (!title.trim()) return
-
-  if (!events.value[selectedDate.value]) {
-    events.value[selectedDate.value] = []
+const goToPrevMonth = () => {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value -= 1
+  } else {
+    currentMonth.value -= 1
   }
-
-  events.value[selectedDate.value].push({ title, description, barangay, doctor, startTime, endTime })
-  localStorage.setItem('events', JSON.stringify(events.value))
-
-  newEvent.value = { title: '', description: '', barangay: '', doctor: '', startTime: '', endTime: '' }
-  dialog.value = false
-  getEventsForDate()
 }
-
-const profileImage = ref('https://via.placeholder.com/200')
-const profileFile = ref(null)
-const showChangePicture = ref(false)
-
-const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
-}
-
-const onFileSelected = () => {
-  if (profileFile.value) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
-      localStorage.setItem('profileImage', profileImage.value)
-    }
-    reader.readAsDataURL(profileFile.value)
+const goToNextMonth = () => {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value += 1
+  } else {
+    currentMonth.value += 1
   }
 }
 </script>
@@ -310,6 +324,7 @@ const onFileSelected = () => {
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  position: relative;
 }
 
 .calendar-day.selected {
@@ -318,15 +333,15 @@ const onFileSelected = () => {
 }
 
 .calendar-day.today {
-  background-color: #b3e5fc; /* Light blue color */
-  color: #0277bd; /* Dark blue for text */
+  background-color: #b3e5fc;
+  color: #0277bd;
   font-weight: bold;
 }
 
 .event-dot {
   width: 8px;
   height: 8px;
-  background-color: red;
+  background-color: rgb(84, 101, 255);
   border-radius: 50%;
   position: absolute;
   bottom: 4px;
