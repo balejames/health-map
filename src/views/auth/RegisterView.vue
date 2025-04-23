@@ -1,7 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 
-import { requiredValidator, emailValidator, confirmedValidator } from '@/utils/validators.js'
+import {
+  requiredValidator,
+  emailValidator,
+  passwordValidator,
+  confirmedValidator,
+} from '@/utils/validators.js'
 import { supabase, formActionDefault } from '@/utils/supabase.js'
 
 const isPasswordVisible = ref(false)
@@ -170,7 +175,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-
+  background-attachment: fixed;
   background-image: url('/images/Background-Register.png');
   background-size: cover;
   background-repeat: no-repeat;
