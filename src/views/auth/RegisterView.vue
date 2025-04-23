@@ -42,8 +42,8 @@ const onFormSubmit = () => {
   >
   </v-alert>
   <v-alert
-    v-if="formAction.formSuccessMessage"
-    :text="formAction.formSuccessMessage"
+    v-if="formAction.formErrorMessage"
+    :text="formAction.formErrorMessage"
     title="Ooops!"
     type="error"
     variant="tonal"
