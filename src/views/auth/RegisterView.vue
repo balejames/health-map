@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 
 import { requiredValidator, emailValidator, confirmedValidator } from '@/utils/validators.js'
-//import { supabase, formActionDefault } from '@/utils/supabase.js'
+import { supabase, formActionDefault } from '@/utils/supabase.js'
 
 const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
