@@ -51,7 +51,7 @@ const roles = ref(['Viewer', 'Barangay'])
         <v-col cols="12" sm="8" md="5" lg="4">
           <v-card class="mx-auto" elevation="24">
             <template v-slot:title>
-              <h2 class="text-center">James</h2>
+              <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
               <v-form ref="refVForm" @submit.prevent="onFormSubmit">

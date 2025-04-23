@@ -30,6 +30,29 @@ const onFormSubmit = () => {
 }
 </script>
 <template>
+  <v-alert
+    v-if="formAction.formSuccessMessage"
+    :text="formAction.formSuccessMessage"
+    title="Success!"
+    type="success"
+    variant="tonal"
+    density="compact"
+    border="start"
+    closable
+  >
+  </v-alert>
+  <v-alert
+    v-if="formAction.formSuccessMessage"
+    :text="formAction.formSuccessMessage"
+    title="Ooops!"
+    type="error"
+    variant="tonal"
+    density="compact"
+    border="start"
+    closable
+  >
+  </v-alert>
+
   <div class="create-account-wrapper">
     <v-container fluid>
       <v-row justify="center" align="center" class="fill-height">
