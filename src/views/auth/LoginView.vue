@@ -51,7 +51,7 @@ const roles = ref(['Viewer', 'Barangay'])
         <v-col cols="12" sm="8" md="5" lg="4">
           <v-card class="mx-auto" elevation="24">
             <template v-slot:title>
-              <h2 class="text-center">James</h2>
+              <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
               <v-form ref="refVForm" @submit.prevent="onFormSubmit">
@@ -89,13 +89,16 @@ const roles = ref(['Viewer', 'Barangay'])
                   variant="outlined"
                   :rules="[requiredValidator]"
                 ></v-select>
-                <v-btn
-                  type="submit"
-                  style="background-color: #0dceda; color: white"
-                  class="custom-login my-2 mx-auto d-block"
+
+                <router-link to="/dashboard" style="text-decoration: none">
+                  <v-btn
+                    type="submit"
+                    style="background-color: #0dceda; color: white"
+                    class="custom-login my-2 mx-auto d-block"
+                  >
+                    Log In
+                  </v-btn></router-link
                 >
-                  Log In
-                </v-btn>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Don't have an account?
@@ -131,7 +134,6 @@ const roles = ref(['Viewer', 'Barangay'])
   display: flex;
   align-items: center;
   justify-content: center;
-
   background-image: url('/images/Background (3).png');
   background-size: cover;
   background-repeat: no-repeat;

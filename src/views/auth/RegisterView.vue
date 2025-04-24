@@ -1,8 +1,12 @@
 <script setup>
 import { ref } from 'vue'
-
-import { requiredValidator, emailValidator, confirmedValidator } from '@/utils/validators.js'
 import { supabase, formActionDefault } from '@/utils/supabase.js'
+import {
+  requiredValidator,
+  emailValidator,
+  passwordValidator,
+  confirmedValidator,
+} from '@/utils/validators.js'
 
 const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
@@ -18,9 +22,31 @@ const formDataDefault = {
 }
 
 const formData = ref({ ...formDataDefault })
+const formAction = ref({ ...formActionDefault })
 
-const onSubmit = () => {
-  alert(formData.value.email)
+const onSubmit = async () => {
+  formAction = { ...formDataDefault }
+  formAction.value.formProcess = true
+
+  const { data, error } = await supabase.auth.signUp({
+    email: formData.value.email,
+    password: formData.value.password,
+    options: {
+      data: {
+        firstName: formData.value.firstName,
+        lastName: formData.value.lastName,
+      },
+    },
+  })
+  if (error) {
+    console.log(error)
+    formAction.value.formErrorMessage = error.message
+    formAction.value.formStatus = error.status
+  } else if (data) {
+    console.log(data)
+  }
+
+  formAction.value.formProcess = false
 }
 
 const onFormSubmit = () => {
@@ -30,6 +56,30 @@ const onFormSubmit = () => {
 }
 </script>
 <template>
+  <!--  -->
+  <v-alert
+    v-if="formAction.formSuccessMessage"
+    :text="formAction.formSuccessMessage"
+    title="Success!"
+    type="success"
+    variant="tonal"
+    density="compact"
+    border="start"
+    closable
+  >
+  </v-alert>
+  <v-alert
+    v-if="formAction.formErrorMessage"
+    :text="formAction.formErrorMessage"
+    title="Ooops!"
+    type="error"
+    variant="tonal"
+    density="compact"
+    border="start"
+    closable
+  >
+  </v-alert>
+
   <div class="create-account-wrapper">
     <v-container fluid>
       <v-row justify="center" align="center" class="fill-height">
@@ -41,7 +91,7 @@ const onFormSubmit = () => {
             <v-card-text>
               <v-form ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
-                  v-model="formData.firstname"
+                  v-model="formData.firstName"
                   label="First Name"
                   required
                   variant="outlined"
@@ -49,7 +99,7 @@ const onFormSubmit = () => {
                 >
                 </v-text-field>
                 <v-text-field
-                  v-model="formData.lastname"
+                  v-model="formData.lastName"
                   label="Last Name"
                   required
                   variant="outlined"
@@ -103,6 +153,8 @@ const onFormSubmit = () => {
                   type="submit"
                   style="background-color: #0dceda; color: white"
                   class="custom-create my-2 mx-auto d-block"
+                  :disabled="formAction.formProcess"
+                  :loading="formAction.formProcess"
                 >
                   Create Account
                 </v-btn>
@@ -147,7 +199,6 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-
   background-image: url('/images/Background-Register.png');
   background-size: cover;
   background-repeat: no-repeat;

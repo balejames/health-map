@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app class="dashboard-bg">
     <!-- Sidebar -->
     <v-navigation-drawer app permanent color="#03a9f4" dark>
       <v-container class="text-center py-5">
@@ -26,7 +26,15 @@
             type="file"
             accept="image/*"
             @change="onFileSelected"
-            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0; cursor: pointer"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 80px;
+              height: 80px;
+              opacity: 0;
+              cursor: pointer;
+            "
           />
         </div>
 
@@ -164,12 +172,10 @@ const monthYearLabel = computed(() =>
   new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric',
-  })
+  }),
 )
 
-const daysInMonth = computed(() =>
-  new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
-)
+const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
 
 const blankDays = computed(() => {
   const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
@@ -285,6 +291,14 @@ const goToNextMonth = () => {
 </script>
 
 <style scoped>
+.dashboard-bg {
+  background-image: url('images/Background (3).png');
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
 .calendar-wrapper {
   background-color: #e0fff4;
   border-radius: 12px;
