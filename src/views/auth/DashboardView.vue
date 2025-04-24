@@ -1,3 +1,146 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+
+const selectedDate = ref('')
+const newEvent = ref({
+  title: '',
+  description: '',
+  barangay: '',
+  doctor: '',
+  startTime: '',
+  endTime: '',
+})
+const events = ref({})
+const dailyEvents = ref([])
+const dialog = ref(false)
+
+const today = new Date()
+const currentMonth = ref(today.getMonth())
+const currentYear = ref(today.getFullYear())
+
+const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
+const monthYearLabel = computed(() =>
+  new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  }),
+)
+
+const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
+
+const blankDays = computed(() => {
+  const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
+  return Array.from({ length: firstDay }, (_, i) => i)
+})
+
+const getDate = (day) => {
+  const date = new Date(currentYear.value, currentMonth.value, day)
+  return date.toISOString().split('T')[0]
+}
+
+const isToday = (dateString) => {
+  const todayDate = new Date()
+  const todayFormatted = todayDate.toISOString().split('T')[0]
+  return dateString === todayFormatted
+}
+
+const onDateClick = (date) => {
+  selectedDate.value = date
+  getEventsForDate()
+}
+
+const getEventsForDate = () => {
+  dailyEvents.value = events.value[selectedDate.value] || []
+}
+
+const openEventDialog = () => {
+  dialog.value = true
+}
+
+const addEvent = () => {
+  const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
+  if (!title.trim()) return
+
+  if (!events.value[selectedDate.value]) {
+    events.value[selectedDate.value] = []
+  }
+
+  events.value[selectedDate.value].push({
+    title,
+    description,
+    barangay,
+    doctor,
+    startTime,
+    endTime,
+  })
+  localStorage.setItem('events', JSON.stringify(events.value))
+
+  newEvent.value = {
+    title: '',
+    description: '',
+    barangay: '',
+    doctor: '',
+    startTime: '',
+    endTime: '',
+  }
+  dialog.value = false
+  getEventsForDate()
+}
+
+const hasEvents = (date) => {
+  return events.value[date] && events.value[date].length > 0
+}
+
+// Profile image logic
+const profileImage = ref('https://via.placeholder.com/200')
+// Removed unused profileFile declaration
+const showChangePicture = ref(false)
+
+const toggleChangePicture = () => {
+  showChangePicture.value = !showChangePicture.value
+}
+
+const onFileSelected = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      profileImage.value = e.target.result
+      localStorage.setItem('profileImage', profileImage.value)
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+onMounted(() => {
+  const stored = localStorage.getItem('events')
+  if (stored) {
+    events.value = JSON.parse(stored)
+  }
+
+  const storedImage = localStorage.getItem('profileImage')
+  if (storedImage) {
+    profileImage.value = storedImage
+  }
+})
+const goToPrevMonth = () => {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value -= 1
+  } else {
+    currentMonth.value -= 1
+  }
+}
+const goToNextMonth = () => {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value += 1
+  } else {
+    currentMonth.value += 1
+  }
+}
+</script>
 <template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
@@ -145,151 +288,6 @@
     </v-main>
   </v-app>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-
-const selectedDate = ref('')
-const newEvent = ref({
-  title: '',
-  description: '',
-  barangay: '',
-  doctor: '',
-  startTime: '',
-  endTime: '',
-})
-const events = ref({})
-const dailyEvents = ref([])
-const dialog = ref(false)
-
-const today = new Date()
-const currentMonth = ref(today.getMonth())
-const currentYear = ref(today.getFullYear())
-
-const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-
-const monthYearLabel = computed(() =>
-  new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  }),
-)
-
-const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
-
-const blankDays = computed(() => {
-  const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
-  return Array.from({ length: firstDay }, (_, i) => i)
-})
-
-const getDate = (day) => {
-  const date = new Date(currentYear.value, currentMonth.value, day)
-  return date.toISOString().split('T')[0]
-}
-
-const isToday = (dateString) => {
-  const todayDate = new Date()
-  const todayFormatted = todayDate.toISOString().split('T')[0]
-  return dateString === todayFormatted
-}
-
-const onDateClick = (date) => {
-  selectedDate.value = date
-  getEventsForDate()
-}
-
-const getEventsForDate = () => {
-  dailyEvents.value = events.value[selectedDate.value] || []
-}
-
-const openEventDialog = () => {
-  dialog.value = true
-}
-
-const addEvent = () => {
-  const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
-  if (!title.trim()) return
-
-  if (!events.value[selectedDate.value]) {
-    events.value[selectedDate.value] = []
-  }
-
-  events.value[selectedDate.value].push({
-    title,
-    description,
-    barangay,
-    doctor,
-    startTime,
-    endTime,
-  })
-  localStorage.setItem('events', JSON.stringify(events.value))
-
-  newEvent.value = {
-    title: '',
-    description: '',
-    barangay: '',
-    doctor: '',
-    startTime: '',
-    endTime: '',
-  }
-  dialog.value = false
-  getEventsForDate()
-}
-
-const hasEvents = (date) => {
-  return events.value[date] && events.value[date].length > 0
-}
-
-// Profile image logic
-const profileImage = ref('https://via.placeholder.com/200')
-// Removed unused profileFile declaration
-const showChangePicture = ref(false)
-
-const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
-}
-
-const onFileSelected = (e) => {
-  const file = e.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
-      localStorage.setItem('profileImage', profileImage.value)
-    }
-    reader.readAsDataURL(file)
-  }
-}
-
-onMounted(() => {
-  const stored = localStorage.getItem('events')
-  if (stored) {
-    events.value = JSON.parse(stored)
-  }
-
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-})
-const goToPrevMonth = () => {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value -= 1
-  } else {
-    currentMonth.value -= 1
-  }
-}
-const goToNextMonth = () => {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value += 1
-  } else {
-    currentMonth.value += 1
-  }
-}
-</script>
-
 <style scoped>
 .dashboard-bg {
   background-image: url('images/Background (3).png');
