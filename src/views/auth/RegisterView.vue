@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import AlertNotification from '@/components/AlertNotification.vue'
 import { supabase, formActionDefault } from '@/utils/supabase.js'
 import {
   requiredValidator,
@@ -47,6 +48,7 @@ const onSubmit = async () => {
   } else if (data) {
     console.log(data)
     formAction.value.formSuccessMessage = 'Account created successfully!'
+    refVForm.value?.reset()
   }
 
   formAction.value.formProcess = false
@@ -59,29 +61,10 @@ const onFormSubmit = () => {
 }
 </script>
 <template>
-  <!--  -->
-  <v-alert
-    v-if="formAction.formSuccessMessage"
-    :text="formAction.formSuccessMessage"
-    title="Success!"
-    type="success"
-    variant="tonal"
-    density="compact"
-    border="start"
-    closable
-  >
-  </v-alert>
-  <v-alert
-    v-if="formAction.formErrorMessage"
-    :text="formAction.formErrorMessage"
-    title="Ooops!"
-    type="error"
-    variant="tonal"
-    density="compact"
-    border="start"
-    closable
-  >
-  </v-alert>
+  <AlertNotification
+    :form-success-message="formAction.formSuccessMessage"
+    :form-error-message="formAction.formErrorMEssage"
+  ></AlertNotification>
 
   <div class="create-account-wrapper">
     <v-container fluid>
@@ -92,7 +75,7 @@ const onFormSubmit = () => {
               <h2 class="text-center">Create account</h2>
             </template>
             <v-card-text>
-              <v-form ref="refVForm" @submit.prevent="onFormSubmit">
+              <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.firstName"
                   label="First Name"
