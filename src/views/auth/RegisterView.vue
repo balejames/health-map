@@ -25,7 +25,8 @@ const formData = ref({ ...formDataDefault })
 const formAction = ref({ ...formActionDefault })
 
 const onSubmit = async () => {
-  formAction = { ...formDataDefault }
+  formAction.value = { ...formActionDefault }
+  // formAction = { ...formDataDefault }
   formAction.value.formProcess = true
 
   const { data, error } = await supabase.auth.signUp({
@@ -35,6 +36,7 @@ const onSubmit = async () => {
       data: {
         firstName: formData.value.firstName,
         lastName: formData.value.lastName,
+        barangay: formData.value.barangay,
       },
     },
   })
@@ -44,6 +46,7 @@ const onSubmit = async () => {
     formAction.value.formStatus = error.status
   } else if (data) {
     console.log(data)
+    formAction.value.formSuccessMessage = 'Account created successfully!'
   }
 
   formAction.value.formProcess = false
@@ -51,7 +54,7 @@ const onSubmit = async () => {
 
 const onFormSubmit = () => {
   refVForm.value?.validate().then(({ valid }) => {
-    if (Valid) onSubmit()
+    if (valid) onSubmit()
   })
 }
 </script>
