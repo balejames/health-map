@@ -155,8 +155,6 @@ const onFormSubmit = () => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="2"></v-col>
-        <v-col cols="12" sm="4" md="5" lg="4" class="text-center mb-4"> </v-col>
       </v-row>
     </v-container>
   </div>
