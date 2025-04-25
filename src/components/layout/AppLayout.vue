@@ -1,5 +1,5 @@
 <script setup>
-import { isAuthenticated } from '@/utils/supabase.js'
+import { isAuthenticated } from '@/utils/supabase'
 import { onMounted, ref } from 'vue'
 import { useDisplay } from 'vuetify'
 

@@ -1,5 +1,8 @@
 <script setup>
+import { isAuthenticated } from '@/utils/supabase'
 import { ref, computed, onMounted } from 'vue'
+
+const drawer = ref(true)
 
 const selectedDate = ref('')
 const newEvent = ref({
@@ -144,7 +147,14 @@ const goToNextMonth = () => {
 <template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
-    <v-navigation-drawer app permanent color="#03a9f4" dark>
+    <v-navigation-drawer
+      app
+      v-model="drawer"
+      :permanent="$vuetify.display.mdAndUp"
+      temporary
+      color="#03a9f4"
+      dark
+    >
       <v-container class="text-center py-5">
         <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
@@ -194,12 +204,16 @@ const goToNextMonth = () => {
       </v-container>
     </v-navigation-drawer>
 
+    <v-app-bar app color="#0288d1" dark>
+      <v-app-bar-nav-icon @click="drawer = !drawer" />
+      <v-toolbar-title>Dashboard</v-toolbar-title>
+    </v-app-bar>
     <!-- Main Content -->
     <v-main>
       <v-container>
         <v-row>
-          <v-col cols="12" md="8" offset-md="2">
-            <!-- Event Display -->
+          <!-- Event Display -->
+          <v-col cols="12" md="6">
             <v-card class="mb-4">
               <v-card-title>
                 Service Today
@@ -211,51 +225,49 @@ const goToNextMonth = () => {
               <v-card-text>
                 <v-list v-if="dailyEvents.length">
                   <v-list-item v-for="(event, index) in dailyEvents" :key="index">
-                    <v-list-item-content>
-                      <div>
-                        <strong>{{ event.title }}</strong>
-                      </div>
-                      <div>{{ event.description }}</div>
-                      <div>
-                        <em>Doctor: {{ event.doctor }}</em>
-                      </div>
-                      <div>
-                        <em>Barangay: {{ event.barangay }}</em>
-                      </div>
-                      <div>Time: {{ event.startTime }} - {{ event.endTime }}</div>
-                    </v-list-item-content>
+                    <div>
+                      <strong>{{ event.title }}</strong
+                      ><br />
+                      {{ event.description }}<br />
+                      <em>Doctor: {{ event.doctor }}</em
+                      ><br />
+                      <em>Barangay: {{ event.barangay }}</em
+                      ><br />
+                      Time: {{ event.startTime }} - {{ event.endTime }}
+                    </div>
                   </v-list-item>
                 </v-list>
                 <div v-else>No service for this day.</div>
               </v-card-text>
             </v-card>
+          </v-col>
 
-            <!-- Calendar -->
+          <!-- Calendar -->
+          <v-col cols="12" md="6">
             <div class="calendar-wrapper">
               <div class="calendar-header">
                 <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
                 <span>{{ monthYearLabel }}</span>
                 <v-btn icon @click="goToNextMonth"><v-icon>mdi-chevron-right</v-icon></v-btn>
               </div>
+
               <div class="calendar-weekdays">
                 <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
               </div>
+
               <div class="calendar-days">
                 <div
                   v-for="blank in blankDays"
                   :key="'b-' + blank"
                   class="calendar-day empty"
                 ></div>
+
                 <div
                   v-for="day in daysInMonth"
                   :key="day"
                   class="calendar-day"
                   @click="onDateClick(getDate(day))"
-                  :class="{
-                    selected: selectedDate === getDate(day),
-                    today: isToday(getDate(day)),
-                  }"
-                  style="position: relative"
+                  :class="{ selected: selectedDate === getDate(day), today: isToday(getDate(day)) }"
                 >
                   <span>{{ day }}</span>
                   <span v-if="hasEvents(getDate(day))" class="event-dot"></span>
@@ -267,7 +279,7 @@ const goToNextMonth = () => {
 
         <!-- Add Event Dialog -->
         <v-dialog v-model="dialog" max-width="500">
-          <v-card>
+          <v-card class="pa-4 pa-sm-6">
             <v-card-title>Add Event Today</v-card-title>
             <v-card-text>
               <v-text-field v-model="newEvent.title" label="Event Title" />
@@ -325,9 +337,20 @@ const goToNextMonth = () => {
   text-align: center;
 }
 
-.weekday {
-  font-weight: bold;
-  color: #333;
+@media (max-width: 600px) {
+  .calendar-day {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .calendar-header span {
+    font-size: 16px;
+  }
+
+  .calendar-weekdays,
+  .calendar-days {
+    gap: 6px;
+  }
 }
 
 .calendar-day {
@@ -365,6 +388,6 @@ const goToNextMonth = () => {
 }
 
 .v-btn {
-  margin-top: 12px;
+  margin-block: 12px;
 }
 </style>
