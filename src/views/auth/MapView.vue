@@ -5,17 +5,47 @@
       <v-container class="text-center py-5">
         <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
-          <v-avatar size="80" class="mx-auto mb-4" @click="toggleChangePicture" style="cursor: pointer">
-            <img :src="profileImage" alt="Profile" width="80" height="80" style="object-fit: cover" />
+          <v-avatar
+            size="80"
+            class="mx-auto mb-4"
+            @click="toggleChangePicture"
+            style="cursor: pointer"
+          >
+            <img
+              :src="profileImage"
+              alt="Profile"
+              width="80"
+              height="80"
+              style="object-fit: cover"
+            />
           </v-avatar>
 
           <!-- Hidden File Input for Changing Profile Picture -->
-          <input v-if="showChangePicture" type="file" accept="image/*" @change="onFileSelected"
-                 style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0; cursor: pointer" />
+          <input
+            v-if="showChangePicture"
+            type="file"
+            accept="image/*"
+            @change="onFileSelected"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 80px;
+              height: 80px;
+              opacity: 0;
+              cursor: pointer;
+            "
+          />
         </div>
 
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" color="white" variant="text" @click="$router.push('/dashboard')">
+        <v-btn
+          block
+          class="mt-9 mb-3"
+          color="white"
+          variant="text"
+          @click="$router.push('/dashboard')"
+        >
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" style="background-color: #0288d1" variant="elevated">
@@ -143,7 +173,7 @@ onMounted(() => {
 
     activeBarangays.forEach((barangayKey) => {
       const entry = Object.entries(barangayCoordinates).find(
-        ([key]) => normalize(key) === barangayKey
+        ([key]) => normalize(key) === barangayKey,
       )
       if (entry) {
         const [name, coords] = entry
@@ -176,7 +206,7 @@ const showEventDetails = (barangay) => {
 
     const normalizedBarangay = normalize(barangay)
     const barangayEvents = todayEvents.filter(
-      (event) => normalize(event.barangay) === normalizedBarangay
+      (event) => normalize(event.barangay) === normalizedBarangay,
     )
 
     if (barangayEvents.length > 0) {
@@ -199,7 +229,6 @@ const showEventDetails = (barangay) => {
   })
 }
 </script>
-
 
 <style scoped>
 .map-container {

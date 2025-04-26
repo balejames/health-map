@@ -1,153 +1,18 @@
-<template>
-  <v-app class="dashboard-bg">
-    <!-- Sidebar -->
-    <v-navigation-drawer app permanent color="#03a9f4" dark>
-      <v-container class="text-center py-5">
-        <!-- Profile Picture as Clickable Circle -->
-        <div style="position: relative; display: inline-block">
-          <v-avatar
-            size="80"
-            class="mx-auto mb-4"
-            @click="toggleChangePicture"
-            style="cursor: pointer"
-          >
-            <img
-              :src="profileImage"
-              alt="Profile"
-              width="80"
-              height="80"
-              style="object-fit: cover"
-            />
-          </v-avatar>
-
-          <!-- Hidden File Input for Changing Profile Picture -->
-          <input
-            v-if="showChangePicture"
-            type="file"
-            accept="image/*"
-            @change="onFileSelected"
-            style="
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 80px;
-              height: 80px;
-              opacity: 0;
-              cursor: pointer;
-            "
-          />
-        </div>
-
-        <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" style="background-color: #0288d1" variant="elevated">
-          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
-        </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
-          <v-icon left>mdi-map</v-icon> Map View
-        </v-btn>
-        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
-          <v-icon left>mdi-logout</v-icon> Log out
-        </v-btn>
-      </v-container>
-    </v-navigation-drawer>
-
-    <!-- Main Content -->
-    <v-main>
-      <v-container>
-        <v-row>
-          <v-col cols="12" md="8" offset-md="2">
-            <!-- Event Display -->
-            <v-card class="mb-4">
-              <v-card-title>
-                Service Today
-                <v-spacer />
-                <v-btn v-if="selectedDate" color="primary" @click="openEventDialog" small>
-                  Add Service
-                </v-btn>
-              </v-card-title>
-              <v-card-text>
-                <v-list v-if="dailyEvents.length">
-                  <v-list-item v-for="(event, index) in dailyEvents" :key="index">
-                    <v-list-item-content>
-                      <div>
-                        <strong>{{ event.title }}</strong>
-                      </div>
-                      <div>{{ event.description }}</div>
-                      <div>
-                        <em>Doctor: {{ event.doctor }}</em>
-                      </div>
-                      <div>
-                        <em>Barangay: {{ event.barangay }}</em>
-                      </div>
-                      <div>Time: {{ event.startTime }} - {{ event.endTime }}</div>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list>
-                <div v-else>No service for this day.</div>
-              </v-card-text>
-            </v-card>
-
-            <!-- Calendar -->
-            <div class="calendar-wrapper">
-              <div class="calendar-header">
-                <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
-                <span>{{ monthYearLabel }}</span>
-                <v-btn icon @click="goToNextMonth"><v-icon>mdi-chevron-right</v-icon></v-btn>
-              </div>
-              <div class="calendar-weekdays">
-                <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
-              </div>
-              <div class="calendar-days">
-                <div
-                  v-for="blank in blankDays"
-                  :key="'b-' + blank"
-                  class="calendar-day empty"
-                ></div>
-                <div
-                  v-for="day in daysInMonth"
-                  :key="day"
-                  class="calendar-day"
-                  @click="onDateClick(getDate(day))"
-                  :class="{
-                    selected: selectedDate === getDate(day),
-                    today: isToday(getDate(day)),
-                  }"
-                  style="position: relative"
-                >
-                  <span>{{ day }}</span>
-                  <span v-if="hasEvents(getDate(day))" class="event-dot"></span>
-                </div>
-              </div>
-            </div>
-          </v-col>
-        </v-row>
-
-        <!-- Add Event Dialog -->
-        <v-dialog v-model="dialog" max-width="500">
-          <v-card>
-            <v-card-title>Add Event Today</v-card-title>
-            <v-card-text>
-              <v-text-field v-model="newEvent.title" label="Event Title" />
-              <v-text-field v-model="newEvent.description" label="Description" />
-              <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
-              <v-text-field v-model="newEvent.barangay" label="Barangay" />
-              <v-text-field v-model="newEvent.startTime" label="Start Time (e.g. 9:00 AM)" />
-              <v-text-field v-model="newEvent.endTime" label="End Time (e.g. 11:00 AM)" />
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer />
-              <v-btn text @click="dialog = false">Cancel</v-btn>
-              <v-btn color="primary" @click="addEvent">Add</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-container>
-    </v-main>
-  </v-app>
-</template>
-
 <script setup>
+import { isAuthenticated } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const drawer = ref(true)
+const router = useRouter()
+function logout() {
+  router.push('/login')
+}
+const fileInput = ref(null)
+
+function editAccount() {
+  fileInput.value.click()
+}
 
 const selectedDate = ref('')
 const newEvent = ref({
@@ -253,8 +118,9 @@ const onFileSelected = (e) => {
   const file = e.target.files[0]
   if (file) {
     const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
+    reader.onload = () => {
+      // wala na (e) diri
+      profileImage.value = reader.result // reader.result instead of e.target.result
       localStorage.setItem('profileImage', profileImage.value)
     }
     reader.readAsDataURL(file)
@@ -289,7 +155,178 @@ const goToNextMonth = () => {
   }
 }
 </script>
+<template>
+  <v-app class="dashboard-bg">
+    <!-- Sidebar -->
+    <v-navigation-drawer
+      app
+      v-model="drawer"
+      :permanent="$vuetify.display.mdAndUp"
+      temporary
+      color="#03a9f4"
+      dark
+    >
+      <v-container class="text-center py-5">
+        <!-- Profile Section with Dropdown Menu -->
+        <v-row justify="center">
+          <v-menu min-width="200px">
+            <template v-slot:activator="{ props }">
+              <v-btn icon v-bind="props">
+                <v-avatar size="100">
+                  <img :src="profileImage" alt="Profile" style="object-fit: cover" />
+                </v-avatar>
+              </v-btn>
+            </template>
 
+            <v-card>
+              <v-card-text>
+                <div class="mx-auto text-center">
+                  <v-avatar size="100">
+                    <img :src="profileImage" alt="Profile" style="object-fit: cover" />
+                  </v-avatar>
+                  <h3>{{ userFullName }}</h3>
+                  <p class="text-caption mt-1">{{ userEmail }}</p>
+                  <v-divider class="my-3"></v-divider>
+                  <v-btn variant="text" rounded @click="editAccount">Edit Account</v-btn>
+                  <v-divider class="my-3"></v-divider>
+                  <v-btn variant="text" rounded color="red" @click="logout">
+                    <v-icon left>mdi-logout</v-icon>
+                    Log out
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-menu>
+        </v-row>
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          style="display: none"
+          @change="onFileSelected"
+        />
+        <!-- Navigation Buttons -->
+        <br />
+        <br />
+        <v-btn
+          block
+          class="mt-9 mb-3"
+          style="background-color: #0288d1"
+          variant="elevated"
+          @click="$router.push('/dashboard')"
+        >
+          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
+        </v-btn>
+        <br />
+        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
+          <v-icon left>mdi-map</v-icon> Map View
+        </v-btn>
+        <br />
+        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
+          <v-icon left>mdi-logout</v-icon> Log out
+        </v-btn>
+      </v-container>
+    </v-navigation-drawer>
+
+    <v-app-bar app color="#0288d1" dark>
+      <v-app-bar-nav-icon @click="drawer = !drawer">
+        <v-icon>{{ drawer ? 'mdi-arrow-left' : 'mdi-menu' }}</v-icon>
+      </v-app-bar-nav-icon>
+      <v-toolbar-title>Dashboard</v-toolbar-title>
+    </v-app-bar>
+    <!-- Main Content -->
+    <v-main>
+      <v-container fluid>
+        <v-row>
+          <!-- Event Display -->
+          <v-col cols="12" md="6">
+            <v-card class="mb-4">
+              <v-card-title>
+                Service Today
+                <v-spacer />
+                <v-btn v-if="selectedDate" color="primary" @click="openEventDialog" small>
+                  Add Service
+                </v-btn>
+              </v-card-title>
+              <v-card-text>
+                <v-list v-if="dailyEvents.length">
+                  <v-list-item v-for="(event, index) in dailyEvents" :key="index">
+                    <div>
+                      <strong>{{ event.title }}</strong
+                      ><br />
+                      {{ event.description }}<br />
+                      <em>Doctor: {{ event.doctor }}</em
+                      ><br />
+                      <em>Barangay: {{ event.barangay }}</em
+                      ><br />
+                      Time: {{ event.startTime }} - {{ event.endTime }}
+                    </div>
+                  </v-list-item>
+                </v-list>
+                <div v-else>No service for this day.</div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <!-- Calendar -->
+          <v-col cols="12" md="6">
+            <div class="calendar-wrapper">
+              <div class="calendar-header">
+                <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
+                <span>{{ monthYearLabel }}</span>
+                <v-btn icon @click="goToNextMonth"><v-icon>mdi-chevron-right</v-icon></v-btn>
+              </div>
+
+              <div class="calendar-weekdays">
+                <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
+              </div>
+
+              <div class="calendar-days">
+                <div
+                  v-for="blank in blankDays"
+                  :key="'b-' + blank"
+                  class="calendar-day empty"
+                ></div>
+
+                <div
+                  v-for="day in daysInMonth"
+                  :key="day"
+                  class="calendar-day"
+                  @click="onDateClick(getDate(day))"
+                  :class="{ selected: selectedDate === getDate(day), today: isToday(getDate(day)) }"
+                >
+                  <span>{{ day }}</span>
+                  <span v-if="hasEvents(getDate(day))" class="event-dot"></span>
+                </div>
+              </div>
+            </div>
+          </v-col>
+        </v-row>
+
+        <!-- Add Event Dialog -->
+        <v-dialog v-model="dialog" max-width="500">
+          <v-card class="pa-4 pa-sm-6">
+            <v-card-title>Add Event Today</v-card-title>
+            <v-card-text>
+              <v-text-field v-model="newEvent.title" label="Event Title" />
+              <v-text-field v-model="newEvent.description" label="Description" />
+              <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
+              <v-text-field v-model="newEvent.barangay" label="Barangay" />
+              <!-- TIME PICKERS -->
+              <v-text-field v-model="newEvent.startTime" label="Start Time" type="time" />
+              <v-text-field v-model="newEvent.endTime" label="End Time" type="time" />
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn text @click="dialog = false">Cancel</v-btn>
+              <v-btn color="primary" @click="addEvent">Add</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-container>
+    </v-main>
+  </v-app>
+</template>
 <style scoped>
 .dashboard-bg {
   background-image: url('images/Background (3).png');
@@ -327,9 +364,20 @@ const goToNextMonth = () => {
   text-align: center;
 }
 
-.weekday {
-  font-weight: bold;
-  color: #333;
+@media (max-width: 600px) {
+  .calendar-day {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .calendar-header span {
+    font-size: 16px;
+  }
+
+  .calendar-weekdays,
+  .calendar-days {
+    gap: 6px;
+  }
 }
 
 .calendar-day {
@@ -367,6 +415,6 @@ const goToNextMonth = () => {
 }
 
 .v-btn {
-  margin-top: 12px;
+  margin-block: 12px;
 }
 </style>
