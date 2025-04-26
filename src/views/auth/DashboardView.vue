@@ -222,9 +222,6 @@ const goToNextMonth = () => {
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
         <br />
-        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
-          <v-icon left>mdi-logout</v-icon> Log out
-        </v-btn>
       </v-container>
     </v-navigation-drawer>
 
