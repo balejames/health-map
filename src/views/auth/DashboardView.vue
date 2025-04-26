@@ -248,9 +248,15 @@ const goToNextMonth = () => {
 
       <div v-else>No service for this day.</div>
 
-      <v-btn v-if="selectedDate" color="#5da8ca" class="mt-4" small @click="openServiceDialog">
-        Add New Service
-      </v-btn>
+      <div class="d-flex mt-4" v-if="selectedDate">
+  <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog">
+    Add New Service
+  </v-btn>
+  <v-btn color="error" small @click="openDeleteServiceDialog">
+    Delete Service
+  </v-btn>
+</div>
+
     </v-card-text>
   </v-card>
 </v-col>
