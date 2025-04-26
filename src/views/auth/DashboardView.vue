@@ -3,17 +3,14 @@ import { isAuthenticated } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const drawer = ref(true)
+const drawer = ref(true) // control sidebar visibility
 const router = useRouter()
+
 function logout() {
   router.push('/login')
 }
+
 const fileInput = ref(null)
-
-function editAccount() {
-  fileInput.value.click()
-}
-
 const selectedDate = ref('')
 const newService = ref({
   title: '',
@@ -37,7 +34,7 @@ const monthYearLabel = computed(() =>
   new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric',
-  }),
+  })
 )
 
 const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
@@ -107,7 +104,6 @@ const hasServices = (date) => {
 
 // Profile image logic
 const profileImage = ref('https://via.placeholder.com/200')
-// Removed unused profileFile declaration
 const showChangePicture = ref(false)
 
 const toggleChangePicture = () => {
@@ -119,8 +115,7 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      // wala na (e) diri
-      profileImage.value = reader.result // reader.result instead of e.target.result
+      profileImage.value = reader.result
       localStorage.setItem('profileImage', profileImage.value)
     }
     reader.readAsDataURL(file)
@@ -138,6 +133,7 @@ onMounted(() => {
     profileImage.value = storedImage
   }
 })
+
 const goToPrevMonth = () => {
   if (currentMonth.value === 0) {
     currentMonth.value = 11
@@ -146,6 +142,7 @@ const goToPrevMonth = () => {
     currentMonth.value -= 1
   }
 }
+
 const goToNextMonth = () => {
   if (currentMonth.value === 11) {
     currentMonth.value = 0
@@ -155,12 +152,13 @@ const goToNextMonth = () => {
   }
 }
 </script>
-<template>
+
+]<template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
-    <v-navigation-drawer app permanent color="#47b8c7" dark>
+    <v-navigation-drawer v-model="drawer" app color="#47b8c7" dark>
       <v-container class="text-center py-5">
-        <!-- Profile Picture as Clickable Circle -->
+        <!-- Profile Picture -->
         <div style="position: relative; display: inline-block">
           <v-avatar
             size="80"
@@ -168,30 +166,15 @@ const goToNextMonth = () => {
             @click="toggleChangePicture"
             style="cursor: pointer"
           >
-            <img
-              :src="profileImage"
-              alt="Profile"
-              width="80"
-              height="80"
-              style="object-fit: cover"
-            />
+            <img :src="profileImage" alt="Profile" width="80" height="80" style="object-fit: cover" />
           </v-avatar>
-
-          <!-- Hidden File Input for Changing Profile Picture -->
           <input
             v-if="showChangePicture"
+            ref="fileInput"
             type="file"
             accept="image/*"
             @change="onFileSelected"
-            style="
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 80px;
-              height: 80px;
-              opacity: 0;
-              cursor: pointer;
-            "
+            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0; cursor: pointer"
           />
         </div>
 
@@ -202,57 +185,55 @@ const goToNextMonth = () => {
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
-        <br><br><br><br>
-        <br><br><br><br>
-        <br><br>
         <v-spacer></v-spacer>
-        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
+        <v-btn block class="mt-9" color="white" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> Log out
         </v-btn>
       </v-container>
     </v-navigation-drawer>
 
+    <!-- Topbar -->
     <v-app-bar app color="transparent" dark elevation="0">
       <v-app-bar-nav-icon @click="drawer = !drawer">
-        <v-icon>{{ drawer ? 'mdi-arrow-left' : 'mdi-menu' }}</v-icon>
+        <v-icon>{{ drawer ? 'mdi-menu-open' : 'mdi-menu' }}</v-icon>
       </v-app-bar-nav-icon>
       <v-toolbar-title>Dashboard</v-toolbar-title>
     </v-app-bar>
+
     <!-- Main Content -->
     <v-main>
       <v-container fluid>
         <v-row>
           <!-- Service Display -->
           <v-col cols="12" md="6">
-  <v-card class="mb-4">
-    <v-card-title class="service-title">
-      Service Today
-      <v-spacer />
-    </v-card-title>
+            <v-card class="mb-4">
+              <v-card-title class="service-title">
+                Service Today
+                <v-spacer />
+              </v-card-title>
 
-    <v-divider></v-divider> <!-- Divider Line -->
+              <v-divider></v-divider>
 
-    <v-card-text>
-      <v-list v-if="dailyServices.length">
-        <v-list-item v-for="(service, index) in dailyServices" :key="index">
-          <div>
-            <strong>{{ service.title }}</strong><br />
-            {{ service.description }}<br />
-            <em>Doctor: {{ service.doctor }}</em><br />
-            <em>Barangay: {{ service.barangay }}</em><br />
-            Time: {{ service.startTime }} - {{ service.endTime }}
-          </div>
-        </v-list-item>
-      </v-list>
-      <div v-else>No service for this day.</div>
+              <v-card-text>
+                <v-list v-if="dailyServices.length">
+                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
+                    <div>
+                      <strong>{{ service.title }}</strong><br />
+                      {{ service.description }}<br />
+                      <em>Doctor: {{ service.doctor }}</em><br />
+                      <em>Barangay: {{ service.barangay }}</em><br />
+                      Time: {{ service.startTime }} - {{ service.endTime }}
+                    </div>
+                  </v-list-item>
+                </v-list>
+                <div v-else>No service for this day.</div>
 
-      <v-btn v-if="selectedDate" color="#5da8ca" @click="openServiceDialog" small>
-        Add Service
-      </v-btn>
-    </v-card-text>
-  </v-card>
-</v-col>
-
+                <v-btn v-if="selectedDate" color="#5da8ca" @click="openServiceDialog" small>
+                  Add Service
+                </v-btn>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
           <!-- Calendar -->
           <v-col cols="12" md="6">
@@ -268,12 +249,7 @@ const goToNextMonth = () => {
               </div>
 
               <div class="calendar-days">
-                <div
-                  v-for="blank in blankDays"
-                  :key="'b-' + blank"
-                  class="calendar-day empty"
-                ></div>
-
+                <div v-for="blank in blankDays" :key="'b-' + blank" class="calendar-day empty"></div>
                 <div
                   v-for="day in daysInMonth"
                   :key="day"
@@ -299,14 +275,13 @@ const goToNextMonth = () => {
               <v-text-field v-model="newService.doctor" label="Doctor's Name" />
               <v-text-field v-model="newService.barangay" label="Barangay" />
               <v-row>
-               <v-col cols="6">
-                 <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
-             </v-col>
-                 <v-col cols="6">
-                   <v-text-field v-model="newService.endTime" label="End Time" type="time" />
-                 </v-col>
-            </v-row>
-
+                <v-col cols="6">
+                  <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field v-model="newService.endTime" label="End Time" type="time" />
+                </v-col>
+              </v-row>
             </v-card-text>
             <v-card-actions>
               <v-spacer />
@@ -319,9 +294,10 @@ const goToNextMonth = () => {
     </v-main>
   </v-app>
 </template>
+
 <style scoped>
 .dashboard-bg {
-  background-image: url('C:\Users\berou\Desktop\team-collab\public\images\Background.png');
+  background-image: url('C:/Users/berou/Desktop/team-collab/public/images/Background.png');
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
@@ -415,10 +391,11 @@ const goToNextMonth = () => {
   background-color: #9bd1f8;
   font-weight: bold;
   color: #ffffff;
-  font-family:Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 20px;
   padding: 16px;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
 </style>
+
