@@ -178,19 +178,38 @@ const goToNextMonth = () => {
           </v-avatar>
 
           <!-- Hidden File Input for Changing Profile Picture -->
-          <v-file-input
+          <input
             v-if="showChangePicture"
-            v-model="profileFile"
+            type="file"
             accept="image/*"
-            label="Change Profile Picture"
-            hide-details
-            dense
-            prepend-icon="mdi-camera"
             @change="onFileSelected"
-            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 80px;
+              height: 80px;
+              opacity: 0;
+              cursor: pointer;
+            "
           />
         </div>
 
+        <!-- Navigation Buttons -->
+        <v-btn block class="mt-9 mb-3" style="background-color: #BDDDE4" variant="elevated">
+          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
+        </v-btn>
+        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
+          <v-icon left>mdi-map</v-icon> Map View
+        </v-btn>
+        <br><br><br><br>
+        <br><br><br><br>
+        <br><br>
+        <v-spacer></v-spacer>
+        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
+          <v-icon left>mdi-logout</v-icon> Log out
+        </v-btn>
+      </v-container>
     </v-navigation-drawer>
 
     <v-app-bar app color="transparent" dark elevation="0">
@@ -365,16 +384,6 @@ const goToNextMonth = () => {
   font-weight: bold;
 }
 
-.event-dot {
-  width: 8px;
-  height: 8px;
-  background-color: rgb(84, 101, 255);
-  border-radius: 50%;
-  position: absolute;
-  bottom: 4px;
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Adjust for perfect centering */
-}
 
 
 .empty {
