@@ -228,9 +228,7 @@ const goToNextMonth = () => {
               <v-card-title>
                 Service Today
                 <v-spacer />
-                <v-btn v-if="selectedDate" color="primary" @click="openServiceDialog" small>
-                  Add Service
-                </v-btn>
+
               </v-card-title>
               <v-card-text>
                 <v-list v-if="dailyServices.length">
@@ -248,6 +246,9 @@ const goToNextMonth = () => {
                   </v-list-item>
                 </v-list>
                 <div v-else>No service for this day.</div>
+                <v-btn v-if="selectedDate" color="primary" @click="openServiceDialog" small>
+                  Add Service
+                </v-btn>
               </v-card-text>
             </v-card>
           </v-col>
@@ -296,9 +297,15 @@ const goToNextMonth = () => {
               <v-text-field v-model="newService.description" label="Description" />
               <v-text-field v-model="newService.doctor" label="Doctor's Name" />
               <v-text-field v-model="newService.barangay" label="Barangay" />
-              <!-- TIME PICKERS -->
-              <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
-              <v-text-field v-model="newService.endTime" label="End Time" type="time" />
+              <v-row>
+               <v-col cols="6">
+                 <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
+             </v-col>
+                 <v-col cols="6">
+                   <v-text-field v-model="newService.endTime" label="End Time" type="time" />
+                 </v-col>
+            </v-row>
+
             </v-card-text>
             <v-card-actions>
               <v-spacer />
