@@ -158,7 +158,7 @@ const goToNextMonth = () => {
 <template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
-    <v-navigation-drawer app permanent color="#03a9f4" dark>
+    <v-navigation-drawer app permanent color="#47b8c7" dark>
       <v-container class="text-center py-5">
         <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
@@ -192,7 +192,7 @@ const goToNextMonth = () => {
         </div>
 
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" style="background-color: #0288d1" variant="elevated">
+        <v-btn block class="mt-9 mb-3" style="background-color: #BDDDE4" variant="elevated">
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
@@ -323,7 +323,7 @@ const goToNextMonth = () => {
   font-weight: bold;
   text-align: center;
   color: white;
-  background-color: #00bcd4;
+  background-color: #47b8c7;
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 10px;
@@ -371,7 +371,7 @@ const goToNextMonth = () => {
 }
 
 .calendar-day.today {
-  background-color: #b3e5fc;
+  background-color: #5da8ca;
   color: #0277bd;
   font-weight: bold;
 }
@@ -383,8 +383,10 @@ const goToNextMonth = () => {
   border-radius: 50%;
   position: absolute;
   bottom: 4px;
-  right: 4px;
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for perfect centering */
 }
+
 
 .empty {
   background-color: transparent;
