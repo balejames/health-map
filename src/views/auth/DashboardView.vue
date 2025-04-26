@@ -166,37 +166,42 @@ const goToNextMonth = () => {
       color="#03a9f4"
       dark
     >
-      <v-container class="text-center py-5">
+      <v-container class="d-flex flex-column justify-space-between h-100 py-5">
         <!-- Profile Section with Dropdown Menu -->
         <v-row justify="center">
-          <v-menu min-width="200px">
-            <template v-slot:activator="{ props }">
-              <v-btn icon v-bind="props">
-                <v-avatar size="100">
-                  <img :src="profileImage" alt="Profile" style="object-fit: cover" />
-                </v-avatar>
-              </v-btn>
-            </template>
+          <div style="position: relative; display: inline-block">
+            <v-avatar
+              size="120"
+              class="mx-auto mb-4"
+              @click="toggleChangePicture"
+              style="cursor: pointer"
+            >
+              <img
+                :src="profileImage"
+                alt="Profile"
+                width="120"
+                height="120"
+                style="object-fit: cover"
+              />
+            </v-avatar>
 
-            <v-card>
-              <v-card-text>
-                <div class="mx-auto text-center">
-                  <v-avatar size="100">
-                    <img :src="profileImage" alt="Profile" style="object-fit: cover" />
-                  </v-avatar>
-                  <h3>{{ userFullName }}</h3>
-                  <p class="text-caption mt-1">{{ userEmail }}</p>
-                  <v-divider class="my-3"></v-divider>
-                  <v-btn variant="text" rounded @click="editAccount">Edit Account</v-btn>
-                  <v-divider class="my-3"></v-divider>
-                  <v-btn variant="text" rounded color="red" @click="logout">
-                    <v-icon left>mdi-logout</v-icon>
-                    Log out
-                  </v-btn>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-menu>
+            <!-- Hidden File Input for Changing Profile Picture -->
+            <input
+              v-if="showChangePicture"
+              type="file"
+              accept="image/*"
+              @change="onFileSelected"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 120px;
+                height: 120px;
+                opacity: 0;
+                cursor: pointer;
+              "
+            />
+          </div>
         </v-row>
         <input
           ref="fileInput"
@@ -221,11 +226,18 @@ const goToNextMonth = () => {
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
-        <br />
+        <br /><br /><br /><br />
+        <br /><br /><br />
+        <br /><br /><br /><br /><br />
+
+        <v-btn block class="mt-auto mb-4" variant="text" rounded color="red" @click="logout">
+          <v-icon left>mdi-logout</v-icon>
+          Log out
+        </v-btn>
       </v-container>
     </v-navigation-drawer>
 
-    <v-app-bar app color="#0288d1" dark>
+    <v-app-bar app color="transparent" dark elevation="0">
       <v-app-bar-nav-icon @click="drawer = !drawer">
         <v-icon>{{ drawer ? 'mdi-arrow-left' : 'mdi-menu' }}</v-icon>
       </v-app-bar-nav-icon>
