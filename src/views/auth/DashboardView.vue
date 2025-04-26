@@ -101,21 +101,25 @@ const addService = () => {
   getServicesForDate()
 }
 
-const deleteDialog = ref(false) // control for delete dialog
+// 🆕 Multiple Delete Support
+const deleteDialog = ref(false)
+const selectedServices = ref([])
 
 const openDeleteServiceDialog = () => {
+  selectedServices.value = [] // clear selection kada open
   deleteDialog.value = true
 }
 
-const deleteService = (index) => {
-  if (confirm('Are you sure you want to delete this service?')) {
-    dailyServices.value.splice(index, 1)
-    services.value[selectedDate.value] = dailyServices.value
-    localStorage.setItem('services', JSON.stringify(services.value))
-    deleteDialog.value = false
+const deleteSelectedServices = () => {
+  if (selectedServices.value.length) {
+    if (confirm(`Are you sure you want to delete ${selectedServices.value.length} service(s)?`)) {
+      dailyServices.value = dailyServices.value.filter((_, index) => !selectedServices.value.includes(index))
+      services.value[selectedDate.value] = dailyServices.value
+      localStorage.setItem('services', JSON.stringify(services.value))
+    }
   }
+  deleteDialog.value = false
 }
-
 
 const hasServices = (date) => {
   return services.value[date] && services.value[date].length > 0
@@ -225,7 +229,7 @@ const goToNextMonth = () => {
     <v-main>
       <v-container fluid>
         <v-row>
-        <!-- Service Display -->
+       <!-- Service Display -->
 <v-col cols="12" md="6">
   <v-card class="mb-4">
     <v-card-title class="service-title">
@@ -276,18 +280,26 @@ const goToNextMonth = () => {
   </v-card>
 </v-col>
 
-<!-- Diri nimo ibutang ang delete dialog, after sa v-col -->
+<!-- Diri ibutang ang bag-ong delete dialog -->
 <v-dialog v-model="deleteDialog" max-width="500px">
   <v-card>
-    <v-card-title>Select Service to Delete</v-card-title>
+    <v-card-title>Select Service(s) to Delete</v-card-title>
     <v-card-text>
       <v-list dense>
         <v-list-item
           v-for="(service, index) in dailyServices"
           :key="index"
-          @click="deleteService(index)"
           class="hoverable"
         >
+          <v-list-item-action>
+            <v-checkbox
+              v-model="selectedServices"
+              :value="index"
+              color="error"
+              hide-details
+            ></v-checkbox>
+          </v-list-item-action>
+
           <v-list-item-content>
             <v-list-item-title>{{ service.title }}</v-list-item-title>
             <v-list-item-subtitle>{{ service.description }}</v-list-item-subtitle>
@@ -295,15 +307,14 @@ const goToNextMonth = () => {
         </v-list-item>
       </v-list>
     </v-card-text>
+
     <v-card-actions>
       <v-spacer />
       <v-btn text @click="deleteDialog = false">Cancel</v-btn>
+      <v-btn color="error" text @click="deleteSelectedServices">Delete</v-btn>
     </v-card-actions>
   </v-card>
 </v-dialog>
-
-
-
           <!-- Calendar -->
           <v-col cols="12" md="6">
             <div class="calendar-wrapper">
