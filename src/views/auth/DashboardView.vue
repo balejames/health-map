@@ -224,34 +224,35 @@ const goToNextMonth = () => {
         <v-row>
           <!-- Service Display -->
           <v-col cols="12" md="6">
-            <v-card class="mb-4">
-              <v-card-title>
-                Service Today
-                <v-spacer />
+  <v-card class="mb-4">
+    <v-card-title class="service-title">
+      Service Today
+      <v-spacer />
+    </v-card-title>
 
-              </v-card-title>
-              <v-card-text>
-                <v-list v-if="dailyServices.length">
-                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
-                    <div>
-                      <strong>{{ service.title }}</strong
-                      ><br />
-                      {{ service.description }}<br />
-                      <em>Doctor: {{ service.doctor }}</em
-                      ><br />
-                      <em>Barangay: {{ service.barangay }}</em
-                      ><br />
-                      Time: {{ service.startTime }} - {{ service.endTime }}
-                    </div>
-                  </v-list-item>
-                </v-list>
-                <div v-else>No service for this day.</div>
-                <v-btn v-if="selectedDate" color="primary" @click="openServiceDialog" small>
-                  Add Service
-                </v-btn>
-              </v-card-text>
-            </v-card>
-          </v-col>
+    <v-divider></v-divider> <!-- Divider Line -->
+
+    <v-card-text>
+      <v-list v-if="dailyServices.length">
+        <v-list-item v-for="(service, index) in dailyServices" :key="index">
+          <div>
+            <strong>{{ service.title }}</strong><br />
+            {{ service.description }}<br />
+            <em>Doctor: {{ service.doctor }}</em><br />
+            <em>Barangay: {{ service.barangay }}</em><br />
+            Time: {{ service.startTime }} - {{ service.endTime }}
+          </div>
+        </v-list-item>
+      </v-list>
+      <div v-else>No service for this day.</div>
+
+      <v-btn v-if="selectedDate" color="#5da8ca" @click="openServiceDialog" small>
+        Add Service
+      </v-btn>
+    </v-card-text>
+  </v-card>
+</v-col>
+
 
           <!-- Calendar -->
           <v-col cols="12" md="6">
@@ -408,5 +409,16 @@ const goToNextMonth = () => {
 
 .v-btn {
   margin-block: 12px;
+}
+
+.service-title {
+  background-color: #9bd1f8;
+  font-weight: bold;
+  color: #ffffff;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  padding: 16px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 </style>
