@@ -210,35 +210,51 @@ const goToNextMonth = () => {
       <v-container fluid>
         <v-row>
           <!-- Service Display -->
-          <v-col cols="12" md="6">
-            <v-card class="mb-4">
-              <v-card-title class="service-title">
-                Service Today
-                <v-spacer />
-              </v-card-title>
+<v-col cols="12" md="6">
+  <v-card class="mb-4">
+    <v-card-title class="service-title">
+      Service Today
+      <v-spacer />
+    </v-card-title>
 
-              <v-divider></v-divider>
+    <v-divider></v-divider>
 
-              <v-card-text>
-                <v-list v-if="dailyServices.length">
-                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
-                    <div>
-                      <strong>{{ service.title }}</strong><br />
-                      {{ service.description }}<br />
-                      <em>Doctor: {{ service.doctor }}</em><br />
-                      <em>Barangay: {{ service.barangay }}</em><br />
-                      Time: {{ service.startTime }} - {{ service.endTime }}
-                    </div>
-                  </v-list-item>
-                </v-list>
-                <div v-else>No service for this day.</div>
+    <v-card-text>
+      <v-list v-if="dailyServices.length" dense>
+        <v-list-item v-for="(service, index) in dailyServices" :key="index">
+          <v-card class="pa-4" color="#e6f2fc" flat rounded>
+            <div>
+              <div class="text-primary font-weight-bold text-h6">{{ service.title }}</div>
+              <div class="mb-2">{{ service.description }}</div>
 
-                <v-btn v-if="selectedDate" color="#5da8ca" @click="openServiceDialog" small>
-                  Add Service
-                </v-btn>
-              </v-card-text>
-            </v-card>
-          </v-col>
+              <div class="d-flex align-center mb-1">
+                <v-icon small class="mr-2">mdi-account</v-icon>
+                <span>{{ service.doctor }}</span>
+              </div>
+
+              <div class="d-flex align-center mb-1">
+                <v-icon small class="mr-2">mdi-map-marker</v-icon>
+                <span>{{ service.barangay }}</span>
+              </div>
+
+              <div class="d-flex align-center">
+                <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
+                <span>{{ service.startTime }} - {{ service.endTime }}</span>
+              </div>
+            </div>
+          </v-card>
+        </v-list-item>
+      </v-list>
+
+      <div v-else>No service for this day.</div>
+
+      <v-btn v-if="selectedDate" color="#5da8ca" class="mt-4" small @click="openServiceDialog">
+        Add New Service
+      </v-btn>
+    </v-card-text>
+  </v-card>
+</v-col>
+
 
           <!-- Calendar -->
           <v-col cols="12" md="6">
