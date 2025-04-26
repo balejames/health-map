@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import AlertNotification from '@/components/AlertNotification.vue'
+import AlertNotification from '@/components/layout/AlertNotification.vue'
 import { supabase, formActionDefault } from '@/utils/supabase.js'
 import {
   requiredValidator,
@@ -8,10 +8,12 @@ import {
   passwordValidator,
   confirmedValidator,
 } from '@/utils/validators.js'
+import { useRouter } from 'vue-router'
 
 const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
 const refVForm = ref()
+const router = useRouter()
 
 const formDataDefault = {
   firstName: '',
@@ -38,19 +40,20 @@ const onSubmit = async () => {
         firstName: formData.value.firstName,
         lastName: formData.value.lastName,
         barangay: formData.value.barangay,
+        is_admin: false,
+        // role: 'Administrator',
       },
     },
   })
   if (error) {
-    console.log(error)
     formAction.value.formErrorMessage = error.message
     formAction.value.formStatus = error.status
   } else if (data) {
     console.log(data)
     formAction.value.formSuccessMessage = 'Account created successfully!'
-    refVForm.value?.reset()
+    router.replace('/dashboard')
   }
-
+  refVForm.value?.reset()
   formAction.value.formProcess = false
 }
 

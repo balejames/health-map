@@ -2,7 +2,9 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { requiredValidator, emailValidator } from '@/utils/validators.js'
+import { supabase } from '@/utils/supabase.js'
 
+const router = useRouter()
 const refVForm = ref()
 const formDataDefault = {
   email: '',
@@ -11,9 +13,27 @@ const formDataDefault = {
   role: '',
 }
 const formData = ref({ ...formDataDefault })
+const formAction = ref({ ...formDataDefault })
 
-const onSubmit = () => {
-  alert(formData.value.email)
+const onSubmit = async () => {
+  formAction.value = { ...formActionDefault }
+  formAction.value.formProcess = true
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: formData.value.email,
+    password: formData.value.password,
+    baranagy: formData.value.barangay,
+    role: formData.value.role,
+  })
+  if (error) {
+    formAction.value.formErrorMessage = error.message
+    formAction.value.formStatus = error.status
+  } else if (data) {
+    console.log(data)
+    formAction.value.formSuccessMessage = 'Account Logged successfully!'
+    router.replace('/')
+  }
+  refVForm.value?.reset()
+  formAction.value.formProcess = false
 }
 
 const onFormSubmit = () => {
@@ -21,8 +41,6 @@ const onFormSubmit = () => {
     if (Valid) onSubmit()
   })
 }
-
-const router = useRouter()
 
 const handleLogin = () => {
   if (!role.value) {

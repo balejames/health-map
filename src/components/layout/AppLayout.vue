@@ -1,7 +1,8 @@
 <script setup>
-import { isAuthenticated } from '@/utils/supabase'
+import { isAuthenticated } from '@/utils/supabase.js'
+impor
 import { onMounted, ref } from 'vue'
-import { useDisplay } from 'vuetify'
+//import { useDisplay } from 'vuetify'
 
 // load variables
 const isLoggedIn = ref(false)
@@ -16,4 +17,6 @@ onMounted(() => {
   getLoggedStatus()
 })
 </script>
-<template></template>
+<template>
+  <ProfileHeader v-if="isLoggedIn"> </ProfileHeader>
+</template>

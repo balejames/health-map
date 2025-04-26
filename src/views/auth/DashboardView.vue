@@ -1,8 +1,18 @@
 <script setup>
-import { isAuthenticated } from '@/utils/supabase'
+import { isAuthenticated } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 const drawer = ref(true)
+const router = useRouter()
+function logout() {
+  router.push('/login')
+}
+const fileInput = ref(null)
+
+function editAccount() {
+  fileInput.value.click()
+}
 
 const selectedDate = ref('')
 const newEvent = ref({
@@ -108,8 +118,9 @@ const onFileSelected = (e) => {
   const file = e.target.files[0]
   if (file) {
     const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
+    reader.onload = () => {
+      // wala na (e) diri
+      profileImage.value = reader.result // reader.result instead of e.target.result
       localStorage.setItem('profileImage', profileImage.value)
     }
     reader.readAsDataURL(file)
@@ -156,48 +167,61 @@ const goToNextMonth = () => {
       dark
     >
       <v-container class="text-center py-5">
-        <!-- Profile Picture as Clickable Circle -->
-        <div style="position: relative; display: inline-block">
-          <v-avatar
-            size="80"
-            class="mx-auto mb-4"
-            @click="toggleChangePicture"
-            style="cursor: pointer"
-          >
-            <img
-              :src="profileImage"
-              alt="Profile"
-              width="80"
-              height="80"
-              style="object-fit: cover"
-            />
-          </v-avatar>
+        <!-- Profile Section with Dropdown Menu -->
+        <v-row justify="center">
+          <v-menu min-width="200px">
+            <template v-slot:activator="{ props }">
+              <v-btn icon v-bind="props">
+                <v-avatar size="100">
+                  <img :src="profileImage" alt="Profile" style="object-fit: cover" />
+                </v-avatar>
+              </v-btn>
+            </template>
 
-          <!-- Hidden File Input for Changing Profile Picture -->
-          <input
-            v-if="showChangePicture"
-            type="file"
-            accept="image/*"
-            @change="onFileSelected"
-            style="
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 80px;
-              height: 80px;
-              opacity: 0;
-              cursor: pointer;
-            "
-          />
-        </div>
-
+            <v-card>
+              <v-card-text>
+                <div class="mx-auto text-center">
+                  <v-avatar size="100">
+                    <img :src="profileImage" alt="Profile" style="object-fit: cover" />
+                  </v-avatar>
+                  <h3>{{ userFullName }}</h3>
+                  <p class="text-caption mt-1">{{ userEmail }}</p>
+                  <v-divider class="my-3"></v-divider>
+                  <v-btn variant="text" rounded @click="editAccount">Edit Account</v-btn>
+                  <v-divider class="my-3"></v-divider>
+                  <v-btn variant="text" rounded color="red" @click="logout">
+                    <v-icon left>mdi-logout</v-icon>
+                    Log out
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-menu>
+        </v-row>
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          style="display: none"
+          @change="onFileSelected"
+        />
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" style="background-color: #0288d1" variant="elevated">
+        <br />
+        <br />
+        <v-btn
+          block
+          class="mt-9 mb-3"
+          style="background-color: #0288d1"
+          variant="elevated"
+          @click="$router.push('/dashboard')"
+        >
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
+        <br />
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
+        <br />
         <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
           <v-icon left>mdi-logout</v-icon> Log out
         </v-btn>
@@ -205,12 +229,14 @@ const goToNextMonth = () => {
     </v-navigation-drawer>
 
     <v-app-bar app color="#0288d1" dark>
-      <v-app-bar-nav-icon @click="drawer = !drawer" />
+      <v-app-bar-nav-icon @click="drawer = !drawer">
+        <v-icon>{{ drawer ? 'mdi-arrow-left' : 'mdi-menu' }}</v-icon>
+      </v-app-bar-nav-icon>
       <v-toolbar-title>Dashboard</v-toolbar-title>
     </v-app-bar>
     <!-- Main Content -->
     <v-main>
-      <v-container>
+      <v-container fluid>
         <v-row>
           <!-- Event Display -->
           <v-col cols="12" md="6">
@@ -286,8 +312,9 @@ const goToNextMonth = () => {
               <v-text-field v-model="newEvent.description" label="Description" />
               <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
               <v-text-field v-model="newEvent.barangay" label="Barangay" />
-              <v-text-field v-model="newEvent.startTime" label="Start Time (e.g. 9:00 AM)" />
-              <v-text-field v-model="newEvent.endTime" label="End Time (e.g. 11:00 AM)" />
+              <!-- TIME PICKERS -->
+              <v-text-field v-model="newEvent.startTime" label="Start Time" type="time" />
+              <v-text-field v-model="newEvent.endTime" label="End Time" type="time" />
             </v-card-text>
             <v-card-actions>
               <v-spacer />
