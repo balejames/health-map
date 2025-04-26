@@ -15,7 +15,7 @@ function editAccount() {
 }
 
 const selectedDate = ref('')
-const newEvent = ref({
+const newService = ref({
   title: '',
   description: '',
   barangay: '',
@@ -23,8 +23,8 @@ const newEvent = ref({
   startTime: '',
   endTime: '',
 })
-const events = ref({})
-const dailyEvents = ref([])
+const services = ref({})
+const dailyServices = ref([])
 const dialog = ref(false)
 
 const today = new Date()
@@ -60,26 +60,26 @@ const isToday = (dateString) => {
 
 const onDateClick = (date) => {
   selectedDate.value = date
-  getEventsForDate()
+  getServicesForDate()
 }
 
-const getEventsForDate = () => {
-  dailyEvents.value = events.value[selectedDate.value] || []
+const getServicesForDate = () => {
+  dailyServices.value = services.value[selectedDate.value] || []
 }
 
-const openEventDialog = () => {
+const openServiceDialog = () => {
   dialog.value = true
 }
 
-const addEvent = () => {
-  const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
+const addService = () => {
+  const { title, description, barangay, doctor, startTime, endTime } = newService.value
   if (!title.trim()) return
 
-  if (!events.value[selectedDate.value]) {
-    events.value[selectedDate.value] = []
+  if (!services.value[selectedDate.value]) {
+    services.value[selectedDate.value] = []
   }
 
-  events.value[selectedDate.value].push({
+  services.value[selectedDate.value].push({
     title,
     description,
     barangay,
@@ -87,9 +87,9 @@ const addEvent = () => {
     startTime,
     endTime,
   })
-  localStorage.setItem('events', JSON.stringify(events.value))
+  localStorage.setItem('services', JSON.stringify(services.value))
 
-  newEvent.value = {
+  newService.value = {
     title: '',
     description: '',
     barangay: '',
@@ -98,11 +98,11 @@ const addEvent = () => {
     endTime: '',
   }
   dialog.value = false
-  getEventsForDate()
+  getServicesForDate()
 }
 
-const hasEvents = (date) => {
-  return events.value[date] && events.value[date].length > 0
+const hasServices = (date) => {
+  return services.value[date] && services.value[date].length > 0
 }
 
 // Profile image logic
@@ -128,9 +128,9 @@ const onFileSelected = (e) => {
 }
 
 onMounted(() => {
-  const stored = localStorage.getItem('events')
+  const stored = localStorage.getItem('services')
   if (stored) {
-    events.value = JSON.parse(stored)
+    services.value = JSON.parse(stored)
   }
 
   const storedImage = localStorage.getItem('profileImage')
@@ -222,28 +222,28 @@ const goToNextMonth = () => {
     <v-main>
       <v-container fluid>
         <v-row>
-          <!-- Event Display -->
+          <!-- Service Display -->
           <v-col cols="12" md="6">
             <v-card class="mb-4">
               <v-card-title>
                 Service Today
                 <v-spacer />
-                <v-btn v-if="selectedDate" color="primary" @click="openEventDialog" small>
+                <v-btn v-if="selectedDate" color="primary" @click="openServiceDialog" small>
                   Add Service
                 </v-btn>
               </v-card-title>
               <v-card-text>
-                <v-list v-if="dailyEvents.length">
-                  <v-list-item v-for="(event, index) in dailyEvents" :key="index">
+                <v-list v-if="dailyServices.length">
+                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
                     <div>
-                      <strong>{{ event.title }}</strong
+                      <strong>{{ service.title }}</strong
                       ><br />
-                      {{ event.description }}<br />
-                      <em>Doctor: {{ event.doctor }}</em
+                      {{ service.description }}<br />
+                      <em>Doctor: {{ service.doctor }}</em
                       ><br />
-                      <em>Barangay: {{ event.barangay }}</em
+                      <em>Barangay: {{ service.barangay }}</em
                       ><br />
-                      Time: {{ event.startTime }} - {{ event.endTime }}
+                      Time: {{ service.startTime }} - {{ service.endTime }}
                     </div>
                   </v-list-item>
                 </v-list>
@@ -280,30 +280,30 @@ const goToNextMonth = () => {
                   :class="{ selected: selectedDate === getDate(day), today: isToday(getDate(day)) }"
                 >
                   <span>{{ day }}</span>
-                  <span v-if="hasEvents(getDate(day))" class="event-dot"></span>
+                  <span v-if="hasServices(getDate(day))" class="service-dot"></span>
                 </div>
               </div>
             </div>
           </v-col>
         </v-row>
 
-        <!-- Add Event Dialog -->
+        <!-- Add Service Dialog -->
         <v-dialog v-model="dialog" max-width="500">
           <v-card class="pa-4 pa-sm-6">
-            <v-card-title>Add Event Today</v-card-title>
+            <v-card-title>Add Service Today</v-card-title>
             <v-card-text>
-              <v-text-field v-model="newEvent.title" label="Event Title" />
-              <v-text-field v-model="newEvent.description" label="Description" />
-              <v-text-field v-model="newEvent.doctor" label="Doctor's Name" />
-              <v-text-field v-model="newEvent.barangay" label="Barangay" />
+              <v-text-field v-model="newService.title" label="Service Title" />
+              <v-text-field v-model="newService.description" label="Description" />
+              <v-text-field v-model="newService.doctor" label="Doctor's Name" />
+              <v-text-field v-model="newService.barangay" label="Barangay" />
               <!-- TIME PICKERS -->
-              <v-text-field v-model="newEvent.startTime" label="Start Time" type="time" />
-              <v-text-field v-model="newEvent.endTime" label="End Time" type="time" />
+              <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
+              <v-text-field v-model="newService.endTime" label="End Time" type="time" />
             </v-card-text>
             <v-card-actions>
               <v-spacer />
               <v-btn text @click="dialog = false">Cancel</v-btn>
-              <v-btn color="primary" @click="addEvent">Add</v-btn>
+              <v-btn color="primary" @click="addService">Add</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -384,7 +384,16 @@ const goToNextMonth = () => {
   font-weight: bold;
 }
 
-
+.service-dot {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 8px;
+  background-color: rgb(94, 153, 221);
+  border-radius: 50%;
+}
 
 .empty {
   background-color: transparent;
