@@ -203,16 +203,16 @@ const goToNextMonth = () => {
 
         <!-- Navigation Buttons -->
         <v-btn block class="mt-9 mb-3" style="background-color: #BDDDE4" variant="elevated">
-          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
+          <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
-          <v-icon left>mdi-map</v-icon> Map View
+          <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
         <v-spacer></v-spacer>
         <br><br><br><br><br>
         <br><br><br><br><br>
         <v-btn block class="mt-9" color="white" variant="text" @click="logout">
-          <v-icon left>mdi-logout</v-icon> Log out
+          <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
     </v-navigation-drawer>

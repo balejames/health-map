@@ -139,7 +139,7 @@ const showEventDetails = (barangay) => {
 <template>
   <v-app>
     <!-- Sidebar -->
-    <v-navigation-drawer app permanent color="#03a9f4" dark>
+    <v-navigation-drawer app permanent color="#9bd1f8" dark>
       <v-container class="text-center py-5">
         <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
@@ -184,13 +184,16 @@ const showEventDetails = (barangay) => {
           variant="text"
           @click="$router.push('/dashboard')"
         >
-          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
+          <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
-        <v-btn block class="mb-3" style="background-color: #0288d1" variant="elevated">
-          <v-icon left>mdi-map</v-icon> Map View
+        <v-btn block class="mb-3" style="background-color: #BDDDE4" variant="elevated">
+          <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
+        <v-spacer></v-spacer>
+        <br><br><br><br><br>
+        <br><br><br><br><br>
         <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
-          <v-icon left>mdi-logout</v-icon> Log out
+          <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
     </v-navigation-drawer>
