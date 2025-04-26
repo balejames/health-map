@@ -368,7 +368,7 @@ const goToNextMonth = () => {
         <!-- Add Service Dialog -->
         <v-dialog v-model="dialog" max-width="500">
     <v-card class="pa-4 pa-sm-6">
-      <v-card-title>Add Health Service</v-card-title>
+      <v-card-title>Add Service</v-card-title>
       <v-card-text>
         <v-text-field
           v-model="newService.title"
