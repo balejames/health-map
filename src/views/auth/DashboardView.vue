@@ -28,7 +28,7 @@ const services = ref({})
 const dailyServices = ref([])
 const dialog = ref(false)
 
-// ✅ Barangay List (Dropdown)
+// Barangay List (Dropdown)
 const barangayList = [
   { name: 'Ampayon' },
   { name: 'Ambago' },
@@ -36,7 +36,6 @@ const barangayList = [
   { name: 'Baan Km. 3' },
 ]
 
-// ✅ Barangay Options for v-select (map to array of names)
 const barangayOptions = computed(() => barangayList.map(b => b.name))
 
 const today = new Date()
@@ -83,7 +82,7 @@ const openServiceDialog = () => {
   dialog.value = true
 }
 
-// ✅ Updated addService with auto-clear and correct barangay
+
 const addService = () => {
   const { title, description, barangay, doctor, startTime, endTime } = newService.value
 
@@ -99,7 +98,7 @@ const addService = () => {
   services.value[selectedDate.value].push({
     title,
     description,
-    barangay, // ✅ barangay is now just string, no need for .name
+    barangay,
     doctor,
     startTime,
     endTime,
@@ -107,7 +106,7 @@ const addService = () => {
 
   localStorage.setItem('services', JSON.stringify(services.value))
 
-  // ✅ Clear fields after saving
+
   newService.value = {
     title: '',
     description: '',
@@ -367,55 +366,64 @@ const goToNextMonth = () => {
 
         <!-- Add Service Dialog -->
         <v-dialog v-model="dialog" max-width="500">
-    <v-card class="pa-4 pa-sm-6">
-      <v-card-title>Add Service</v-card-title>
-      <v-card-text>
-        <v-text-field
-          v-model="newService.title"
-          label="Service Title"
-          placeholder="Enter service title"
-        />
-        <v-textarea
-          v-model="newService.description"
-          label="Description"
-          placeholder="Enter service description"
-          rows="2"
-        />
-        <v-text-field
-          v-model="newService.doctor"
-          label="Doctor"
-          placeholder="Enter doctor's name"
-        />
-        <v-select
-          v-model="newService.barangay"
-          :items="barangayOptions"
-          label="Barangay"
-          placeholder="Select barangay"
-        />
-        <v-row>
-          <v-col cols="6">
-            <v-text-field
-              v-model="newService.startTime"
-              label="Start Time"
-              type="time"
-            />
-          </v-col>
-          <v-col cols="6">
-            <v-text-field
-              v-model="newService.endTime"
-              label="End Time"
-              type="time"
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn text @click="dialog = false">Cancel</v-btn>
-        <v-btn color="primary" @click="addService">Save Service</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <v-card class="pa-4 pa-sm-6">
+    <v-card-title class="service-title">
+      Add Service
+      <v-spacer />
+    </v-card-title>
+
+    <!-- Form part -->
+    <v-card-text class="pa-4">
+      <v-text-field
+        v-model="newService.title"
+        label="Service Title"
+        placeholder="Enter service title"
+      />
+      <v-textarea
+        v-model="newService.description"
+        label="Description"
+        placeholder="Enter service description"
+        rows="2"
+      />
+      <v-text-field
+        v-model="newService.doctor"
+        label="Doctor"
+        placeholder="Enter doctor's name"
+      />
+      <v-select
+        v-model="newService.barangay"
+        :items="barangayOptions"
+        label="Barangay"
+        placeholder="Select barangay"
+      />
+      <v-row>
+        <v-col cols="6">
+          <v-text-field
+            v-model="newService.startTime"
+            label="Start Time"
+            type="time"
+          />
+        </v-col>
+        <v-col cols="6">
+          <v-text-field
+            v-model="newService.endTime"
+            label="End Time"
+            type="time"
+          />
+        </v-col>
+      </v-row>
+    </v-card-text>
+
+    <!-- Action buttons -->
+    <v-card-actions class="pa-4">
+      <v-spacer />
+      <v-btn text @click="dialog = false">Cancel</v-btn>
+      <v-btn color="primary" @click="addService">Save Service</v-btn>
+    </v-card-actions>
+
+  </v-card>
+</v-dialog>
+
       </v-container>
     </v-main>
   </v-app>
