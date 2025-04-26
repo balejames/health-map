@@ -11,6 +11,9 @@ function logout() {
 }
 
 const fileInput = ref(null)
+function editAccount() {
+  fileInput.value.click()
+}
 const selectedDate = ref('')
 const newService = ref({
   title: '',
@@ -156,7 +159,7 @@ const goToNextMonth = () => {
 ]<template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
-    <v-navigation-drawer v-model="drawer" app color="#47b8c7" dark>
+    <v-navigation-drawer v-model="drawer" app color="#9bd1f8" dark>
       <v-container class="text-center py-5">
         <!-- Profile Picture -->
         <div style="position: relative; display: inline-block">
@@ -186,6 +189,8 @@ const goToNextMonth = () => {
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
         <v-spacer></v-spacer>
+        <br><br><br><br><br>
+        <br><br><br><br><br>
         <v-btn block class="mt-9" color="white" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> Log out
         </v-btn>
