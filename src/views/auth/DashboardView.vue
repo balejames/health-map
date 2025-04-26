@@ -158,81 +158,48 @@ const goToNextMonth = () => {
 <template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
-    <v-navigation-drawer
-      app
-      v-model="drawer"
-      :permanent="$vuetify.display.mdAndUp"
-      temporary
-      color="#03a9f4"
-      dark
-    >
-      <v-container class="d-flex flex-column justify-space-between h-100 py-5">
-        <!-- Profile Section with Dropdown Menu -->
-        <v-row justify="center">
-          <div style="position: relative; display: inline-block">
-            <v-avatar
-              size="120"
-              class="mx-auto mb-4"
-              @click="toggleChangePicture"
-              style="cursor: pointer"
-            >
-              <img
-                :src="profileImage"
-                alt="Profile"
-                width="120"
-                height="120"
-                style="object-fit: cover"
-              />
-            </v-avatar>
-
-            <!-- Hidden File Input for Changing Profile Picture -->
-            <input
-              v-if="showChangePicture"
-              type="file"
-              accept="image/*"
-              @change="onFileSelected"
-              style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 120px;
-                height: 120px;
-                opacity: 0;
-                cursor: pointer;
-              "
+    <v-navigation-drawer app permanent color="#03a9f4" dark>
+      <v-container class="text-center py-5">
+        <!-- Profile Picture as Clickable Circle -->
+        <div style="position: relative; display: inline-block">
+          <v-avatar
+            size="80"
+            class="mx-auto mb-4"
+            @click="toggleChangePicture"
+            style="cursor: pointer"
+          >
+            <img
+              :src="profileImage"
+              alt="Profile"
+              width="80"
+              height="80"
+              style="object-fit: cover"
             />
-          </div>
-        </v-row>
-        <input
-          ref="fileInput"
-          type="file"
-          accept="image/*"
-          style="display: none"
-          @change="onFileSelected"
-        />
+          </v-avatar>
+
+          <!-- Hidden File Input for Changing Profile Picture -->
+          <v-file-input
+            v-if="showChangePicture"
+            v-model="profileFile"
+            accept="image/*"
+            label="Change Profile Picture"
+            hide-details
+            dense
+            prepend-icon="mdi-camera"
+            @change="onFileSelected"
+            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
+          />
+        </div>
+
         <!-- Navigation Buttons -->
-        <br />
-        <br />
-        <v-btn
-          block
-          class="mt-9 mb-3"
-          style="background-color: #0288d1"
-          variant="elevated"
-          @click="$router.push('/dashboard')"
-        >
+        <v-btn block class="mt-9 mb-3" style="background-color: #0288d1" variant="elevated">
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
-        <br />
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> Map View
         </v-btn>
-        <br /><br /><br /><br />
-        <br /><br /><br />
-        <br /><br /><br /><br /><br />
-
-        <v-btn block class="mt-auto mb-4" variant="text" rounded color="red" @click="logout">
-          <v-icon left>mdi-logout</v-icon>
-          Log out
+        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
+          <v-icon left>mdi-logout</v-icon> Log out
         </v-btn>
       </v-container>
     </v-navigation-drawer>
@@ -338,7 +305,7 @@ const goToNextMonth = () => {
 </template>
 <style scoped>
 .dashboard-bg {
-  background-image: url('images/Background (3).png');
+  background-image: url('C:\Users\berou\Desktop\team-collab\public\images\Background.png');
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
