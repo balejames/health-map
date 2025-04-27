@@ -2,6 +2,13 @@
 import { ref, onMounted, nextTick } from 'vue'
 import L from 'leaflet'
 
+// Sidebar Drawer toggle
+const drawer = ref(true)
+
+const toggleDrawer = () => {
+  drawer.value = !drawer.value
+}
+
 // Profile Picture Logic
 const profileImage = ref('https://via.placeholder.com/200')
 const showChangePicture = ref(false)
@@ -136,10 +143,11 @@ const showEventDetails = (barangay) => {
   })
 }
 </script>
+
 <template>
   <v-app>
     <!-- Sidebar -->
-    <v-navigation-drawer app permanent color="#9bd1f8" dark>
+    <v-navigation-drawer v-model="drawer" app color="#9bd1f8" dark>
       <v-container class="text-center py-5">
         <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
@@ -198,6 +206,14 @@ const showEventDetails = (barangay) => {
       </v-container>
     </v-navigation-drawer>
 
+    <!-- Top App Bar -->
+    <v-app-bar app color="transparent" dark elevation="0">
+      <v-app-bar-nav-icon @click="toggleDrawer">
+        <v-icon>{{ drawer ? 'mdi-menu-open' : 'mdi-menu' }}</v-icon>
+      </v-app-bar-nav-icon>
+      <v-toolbar-title>Dashboard</v-toolbar-title>
+    </v-app-bar>
+
     <!-- Main Content -->
     <v-main>
       <v-container fluid class="pa-0 fill-height">
@@ -221,7 +237,7 @@ const showEventDetails = (barangay) => {
             <p><strong>Description:</strong> {{ selectedEvent.description }}</p>
           </div>
           <div v-else>
-            <p>No events found for this barangay today.</p>
+            <p>No service found for this barangay today.</p>
           </div>
         </v-card-text>
         <v-card-actions>
@@ -231,6 +247,7 @@ const showEventDetails = (barangay) => {
     </v-dialog>
   </v-app>
 </template>
+
 <style scoped>
 .map-container {
   width: 100%;
