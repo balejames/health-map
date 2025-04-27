@@ -47,18 +47,18 @@ const barangayCoordinates = {
 }
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
-const todaysEvents = ref([])
-const expandedEvents = ref([])
+const todaysServices = ref([])
+const expandedServices = ref([])
 const mapRef = ref(null)
 
 onMounted(() => {
-  const storedEvents = localStorage.getItem('events')
+  const storedServices = localStorage.getItem('services')
   const today = selectedDate.value
 
-  if (storedEvents) {
-    const events = JSON.parse(storedEvents)
-    todaysEvents.value = events[today] || []
-    expandedEvents.value = todaysEvents.value.map(() => false)
+  if (storedServices) {
+    const services = JSON.parse(storedServices)
+    todaysServices.value = services[today] || []
+    expandedServices.value = todaysServices.value.map(() => false)
   }
 
   const map = L.map('map').setView([8.9475, 125.5406], 13)
@@ -73,14 +73,14 @@ onMounted(() => {
     L.marker(coords).addTo(map).bindPopup(`📍 ${name}`)
   }
 
-  if (storedEvents) {
-    const events = JSON.parse(storedEvents)
+  if (storedServices) {
+    const services = JSON.parse(storedServices)
     const activeBarangays = new Set()
 
-    Object.values(events).forEach((dayEvents) => {
-      dayEvents.forEach((event) => {
-        if (event.barangay) {
-          activeBarangays.add(normalize(event.barangay.trim()))
+    Object.values(services).forEach((dayServices) => {
+      dayServices.forEach((service) => {
+        if (service.barangay) {
+          activeBarangays.add(normalize(service.barangay.trim()))
         }
       })
     })
@@ -98,8 +98,8 @@ onMounted(() => {
           fillOpacity: 0.7,
         })
           .addTo(map)
-          .bindPopup(`<b>Barangay ${name}</b><br>Has event today or upcoming.`)
-          .on('click', () => showEventDetails(name))
+          .bindPopup(`<b>Barangay ${name}</b><br>Has service today or upcoming.`)
+          .on('click', () => showServiceDetails(name))
       }
     })
   }
@@ -108,31 +108,31 @@ onMounted(() => {
 // Normalize string for matching
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
-// Show event details in modal
-const eventDialog = ref(false)
-const selectedEvent = ref(null)
+// Show service details in modal
+const serviceDialog = ref(false)
+const selectedService = ref(null)
 
-const showEventDetails = (barangay) => {
-  const storedEvents = localStorage.getItem('events')
-  if (storedEvents) {
-    const events = JSON.parse(storedEvents)
-    const todayEvents = events[selectedDate.value] || []
+const showServiceDetails = (barangay) => {
+  const storedServices = localStorage.getItem('services')
+  if (storedServices) {
+    const services = JSON.parse(storedServices)
+    const todayServices = services[selectedDate.value] || []
 
     const normalizedBarangay = normalize(barangay)
-    const barangayEvents = todayEvents.filter(
-      (event) => normalize(event.barangay) === normalizedBarangay,
+    const barangayServices = todayServices.filter(
+      (service) => normalize(service.barangay) === normalizedBarangay,
     )
 
-    if (barangayEvents.length > 0) {
-      selectedEvent.value = barangayEvents[0]
+    if (barangayServices.length > 0) {
+      selectedService.value = barangayServices[0]
     } else {
-      selectedEvent.value = null
+      selectedService.value = null
     }
   } else {
-    selectedEvent.value = null
+    selectedService.value = null
   }
 
-  eventDialog.value = true
+  serviceDialog.value = true
 
   nextTick(() => {
     setTimeout(() => {
@@ -222,26 +222,26 @@ const showEventDetails = (barangay) => {
       </v-container>
     </v-main>
 
-    <!-- Modal for Event Details -->
-    <v-dialog v-model="eventDialog" max-width="500px">
+    <!-- Modal for Service Details -->
+    <v-dialog v-model="serviceDialog" max-width="500px">
       <v-card>
         <v-card-title>
-          <span class="headline">Event Details</span>
+          <span class="headline">Service Details</span>
         </v-card-title>
         <v-card-text>
-          <div v-if="selectedEvent">
-            <p><strong>Event Title:</strong> {{ selectedEvent.title }}</p>
-            <p><strong>Doctor:</strong> {{ selectedEvent.doctor }}</p>
-            <p><strong>Start Time:</strong> {{ selectedEvent.startTime }}</p>
-            <p><strong>End Time:</strong> {{ selectedEvent.endTime }}</p>
-            <p><strong>Description:</strong> {{ selectedEvent.description }}</p>
+          <div v-if="selectedService">
+            <p><strong>Service Title:</strong> {{ selectedService.title }}</p>
+            <p><strong>Doctor:</strong> {{ selectedService.doctor }}</p>
+            <p><strong>Start Time:</strong> {{ selectedService.startTime }}</p>
+            <p><strong>End Time:</strong> {{ selectedService.endTime }}</p>
+            <p><strong>Description:</strong> {{ selectedService.description }}</p>
           </div>
           <div v-else>
             <p>No service found for this barangay today.</p>
           </div>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" @click="eventDialog = false">Close</v-btn>
+          <v-btn color="primary" @click="serviceDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
