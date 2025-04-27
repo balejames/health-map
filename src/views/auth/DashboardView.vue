@@ -36,7 +36,7 @@ const barangayList = [
   { name: 'Baan Km. 3' },
 ]
 
-const barangayOptions = computed(() => barangayList.map(b => b.name))
+const barangayOptions = computed(() => barangayList.map((b) => b.name))
 
 const today = new Date()
 const currentMonth = ref(today.getMonth())
@@ -48,7 +48,7 @@ const monthYearLabel = computed(() =>
   new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric',
-  })
+  }),
 )
 
 const daysInMonth = computed(() => new Date(currentYear.value, currentMonth.value + 1, 0).getDate())
@@ -82,11 +82,17 @@ const openServiceDialog = () => {
   dialog.value = true
 }
 
-
 const addService = () => {
   const { title, description, barangay, doctor, startTime, endTime } = newService.value
 
-  if (!title.trim() || !description.trim() || !barangay || !doctor.trim() || !startTime || !endTime) {
+  if (
+    !title.trim() ||
+    !description.trim() ||
+    !barangay ||
+    !doctor.trim() ||
+    !startTime ||
+    !endTime
+  ) {
     alert('Please fill out all fields before saving.')
     return
   }
@@ -105,7 +111,6 @@ const addService = () => {
   })
 
   localStorage.setItem('services', JSON.stringify(services.value))
-
 
   newService.value = {
     title: '',
@@ -132,7 +137,9 @@ const openDeleteServiceDialog = () => {
 const deleteSelectedServices = () => {
   if (selectedServices.value.length) {
     if (confirm(`Are you sure you want to delete ${selectedServices.value.length} service(s)?`)) {
-      dailyServices.value = dailyServices.value.filter((_, index) => !selectedServices.value.includes(index))
+      dailyServices.value = dailyServices.value.filter(
+        (_, index) => !selectedServices.value.includes(index),
+      )
       services.value[selectedDate.value] = dailyServices.value
       localStorage.setItem('services', JSON.stringify(services.value))
     }
@@ -195,7 +202,8 @@ const goToNextMonth = () => {
 }
 </script>
 
-]<template>
+]
+<template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
     <v-navigation-drawer v-model="drawer" app color="#9bd1f8" dark>
@@ -208,7 +216,13 @@ const goToNextMonth = () => {
             @click="toggleChangePicture"
             style="cursor: pointer"
           >
-            <img :src="profileImage" alt="Profile" width="80" height="80" style="object-fit: cover" />
+            <img
+              :src="profileImage"
+              alt="Profile"
+              width="80"
+              height="80"
+              style="object-fit: cover"
+            />
           </v-avatar>
           <input
             v-if="showChangePicture"
@@ -216,20 +230,28 @@ const goToNextMonth = () => {
             type="file"
             accept="image/*"
             @change="onFileSelected"
-            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0; cursor: pointer"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 80px;
+              height: 80px;
+              opacity: 0;
+              cursor: pointer;
+            "
           />
         </div>
 
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" style="background-color: #BDDDE4" variant="elevated">
+        <v-btn block class="mt-9 mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
         <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
         <v-spacer></v-spacer>
-        <br><br><br><br><br>
-        <br><br><br><br><br>
+        <br /><br /><br /><br /><br />
+        <br /><br /><br /><br /><br />
         <v-btn block class="mt-9" color="white" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
@@ -248,92 +270,92 @@ const goToNextMonth = () => {
     <v-main>
       <v-container fluid>
         <v-row>
-       <!-- Service Display -->
-<v-col cols="12" md="6">
-  <v-card class="mb-4">
-    <v-card-title class="service-title">
-      Service Today
-      <v-spacer />
-    </v-card-title>
+          <!-- Service Display -->
+          <v-col cols="12" md="6">
+            <v-card class="mb-4">
+              <v-card-title class="service-title">
+                Service Today
+                <v-spacer />
+              </v-card-title>
 
-    <v-divider></v-divider>
+              <v-divider></v-divider>
 
-    <v-card-text>
-      <v-list v-if="dailyServices.length" dense>
-        <v-list-item v-for="(service, index) in dailyServices" :key="index">
-          <v-card class="pa-4" color="#e6f2fc" flat rounded>
-            <div>
-              <div class="text-primary font-weight-bold text-h6">{{ service.title }}</div>
-              <div class="mb-2">{{ service.description }}</div>
+              <v-card-text>
+                <v-list v-if="dailyServices.length" dense>
+                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
+                    <v-card class="pa-4" color="#e6f2fc" flat rounded>
+                      <div>
+                        <div class="text-primary font-weight-bold text-h6">{{ service.title }}</div>
+                        <div class="mb-2">{{ service.description }}</div>
 
-              <div class="d-flex align-center mb-1">
-                <v-icon small class="mr-2">mdi-account</v-icon>
-                <span>{{ service.doctor }}</span>
-              </div>
+                        <div class="d-flex align-center mb-1">
+                          <v-icon small class="mr-2">mdi-account</v-icon>
+                          <span>{{ service.doctor }}</span>
+                        </div>
 
-              <div class="d-flex align-center mb-1">
-                <v-icon small class="mr-2">mdi-map-marker</v-icon>
-                <span>{{ service.barangay }}</span>
-              </div>
+                        <div class="d-flex align-center mb-1">
+                          <v-icon small class="mr-2">mdi-map-marker</v-icon>
+                          <span>{{ service.barangay }}</span>
+                        </div>
 
-              <div class="d-flex align-center">
-                <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-                <span>{{ service.startTime }} - {{ service.endTime }}</span>
-              </div>
-            </div>
-          </v-card>
-        </v-list-item>
-      </v-list>
+                        <div class="d-flex align-center">
+                          <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
+                          <span>{{ service.startTime }} - {{ service.endTime }}</span>
+                        </div>
+                      </div>
+                    </v-card>
+                  </v-list-item>
+                </v-list>
 
-      <div v-else>No service for this day.</div>
+                <div v-else>No service for this day.</div>
 
-      <div class="d-flex mt-4" v-if="selectedDate">
-        <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog">
-          Add New Service
-        </v-btn>
-        <v-btn color="error" small @click="openDeleteServiceDialog">
-          Delete Service
-        </v-btn>
-      </div>
-    </v-card-text>
-  </v-card>
-</v-col>
+                <div class="d-flex mt-4" v-if="selectedDate">
+                  <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog">
+                    Add New Service
+                  </v-btn>
+                  <v-btn color="error" small @click="openDeleteServiceDialog">
+                    Delete Service
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
 
-<!-- Diri ibutang ang bag-ong delete dialog -->
-<v-dialog v-model="deleteDialog" max-width="500px">
-  <v-card>
-    <v-card-title>Select Service(s) to Delete</v-card-title>
-    <v-card-text>
-      <v-list dense>
-        <v-list-item
-          v-for="(service, index) in dailyServices"
-          :key="index"
-          class="hoverable"
-        >
-          <v-list-item-action>
-            <v-checkbox
-              v-model="selectedServices"
-              :value="index"
-              color="error"
-              hide-details
-            ></v-checkbox>
-          </v-list-item-action>
+          <!-- Diri ibutang ang bag-ong delete dialog -->
+          <v-dialog v-model="deleteDialog" max-width="500px">
+            <v-card>
+              <v-card-title>Select Service(s) to Delete</v-card-title>
+              <v-card-text>
+                <v-list dense>
+                  <v-list-item
+                    v-for="(service, index) in dailyServices"
+                    :key="index"
+                    class="hoverable"
+                  >
+                    <v-list-item-action>
+                      <v-checkbox
+                        v-model="selectedServices"
+                        :value="index"
+                        color="error"
+                        hide-details
+                      ></v-checkbox>
+                    </v-list-item-action>
 
-          <v-list-item-content>
-            <v-list-item-title>{{ service.title }}</v-list-item-title>
-            <v-list-item-subtitle>{{ service.description }}</v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-card-text>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ service.title }}</v-list-item-title>
+                      <v-list-item-subtitle>{{ service.description }}</v-list-item-subtitle>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
+              </v-card-text>
 
-    <v-card-actions>
-      <v-spacer />
-      <v-btn text @click="deleteDialog = false">Cancel</v-btn>
-      <v-btn color="error" text @click="deleteSelectedServices">Delete</v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
+              <v-card-actions>
+                <v-spacer />
+                <v-btn text @click="deleteDialog = false">Cancel</v-btn>
+                <v-btn color="error" text @click="deleteSelectedServices">Delete</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
           <!-- Calendar -->
           <v-col cols="12" md="6">
             <div class="calendar-wrapper">
@@ -348,7 +370,11 @@ const goToNextMonth = () => {
               </div>
 
               <div class="calendar-days">
-                <div v-for="blank in blankDays" :key="'b-' + blank" class="calendar-day empty"></div>
+                <div
+                  v-for="blank in blankDays"
+                  :key="'b-' + blank"
+                  class="calendar-day empty"
+                ></div>
                 <div
                   v-for="day in daysInMonth"
                   :key="day"
@@ -366,64 +392,54 @@ const goToNextMonth = () => {
 
         <!-- Add Service Dialog -->
         <v-dialog v-model="dialog" max-width="500">
-  <v-card class="pa-4 pa-sm-6">
-    <v-card-title class="service-title">
-      Add Service
-      <v-spacer />
-    </v-card-title>
+          <v-card class="pa-4 pa-sm-6">
+            <v-card-title class="service-title">
+              Add Service
+              <v-spacer />
+            </v-card-title>
 
-    <!-- Form part -->
-    <v-card-text class="pa-4">
-      <v-text-field
-        v-model="newService.title"
-        label="Service Title"
-        placeholder="Enter service title"
-      />
-      <v-textarea
-        v-model="newService.description"
-        label="Description"
-        placeholder="Enter service description"
-        rows="2"
-      />
-      <v-text-field
-        v-model="newService.doctor"
-        label="Doctor"
-        placeholder="Enter doctor's name"
-      />
-      <v-select
-        v-model="newService.barangay"
-        :items="barangayOptions"
-        label="Barangay"
-        placeholder="Select barangay"
-      />
-      <v-row>
-        <v-col cols="6">
-          <v-text-field
-            v-model="newService.startTime"
-            label="Start Time"
-            type="time"
-          />
-        </v-col>
-        <v-col cols="6">
-          <v-text-field
-            v-model="newService.endTime"
-            label="End Time"
-            type="time"
-          />
-        </v-col>
-      </v-row>
-    </v-card-text>
+            <!-- Form part -->
+            <v-card-text class="pa-4">
+              <v-text-field
+                v-model="newService.title"
+                label="Service Title"
+                placeholder="Enter service title"
+              />
+              <v-textarea
+                v-model="newService.description"
+                label="Description"
+                placeholder="Enter service description"
+                rows="2"
+              />
+              <v-text-field
+                v-model="newService.doctor"
+                label="Doctor"
+                placeholder="Enter doctor's name"
+              />
+              <v-select
+                v-model="newService.barangay"
+                :items="barangayOptions"
+                label="Barangay"
+                placeholder="Select barangay"
+              />
+              <v-row>
+                <v-col cols="6">
+                  <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field v-model="newService.endTime" label="End Time" type="time" />
+                </v-col>
+              </v-row>
+            </v-card-text>
 
-    <!-- Action buttons -->
-    <v-card-actions class="pa-4">
-      <v-spacer />
-      <v-btn text @click="dialog = false">Cancel</v-btn>
-      <v-btn color="primary" @click="addService">Save Service</v-btn>
-    </v-card-actions>
-
-  </v-card>
-</v-dialog>
-
+            <!-- Action buttons -->
+            <v-card-actions class="pa-4">
+              <v-spacer />
+              <v-btn text @click="dialog = false">Cancel</v-btn>
+              <v-btn color="primary" @click="addService">Save Service</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-container>
     </v-main>
   </v-app>
@@ -431,7 +447,7 @@ const goToNextMonth = () => {
 
 <style scoped>
 .dashboard-bg {
-  background-image: url('C:/Users/berou/Desktop/team-collab/public/images/Background.png');
+  background-image: url('public/images/Background.png');
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
@@ -532,4 +548,3 @@ const goToNextMonth = () => {
   border-top-right-radius: 8px;
 }
 </style>
-
