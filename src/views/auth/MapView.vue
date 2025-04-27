@@ -4,9 +4,11 @@ import L from 'leaflet'
 
 // Sidebar Drawer toggle
 const drawer = ref(true)
+const isMapFullScreen = ref(false)  // Add this line
 
 const toggleDrawer = () => {
   drawer.value = !drawer.value
+  isMapFullScreen.value = !drawer.value  // Adjust the map full-screen mode based on drawer status
 }
 
 // Profile Picture Logic
@@ -218,7 +220,7 @@ const showServiceDetails = (barangay) => {
     <v-main>
       <v-container fluid class="pa-0 fill-height">
         <!-- Map Section -->
-        <div id="map" class="map-container"></div>
+        <div id="map" :class="['map-container', isMapFullScreen ? 'full-screen' : '']"></div>
       </v-container>
     </v-main>
 
@@ -253,5 +255,14 @@ const showServiceDetails = (barangay) => {
   width: 100%;
   height: 100vh;
   z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.full-screen {
+  height: 100vh;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 </style>

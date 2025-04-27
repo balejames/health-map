@@ -34,6 +34,8 @@ const barangayList = [
   { name: 'Ambago' },
   { name: 'Antongalon' },
   { name: 'Baan Km. 3' },
+  { name: 'Maon' },
+  { name: 'Taligaman' },
 ]
 
 const barangayOptions = computed(() => barangayList.map(b => b.name))
@@ -120,7 +122,7 @@ const addService = () => {
   getServicesForDate()
 }
 
-// 🆕 Multiple Delete Support
+// Multiple Delete Support
 const deleteDialog = ref(false)
 const selectedServices = ref([])
 
