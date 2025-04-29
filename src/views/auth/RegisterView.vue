@@ -29,7 +29,7 @@ const formAction = ref({ ...formActionDefault })
 
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
-  // formAction = { ...formDataDefault }
+
   formAction.value.formProcess = true
 
   const { data, error } = await supabase.auth.signUp({
@@ -64,11 +64,6 @@ const onFormSubmit = () => {
 }
 </script>
 <template>
-  <AlertNotification
-    :form-success-message="formAction.formSuccessMessage"
-    :form-error-message="formAction.formErrorMEssage"
-  ></AlertNotification>
-
   <div class="create-account-wrapper">
     <v-container fluid>
       <v-row justify="center" align="center" class="fill-height">
@@ -77,8 +72,12 @@ const onFormSubmit = () => {
             <template v-slot:title>
               <h2 class="text-center">Create account</h2>
             </template>
+            <AlertNotification
+              :form-success-message="formAction.formSuccessMessage"
+              :form-error-message="formAction.formErrorMessage"
+            ></AlertNotification>
             <v-card-text>
-              <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
+              <v-form ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.firstName"
                   label="First Name"
@@ -150,7 +149,7 @@ const onFormSubmit = () => {
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Already have an account?
-                  <RouterLink class="text-primary" to="/" style="text-decoration: none"
+                  <RouterLink class="text-primary" to="/login" style="text-decoration: none"
                     >Sign in!</RouterLink
                   >
                 </h4>
@@ -163,7 +162,7 @@ const onFormSubmit = () => {
   </div>
 </template>
 
-<style>
+<style scoped>
 .create-account-wrapper {
   height: 100vh;
   display: flex;

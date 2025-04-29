@@ -1,28 +1,35 @@
 <script setup>
+import AlertNotification from '@/components/layout/AlertNotification.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { requiredValidator, emailValidator } from '@/utils/validators.js'
-import { supabase } from '@/utils/supabase.js'
+import { formActionDefault, supabase } from '@/utils/supabase.js'
 
 const router = useRouter()
-const refVForm = ref()
+
 const formDataDefault = {
   email: '',
   password: '',
   barangay: '',
   role: '',
 }
+
 const formData = ref({ ...formDataDefault })
-const formAction = ref({ ...formDataDefault })
+
+const formAction = ref({ ...formActionDefault })
+
+const isPasswordVisible = ref(false)
+const refVForm = ref()
 
 
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email: formData.value.email,
     password: formData.value.password,
-    baranagy: formData.value.barangay,
+    barangay: formData.value.barangay,
     role: formData.value.role,
   })
   if (error) {
@@ -30,8 +37,8 @@ const onSubmit = async () => {
     formAction.value.formStatus = error.status
   } else if (data) {
     console.log(data)
-    formAction.value.formSuccessMessage = 'Account Logged successfully!'
-    router.replace('/')
+    formAction.value.formSuccessMessage = 'Account Logged in successfully!'
+    router.replace('/dashboard')
   }
   refVForm.value?.reset()
   formAction.value.formProcess = false
@@ -39,7 +46,7 @@ const onSubmit = async () => {
 
 const onFormSubmit = () => {
   refVForm.value?.validate().then(({ valid }) => {
-    if (Valid) onSubmit()
+    if (valid) onSubmit()
   })
 }
 
@@ -84,8 +91,13 @@ const roles = ref(['Viewer', 'Barangay'])
             <template v-slot:title>
               <h2 class="text-center">Log In</h2>
             </template>
+
             <v-card-text>
-              <v-form ref="refVForm" @submit.prevent="onFormSubmit">
+              <AlertNotification
+                :form-success-message="formAction.formSuccessMessage"
+                :form-error-message="formAction.formErrorMessage"
+              ></AlertNotification>
+              <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.email"
                   label="Email"
@@ -111,23 +123,21 @@ const roles = ref(['Viewer', 'Barangay'])
         placeholder="Select barangay"
       />
                 <v-select
-                  v-model="role"
-                  :items="roles"
+                  v-model="formData.role"
+                  :items="['Viewer', 'Barangay']"
                   label="Role"
                   required
                   variant="outlined"
                   :rules="[requiredValidator]"
                 ></v-select>
 
-                <router-link to="/dashboard" style="text-decoration: none">
-                  <v-btn
-                    style="background-color: #0dceda; color: white"
-                    class="custom-login my-2 mx-auto d-block"
-                    @click="handleLogin"
-                  >
-                    Log In
-                  </v-btn>
-                </router-link>
+                <v-btn
+                  style="background-color: #0dceda; color: white"
+                  class="custom-login my-2 mx-auto d-block"
+                  @click="onSubmit"
+                >
+                  Log In
+                </v-btn>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Don't have an account?
@@ -163,7 +173,7 @@ const roles = ref(['Viewer', 'Barangay'])
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url('/images/Background (3).png');
+  background-image: url('public/images/Background (3).png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -174,6 +184,10 @@ const roles = ref(['Viewer', 'Barangay'])
   text-align: center;
   color: white;
   font-family: 'Merriweather', serif;
+}
+h2 {
+  color: #6a777b;
+  font-family: 'Times New Roman', Times, serif;
 }
 
 p {

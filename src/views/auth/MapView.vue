@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import L from 'leaflet'
+import { useRouter } from 'vue-router'
 
 // Sidebar Drawer toggle
 const drawer = ref(true)
@@ -196,12 +197,12 @@ const showServiceDetails = (barangay) => {
         >
           <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
-        <v-btn block class="mb-3" style="background-color: #BDDDE4" variant="elevated">
+        <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
         <v-spacer></v-spacer>
-        <br><br><br><br><br>
-        <br><br><br><br><br>
+        <br /><br /><br /><br /><br />
+        <br /><br /><br /><br /><br />
         <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
