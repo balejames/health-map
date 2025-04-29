@@ -1,8 +1,9 @@
 <script setup>
-import { isAuthenticated } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { supabase } from '@/utils/supabase'
 
+// Drawer & Routing
 const drawer = ref(true)
 const router = useRouter()
 
@@ -10,38 +11,64 @@ function logout() {
   router.push('/login')
 }
 
+// Profile Image Handling with Supabase
+const profileImage = ref('https://via.placeholder.com/200') // Default placeholder
+const showChangePicture = ref(false)
 const fileInput = ref(null)
-function editAccount() {
-  fileInput.value.click()
+
+const toggleChangePicture = () => {
+  showChangePicture.value = !showChangePicture.value
+  if (showChangePicture.value) {
+    setTimeout(() => fileInput.value?.click(), 100)
+  }
 }
 
+const onFileSelected = async (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  const { data: userData, error: userError } = await supabase.auth.getUser()
+  if (userError || !userData?.user) return
+
+  const userId = userData.user.id
+  const fileExt = file.name.split('.').pop()
+  const filePath = `avatars/${userId}.${fileExt}`
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, { upsert: true })
+
+  if (!uploadError) {
+    await getProfileImage()
+  } else {
+    console.error('Upload failed:', uploadError.message)
+  }
+}
+
+const getProfileImage = async () => {
+  const { data: userData, error: userError } = await supabase.auth.getUser()
+  if (userError || !userData?.user) return
+
+  const userId = userData.user.id
+  const extensions = ['jpg', 'jpeg', 'png', 'webp']
+
+  for (const ext of extensions) {
+    const { data } = supabase.storage.from('avatars').getPublicUrl(`avatars/${userId}.${ext}`)
+    if (data?.publicUrl) {
+      // Check if the image URL is valid by trying to load it
+      const img = new Image()
+      img.src = data.publicUrl + `?t=${Date.now()}` // 👈 Cache buster using timestamp
+      img.onload = () => {
+        profileImage.value = img.src
+      }
+      break // stop checking other extensions after success
+    }
+  }
+}
+// Calendar State
 const selectedDate = ref('')
-const newService = ref({
-  title: '',
-  description: '',
-  barangay: '',
-  doctor: '',
-  startTime: '',
-  endTime: '',
-})
-const services = ref({})
-const dailyServices = ref([])
-const dialog = ref(false)
-
-// Barangay List (Dropdown)
-const barangayList = [
-  { name: 'Ampayon' },
-  { name: 'Ambago' },
-  { name: 'Antongalon' },
-  { name: 'Baan Km. 3' },
-]
-
-const barangayOptions = computed(() => barangayList.map((b) => b.name))
-
-const today = new Date()
-const currentMonth = ref(today.getMonth())
-const currentYear = ref(today.getFullYear())
-
+const currentMonth = ref(new Date().getMonth())
+const currentYear = ref(new Date().getFullYear())
 const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 const monthYearLabel = computed(() =>
@@ -59,23 +86,54 @@ const blankDays = computed(() => {
 })
 
 const getDate = (day) => {
-  const date = new Date(currentYear.value, currentMonth.value, day)
-  return date.toISOString().split('T')[0]
+  return new Date(currentYear.value, currentMonth.value, day).toISOString().split('T')[0]
 }
 
 const isToday = (dateString) => {
-  const todayDate = new Date()
-  const todayFormatted = todayDate.toISOString().split('T')[0]
-  return dateString === todayFormatted
+  const today = new Date().toISOString().split('T')[0]
+  return dateString === today
+}
+
+// Navigation Between Months
+const goToPrevMonth = () => {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value -= 1
+  } else {
+    currentMonth.value -= 1
+  }
+}
+
+const goToNextMonth = () => {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value += 1
+  } else {
+    currentMonth.value += 1
+  }
+}
+
+// Service Management
+const services = ref({})
+const dailyServices = ref([])
+const newService = ref({
+  title: '',
+  description: '',
+  barangay: '',
+  doctor: '',
+  startTime: '',
+  endTime: '',
+})
+
+const dialog = ref(false)
+
+const getServicesForDate = () => {
+  dailyServices.value = services.value[selectedDate.value] || []
 }
 
 const onDateClick = (date) => {
   selectedDate.value = date
   getServicesForDate()
-}
-
-const getServicesForDate = () => {
-  dailyServices.value = services.value[selectedDate.value] || []
 }
 
 const openServiceDialog = () => {
@@ -125,7 +183,7 @@ const addService = () => {
   getServicesForDate()
 }
 
-// 🆕 Multiple Delete Support
+// Multi-delete Support
 const deleteDialog = ref(false)
 const selectedServices = ref([])
 
@@ -151,58 +209,26 @@ const hasServices = (date) => {
   return services.value[date] && services.value[date].length > 0
 }
 
-// Profile image logic
-const profileImage = ref('https://via.placeholder.com/200')
-const showChangePicture = ref(false)
+// Barangay Options
+const barangayList = [
+  { name: 'Ampayon' },
+  { name: 'Ambago' },
+  { name: 'Antongalon' },
+  { name: 'Baan Km. 3' },
+]
 
-const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
-}
+const barangayOptions = computed(() => barangayList.map((b) => b.name))
 
-const onFileSelected = (e) => {
-  const file = e.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = () => {
-      profileImage.value = reader.result
-      localStorage.setItem('profileImage', profileImage.value)
-    }
-    reader.readAsDataURL(file)
-  }
-}
-
-onMounted(() => {
+// Initial Mount
+onMounted(async () => {
   const stored = localStorage.getItem('services')
   if (stored) {
     services.value = JSON.parse(stored)
   }
 
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
+  await getProfileImage()
 })
-
-const goToPrevMonth = () => {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value -= 1
-  } else {
-    currentMonth.value -= 1
-  }
-}
-
-const goToNextMonth = () => {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value += 1
-  } else {
-    currentMonth.value += 1
-  }
-}
 </script>
-
-]
 <template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
