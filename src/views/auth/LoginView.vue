@@ -51,10 +51,6 @@ const onFormSubmit = () => {
 </script>
 
 <template>
-  <AlertNotification
-    :form-success-message="formAction.formSuccessMessage"
-    :form-error-message="formAction.formErrorMEssage"
-  ></AlertNotification>
   <div class="login-wrapper">
     <v-container fluid>
       <v-row class="fill-height pa-4" align="center" justify="center" style="gap: 2rem">
@@ -73,7 +69,12 @@ const onFormSubmit = () => {
             <template v-slot:title>
               <h2 class="text-center">Log In</h2>
             </template>
+
             <v-card-text>
+              <AlertNotification
+                :form-success-message="formAction.formSuccessMessage"
+                :form-error-message="formAction.formErrorMessage"
+              ></AlertNotification>
               <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.email"
@@ -163,6 +164,10 @@ const onFormSubmit = () => {
   text-align: center;
   color: white;
   font-family: 'Merriweather', serif;
+}
+h2 {
+  color: #6a777b;
+  font-family: 'Times New Roman', Times, serif;
 }
 
 p {
