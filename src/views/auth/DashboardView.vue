@@ -234,7 +234,7 @@ onMounted(async () => {
     <!-- Sidebar -->
     <v-navigation-drawer v-model="drawer" app color="#9bd1f8" dark>
       <v-container class="text-center py-5">
-        <!-- Profile Picture -->
+        <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
           <v-avatar
             size="80"
@@ -250,9 +250,10 @@ onMounted(async () => {
               style="object-fit: cover"
             />
           </v-avatar>
+
+          <!-- Hidden File Input for Changing Profile Picture -->
           <input
             v-if="showChangePicture"
-            ref="fileInput"
             type="file"
             accept="image/*"
             @change="onFileSelected"
@@ -269,21 +270,26 @@ onMounted(async () => {
         </div>
 
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" style="background-color: #bddde4" variant="elevated">
+        <v-btn
+          block
+          class="mt-9 mb-3"
+          color="white"
+          variant="text"
+          @click="$router.push('/dashboard')"
+        >
           <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
+        <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
         <v-spacer></v-spacer>
         <br /><br /><br /><br /><br />
         <br /><br /><br /><br /><br />
-        <v-btn block class="mt-9" color="white" variant="text" @click="logout">
+        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
     </v-navigation-drawer>
-
     <!-- Topbar -->
     <v-app-bar app color="transparent" dark elevation="0">
       <v-app-bar-nav-icon @click="drawer = !drawer">
