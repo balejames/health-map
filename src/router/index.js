@@ -33,7 +33,7 @@ const router = createRouter({
       component: MapView,
     },
     {
-      path: '/viewer',
+      path: '/viewerdashboard',
       name: 'Viewer',
       component: ViewerView,
     },
