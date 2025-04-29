@@ -15,6 +15,7 @@ const formDataDefault = {
 const formData = ref({ ...formDataDefault })
 const formAction = ref({ ...formDataDefault })
 
+
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
@@ -59,8 +60,6 @@ const handleLogin = () => {
 }
 
 const isPasswordVisible = ref(false)
-
-const barangay = ref('')
 const role = ref('')
 
 const roles = ref(['Viewer', 'Barangay'])
@@ -105,14 +104,12 @@ const roles = ref(['Viewer', 'Barangay'])
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   :rules="[requiredValidator]"
                 ></v-text-field>
-                <v-text-field
-                  v-model="barangay"
-                  label="Barangay"
-                  required
-                  type="text"
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                ></v-text-field>
+                <v-select
+        v-model="newService.barangay"
+        :items="barangayOptions"
+        label="Barangay"
+        placeholder="Select barangay"
+      />
                 <v-select
                   v-model="role"
                   :items="roles"
