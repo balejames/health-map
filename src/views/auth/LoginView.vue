@@ -21,7 +21,6 @@ const formAction = ref({ ...formActionDefault })
 const isPasswordVisible = ref(false)
 const refVForm = ref()
 
-
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
@@ -49,27 +48,6 @@ const onFormSubmit = () => {
     if (valid) onSubmit()
   })
 }
-
-const handleLogin = () => {
-  if (!role.value) {
-    alert('Please select a role.')
-    return
-  }
-
-  // Optional: You could redirect to different dashboards per role
-  if (role.value === 'Barangay') {
-    router.push('/dashboard') // or maybe /barangay-dashboard
-  } else if (role.value === 'Viewer') {
-    router.push('/dashboard') // or maybe /viewer-dashboard
-  } else {
-    alert('Invalid role selected.')
-  }
-}
-
-const isPasswordVisible = ref(false)
-const role = ref('')
-
-const roles = ref(['Viewer', 'Barangay'])
 </script>
 
 <template>
@@ -91,12 +69,11 @@ const roles = ref(['Viewer', 'Barangay'])
             <template v-slot:title>
               <h2 class="text-center">Log In</h2>
             </template>
-
+            <AlertNotification
+              :form-success-message="formAction.formSuccessMessage"
+              :form-error-message="formAction.formErrorMessage"
+            ></AlertNotification>
             <v-card-text>
-              <AlertNotification
-                :form-success-message="formAction.formSuccessMessage"
-                :form-error-message="formAction.formErrorMessage"
-              ></AlertNotification>
               <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.email"
@@ -116,12 +93,14 @@ const roles = ref(['Viewer', 'Barangay'])
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   :rules="[requiredValidator]"
                 ></v-text-field>
-                <v-select
-        v-model="newService.barangay"
-        :items="barangayOptions"
-        label="Barangay"
-        placeholder="Select barangay"
-      />
+                <v-text-field
+                  v-model="formData.barangay"
+                  label="Barangay"
+                  required
+                  type="text"
+                  variant="outlined"
+                  :rules="[requiredValidator]"
+                ></v-text-field>
                 <v-select
                   v-model="formData.role"
                   :items="['Viewer', 'Barangay']"
@@ -134,7 +113,10 @@ const roles = ref(['Viewer', 'Barangay'])
                 <v-btn
                   style="background-color: #0dceda; color: white"
                   class="custom-login my-2 mx-auto d-block"
+                  :disabled="formAction.formProcess"
+                  :loading="formAction.formProcess"
                   @click="onSubmit"
+                  type="submit"
                 >
                   Log In
                 </v-btn>
@@ -189,7 +171,6 @@ h2 {
   color: #6a777b;
   font-family: 'Times New Roman', Times, serif;
 }
-
 p {
   color: white;
   font-size: 125%;
