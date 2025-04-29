@@ -27,6 +27,6 @@ const vuetify = createVuetify({
 })
 
 app.use(createPinia())
-app.use(router)  // Register the router
+app.use(router) // Register the router
 app.use(vuetify)
 app.mount('#app')

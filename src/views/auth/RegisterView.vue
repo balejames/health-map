@@ -1,62 +1,74 @@
 <script setup>
 import { ref } from 'vue'
+import AlertNotification from '@/components/layout/AlertNotification.vue'
+import { supabase, formActionDefault } from '@/utils/supabase.js'
+import {
+  requiredValidator,
+  emailValidator,
+  passwordValidator,
+  confirmedValidator,
+} from '@/utils/validators.js'
+import { useRouter } from 'vue-router'
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
-const barangay = ref('')
+const isPasswordVisible = ref(false)
+const isPasswordConfirmVisible = ref(false)
+const refVForm = ref()
+const router = useRouter()
 
-const emailError = ref('')
-const passwordError = ref('')
-const barangayError = ref('')
-const confirmPasswordError = ref('')
-
-const submit = () => {
-  let valid = true
-
-  // Email Validation
-  if (!validateEmail(email.value)) {
-    emailError.value = 'Please enter a valid email address.'
-    valid = false
-  } else {
-    emailError.value = ''
-  }
-
-  // Password Validation
-  if (!password.value) {
-    passwordError.value = 'Password is required.'
-    valid = false
-  } else {
-    passwordError.value = ''
-  }
-
-  // Confirm Password Validation
-  if (password.value !== confirmPassword.value) {
-    confirmPasswordError.value = 'Passwords do not match.'
-    valid = false
-  } else {
-    confirmPasswordError.value = ''
-  }
-
-  // Barangay Validation
-  if (!barangay.value) {
-    barangayError.value = 'Barangay is required.'
-    valid = false
-  } else {
-    barangayError.value = ''
-  }
-
-  // If all fields are valid
-  if (valid) {
-    alert(`Submitted: ${email.value}`)
-  }
+const formDataDefault = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  barangay: '',
+  password: '',
+  password_confirmation: '',
 }
 
-const validateEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+const formData = ref({ ...formDataDefault })
+const formAction = ref({ ...formActionDefault })
+
+const onSubmit = async () => {
+  formAction.value = { ...formActionDefault }
+  // formAction = { ...formDataDefault }
+  formAction.value.formProcess = true
+
+  const { data, error } = await supabase.auth.signUp({
+    email: formData.value.email,
+    password: formData.value.password,
+    options: {
+      data: {
+        firstName: formData.value.firstName,
+        lastName: formData.value.lastName,
+        barangay: formData.value.barangay,
+        is_admin: false,
+        // role: 'Administrator',
+      },
+    },
+  })
+  if (error) {
+    formAction.value.formErrorMessage = error.message
+    formAction.value.formStatus = error.status
+  } else if (data) {
+    console.log(data)
+    formAction.value.formSuccessMessage = 'Account created successfully!'
+    router.replace('/dashboard')
+  }
+  refVForm.value?.reset()
+  formAction.value.formProcess = false
+}
+
+const onFormSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (valid) onSubmit()
+  })
 }
 </script>
 <template>
+  <AlertNotification
+    :form-success-message="formAction.formSuccessMessage"
+    :form-error-message="formAction.formErrorMEssage"
+  ></AlertNotification>
+
   <div class="create-account-wrapper">
     <v-container fluid>
       <v-row justify="center" align="center" class="fill-height">
@@ -66,52 +78,75 @@ const validateEmail = (email) => {
               <h2 class="text-center">Create account</h2>
             </template>
             <v-card-text>
-              <v-form fast-fail @submit.prevent="submit">
+              <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
-                  v-model="email"
+                  v-model="formData.firstName"
+                  label="First Name"
+                  required
+                  variant="outlined"
+                  :rules="[requiredValidator]"
+                >
+                </v-text-field>
+                <v-text-field
+                  v-model="formData.lastName"
+                  label="Last Name"
+                  required
+                  variant="outlined"
+                  :rules="[requiredValidator]"
+                >
+                </v-text-field>
+                <v-text-field
+                  v-model="formData.email"
                   label="Email"
                   required
                   type="email"
-                  :error-messages="emailError"
                   variant="outlined"
+                  :rules="[requiredValidator, emailValidator]"
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="barangay"
+                  v-model="formData.barangay"
                   label="Barangay"
                   required
                   type="text"
-                  :error-messages="barangayError"
                   variant="outlined"
+                  :rules="[requiredValidator]"
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="password"
+                  v-model="formData.password"
                   label="Password"
                   required
-                  type="password"
-                  :error-messages="passwordError"
                   variant="outlined"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  :rules="[requiredValidator, passwordValidator]"
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="confirmPassword"
-                  label="Confirm Password"
+                  v-model="formData.password_confirmation"
+                  label="Password Confirmation"
                   required
-                  type="password"
-                  :error-messages="confirmPasswordError"
                   variant="outlined"
+                  :type="isPasswordConfirmVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordConfirmVisible ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="isPasswordConfirmVisible = !isPasswordConfirmVisible"
+                  :rules="[
+                    requiredValidator,
+                    confirmedValidator(formData.password_confirmation, formData.password),
+                  ]"
                 ></v-text-field>
 
-                <RouterLink to="/" style="text-decoration: none"
-                  ><v-btn
-                    type="submit"
-                    style="background-color: #0dceda; color: white"
-                    class="custom-create my-2 mx-auto d-block"
-                  >
-                    Create Account
-                  </v-btn></RouterLink
+                <v-btn
+                  type="submit"
+                  style="background-color: #0dceda; color: white"
+                  class="custom-create my-2 mx-auto d-block"
+                  :disabled="formAction.formProcess"
+                  :loading="formAction.formProcess"
                 >
+                  Create Account
+                </v-btn>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Already have an account?
@@ -123,8 +158,6 @@ const validateEmail = (email) => {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="2"></v-col>
-        <v-col cols="12" sm="4" md="5" lg="4" class="text-center mb-4"> </v-col>
       </v-row>
     </v-container>
   </div>
@@ -153,7 +186,6 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-
   background-image: url('/images/Background-Register.png');
   background-size: cover;
   background-repeat: no-repeat;

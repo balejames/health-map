@@ -1,119 +1,122 @@
 <script setup>
+import AlertNotification from '@/components/layout/AlertNotification.vue'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { requiredValidator, emailValidator } from '@/utils/validators.js'
+import { formActionDefault, supabase } from '@/utils/supabase.js'
 
-const email = ref('')
-const password = ref('')
-const barangay = ref('')
-const role = ref('')
+const router = useRouter()
 
-const emailError = ref('')
-const passwordError = ref('')
-const barangayError = ref('')
-
-const roles = ref(['Viewer', 'Barangay'])
-
-const submit = () => {
-  let valid = true
-
-  // Email Validation
-  if (!validateEmail(email.value)) {
-    emailError.value = 'Please enter a valid email address.'
-    valid = false
-  } else {
-    emailError.value = ''
-  }
-
-  // Password Validation
-  if (!password.value) {
-    passwordError.value = 'Password is required.'
-    valid = false
-  } else {
-    passwordError.value = ''
-  }
-
-  // Barangay Validation
-  if (!barangay.value) {
-    barangayError.value = 'Barangay is required.'
-    valid = false
-  } else {
-    barangayError.value = ''
-  }
-
-  // If all fields are valid
-  if (valid) {
-    alert(`Submitted: ${email.value}, Role: ${role.value}`)
-  }
+const formDataDefault = {
+  email: '',
+  password: '',
+  barangay: '',
+  role: '',
 }
 
-const validateEmail = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+const formData = ref({ ...formDataDefault })
+
+const formAction = ref({ ...formActionDefault })
+
+const isPasswordVisible = ref(false)
+const refVForm = ref()
+
+const onSubmit = async () => {
+  formAction.value = { ...formActionDefault }
+  formAction.value.formProcess = true
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: formData.value.email,
+    password: formData.value.password,
+    barangay: formData.value.barangay,
+    role: formData.value.role,
+  })
+  if (error) {
+    formAction.value.formErrorMessage = error.message
+    formAction.value.formStatus = error.status
+  } else if (data) {
+    console.log(data)
+    formAction.value.formSuccessMessage = 'Account Logged in successfully!'
+    router.replace('/dashboard')
+  }
+  refVForm.value?.reset()
+  formAction.value.formProcess = false
+}
+
+const onFormSubmit = () => {
+  refVForm.value?.validate().then(({ valid }) => {
+    if (valid) onSubmit()
+  })
 }
 </script>
 
 <template>
+  <AlertNotification
+    :form-success-message="formAction.formSuccessMessage"
+    :form-error-message="formAction.formErrorMEssage"
+  ></AlertNotification>
   <div class="login-wrapper">
     <v-container fluid>
-      <v-row justify="center" align="center" class="fill-height">
-        <v-col cols="12" md="6" class="text-section pt-1">
+      <v-row class="fill-height pa-4" align="center" justify="center" style="gap: 2rem">
+        <v-col cols="12" md="6" class="text-section">
           <div class="align-center">
             <h1 class="header mb-0 text-start">Health Map</h1>
             <p>
-              Health Map connects you with the health resources in your community, helping barangay
-              clinics share their services with residents in the area while also keeping residents
-              updated on medical schedules in their barangay, ensuring they don't miss any health
-              assistance.
+              Health Map links residents with local health resources by helping barangay clinics
+              share services and keep the community informed about medical schedules.
             </p>
           </div>
         </v-col>
-        <v-col cols="1"></v-col>
-        <v-col cols="12" sm="8" md="5" lg="4">
+
+        <v-col cols="12" sm="10" md="6" lg="4">
           <v-card class="mx-auto" elevation="24">
             <template v-slot:title>
               <h2 class="text-center">Log In</h2>
             </template>
             <v-card-text>
-              <v-form @submit.prevent="submit">
+              <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
-                  v-model="email"
+                  v-model="formData.email"
                   label="Email"
                   required
                   type="email"
-                  :error-messages="emailError"
                   variant="outlined"
+                  :rules="[requiredValidator, emailValidator]"
                 ></v-text-field>
                 <v-text-field
-                  v-model="password"
                   label="Password"
                   required
-                  type="password"
-                  :error-messages="passwordError"
                   variant="outlined"
+                  v-model="formData.password"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  :rules="[requiredValidator]"
                 ></v-text-field>
                 <v-text-field
-                  v-model="barangay"
+                  v-model="formData.barangay"
                   label="Barangay"
                   required
                   type="text"
-                  :error-messages="barangayError"
                   variant="outlined"
+                  :rules="[requiredValidator]"
                 ></v-text-field>
                 <v-select
-                  v-model="role"
-                  :items="roles"
-                  :rules="[(v) => !!v || 'Role is required']"
+                  v-model="formData.role"
+                  :items="['Viewer', 'Barangay']"
                   label="Role"
                   required
                   variant="outlined"
+                  :rules="[requiredValidator]"
                 ></v-select>
-                <router-link to="/dashboard" style="text-decoration: none">
-                  <v-btn
-                    type="submit"
-                    style="background-color: #0dceda; color: white"
-                    class="custom-login my-2 mx-auto d-block"
-                  >
-                    Log In
-                  </v-btn>
-                </router-link>
+
+                <v-btn
+                  style="background-color: #0dceda; color: white"
+                  class="custom-login my-2 mx-auto d-block"
+                  @click="onSubmit"
+                >
+                  Log In
+                </v-btn>
                 <v-divider class="my-5"></v-divider>
                 <h4 class="text-center">
                   Don't have an account?
@@ -149,8 +152,7 @@ const validateEmail = (email) => {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  background-image: url('/images/Background (3).png');
+  background-image: url('public/images/Background (3).png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

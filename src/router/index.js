@@ -3,13 +3,14 @@ import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import DashboardView from '@/views/auth/DashboardView.vue'
 import MapView from '@/views/auth/MapView.vue'
+import ViewerView from '@/views/auth/ViewerDashboard.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      redirect: '/login', // <--- Add this line to fix the warning
+      redirect: '/login',
     },
     {
       path: '/login',
@@ -23,15 +24,36 @@ const router = createRouter({
     },
     {
       path: '/dashboard',
-      name: 'dashboard',
+      name: 'Dashboard',
       component: DashboardView,
     },
     {
       path: '/map',
-      name: 'map',
+      name: 'MapView',
       component: MapView,
     },
+    {
+      path: '/viewerdashboard',
+      name: 'Viewer',
+      component: ViewerView,
+    },
   ],
+})
+
+// ✅ Route Protection (Add this below your router definition)
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!localStorage.getItem('user')
+
+  // Allow access to login & register pages without auth
+  if (to.name === 'login' || to.name === 'register') {
+    next()
+  } else if (!isAuthenticated) {
+    // Redirect to login if user is not authenticated
+    next({ name: 'login' })
+  } else {
+    // Allow access to all other routes
+    next()
+  }
 })
 
 export default router
