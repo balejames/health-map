@@ -21,6 +21,7 @@ const formAction = ref({ ...formActionDefault })
 const isPasswordVisible = ref(false)
 const refVForm = ref()
 
+
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
@@ -48,6 +49,27 @@ const onFormSubmit = () => {
     if (valid) onSubmit()
   })
 }
+
+const handleLogin = () => {
+  if (!role.value) {
+    alert('Please select a role.')
+    return
+  }
+
+  // Optional: You could redirect to different dashboards per role
+  if (role.value === 'Barangay') {
+    router.push('/dashboard') // or maybe /barangay-dashboard
+  } else if (role.value === 'Viewer') {
+    router.push('/dashboard') // or maybe /viewer-dashboard
+  } else {
+    alert('Invalid role selected.')
+  }
+}
+
+const isPasswordVisible = ref(false)
+const role = ref('')
+
+const roles = ref(['Viewer', 'Barangay'])
 </script>
 
 <template>
@@ -94,14 +116,12 @@ const onFormSubmit = () => {
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   :rules="[requiredValidator]"
                 ></v-text-field>
-                <v-text-field
-                  v-model="formData.barangay"
-                  label="Barangay"
-                  required
-                  type="text"
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                ></v-text-field>
+                <v-select
+        v-model="newService.barangay"
+        :items="barangayOptions"
+        label="Barangay"
+        placeholder="Select barangay"
+      />
                 <v-select
                   v-model="formData.role"
                   :items="['Viewer', 'Barangay']"

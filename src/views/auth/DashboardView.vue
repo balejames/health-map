@@ -67,8 +67,39 @@ const getProfileImage = async () => {
 }
 // Calendar State
 const selectedDate = ref('')
+<<<<<<< HEAD
+const newService = ref({
+  title: '',
+  description: '',
+  barangay: '',
+  doctor: '',
+  startTime: '',
+  endTime: '',
+})
+const services = ref({})
+const dailyServices = ref([])
+const dialog = ref(false)
+
+// Barangay List (Dropdown)
+const barangayList = [
+  { name: 'Ampayon' },
+  { name: 'Ambago' },
+  { name: 'Antongalon' },
+  { name: 'Baan Km. 3' },
+  { name: 'Maon' },
+  { name: 'Taligaman' },
+]
+
+const barangayOptions = computed(() => barangayList.map(b => b.name))
+
+const today = new Date()
+const currentMonth = ref(today.getMonth())
+const currentYear = ref(today.getFullYear())
+
+=======
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
+>>>>>>> e02f0a11be48a17c5c80401a728498aa9885a40d
 const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 const monthYearLabel = computed(() =>
@@ -183,7 +214,11 @@ const addService = () => {
   getServicesForDate()
 }
 
+<<<<<<< HEAD
+// Multiple Delete Support
+=======
 // Multi-delete Support
+>>>>>>> e02f0a11be48a17c5c80401a728498aa9885a40d
 const deleteDialog = ref(false)
 const selectedServices = ref([])
 
