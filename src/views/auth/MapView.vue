@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import L from 'leaflet'
+import { useRouter } from 'vue-router'
 
 // Sidebar Drawer toggle
 const drawer = ref(true)
