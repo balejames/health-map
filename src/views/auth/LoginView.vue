@@ -69,12 +69,11 @@ const onFormSubmit = () => {
             <template v-slot:title>
               <h2 class="text-center">Log In</h2>
             </template>
-
+            <AlertNotification
+              :form-success-message="formAction.formSuccessMessage"
+              :form-error-message="formAction.formErrorMessage"
+            ></AlertNotification>
             <v-card-text>
-              <AlertNotification
-                :form-success-message="formAction.formSuccessMessage"
-                :form-error-message="formAction.formErrorMessage"
-              ></AlertNotification>
               <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.email"
@@ -114,7 +113,10 @@ const onFormSubmit = () => {
                 <v-btn
                   style="background-color: #0dceda; color: white"
                   class="custom-login my-2 mx-auto d-block"
+                  :disabled="formAction.formProcess"
+                  :loading="formAction.formProcess"
                   @click="onSubmit"
+                  type="submit"
                 >
                   Log In
                 </v-btn>
@@ -169,7 +171,6 @@ h2 {
   color: #6a777b;
   font-family: 'Times New Roman', Times, serif;
 }
-
 p {
   color: white;
   font-size: 125%;
