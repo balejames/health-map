@@ -103,7 +103,7 @@ const onFormSubmit = () => {
                 ></v-text-field>
                 <v-select
                   v-model="formData.role"
-                  :items="['Viewer', 'Barangay']"
+                  :items="['Resident', 'Employee']"
                   label="Role"
                   required
                   variant="outlined"
