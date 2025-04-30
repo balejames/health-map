@@ -1,13 +1,12 @@
 <script setup>
-import { supabase } from '@/utils/supabase.js'
+import { isAuthenticated } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const drawer = ref(true)
 const router = useRouter()
 
-const logout = async () => {
-  await supabase.auth.signOut()
+function logout() {
   router.push('/login')
 }
 
@@ -128,7 +127,6 @@ const addService = () => {
   getServicesForDate()
 }
 
-// 🆕 Multiple Delete Support
 // Multiple Delete Support
 const deleteDialog = ref(false)
 const selectedServices = ref([])
@@ -206,7 +204,6 @@ const goToNextMonth = () => {
 }
 </script>
 
-]
 <template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
@@ -242,7 +239,7 @@ const goToNextMonth = () => {
               height: 80px;
               opacity: 0;
               cursor: pointer;
-            ; cursor: pointer"
+            "
           />
         </div>
 
@@ -250,7 +247,7 @@ const goToNextMonth = () => {
         <v-btn block class="mt-9 mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
+        <v-btn block class="mb-3" color="white" variant="text" @click="router.push('/map')">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
         <v-spacer></v-spacer>
@@ -325,7 +322,7 @@ const goToNextMonth = () => {
             </v-card>
           </v-col>
 
-          <!-- Diri ibutang ang bag-ong delete dialog -->
+          <!-- Delete Dialog -->
           <v-dialog v-model="deleteDialog" max-width="500px">
             <v-card>
               <v-card-title>Select Service(s) to Delete</v-card-title>
@@ -360,6 +357,7 @@ const goToNextMonth = () => {
               </v-card-actions>
             </v-card>
           </v-dialog>
+
           <!-- Calendar -->
           <v-col cols="12" md="6">
             <div class="calendar-wrapper">
@@ -449,152 +447,6 @@ const goToNextMonth = () => {
   </v-app>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-
-const selectedDate = ref('')
-const newEvent = ref({
-  title: '',
-  description: '',
-  barangay: '',
-  doctor: '',
-  startTime: '',
-  endTime: '',
-})
-const events = ref({})
-const dailyEvents = ref([])
-const dialog = ref(false)
-
-const today = new Date()
-const currentMonth = ref(today.getMonth())
-const currentYear = ref(today.getFullYear())
-
-const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-
-const monthYearLabel = computed(() =>
-  new Date(currentYear.value, currentMonth.value).toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  })
-)
-
-const daysInMonth = computed(() =>
-  new Date(currentYear.value, currentMonth.value + 1, 0).getDate()
-)
-
-const blankDays = computed(() => {
-  const firstDay = new Date(currentYear.value, currentMonth.value, 1).getDay()
-  return Array.from({ length: firstDay }, (_, i) => i)
-})
-
-const getDate = (day) => {
-  const date = new Date(currentYear.value, currentMonth.value, day)
-  return date.toISOString().split('T')[0]
-}
-
-const isToday = (dateString) => {
-  const todayDate = new Date()
-  const todayFormatted = todayDate.toISOString().split('T')[0]
-  return dateString === todayFormatted
-}
-
-const onDateClick = (date) => {
-  selectedDate.value = date
-  getEventsForDate()
-}
-
-const getEventsForDate = () => {
-  dailyEvents.value = events.value[selectedDate.value] || []
-}
-
-const openEventDialog = () => {
-  dialog.value = true
-}
-
-const addEvent = () => {
-  const { title, description, barangay, doctor, startTime, endTime } = newEvent.value
-  if (!title.trim()) return
-
-  if (!events.value[selectedDate.value]) {
-    events.value[selectedDate.value] = []
-  }
-
-  events.value[selectedDate.value].push({
-    title,
-    description,
-    barangay,
-    doctor,
-    startTime,
-    endTime,
-  })
-  localStorage.setItem('events', JSON.stringify(events.value))
-
-  newEvent.value = {
-    title: '',
-    description: '',
-    barangay: '',
-    doctor: '',
-    startTime: '',
-    endTime: '',
-  }
-  dialog.value = false
-  getEventsForDate()
-}
-
-const hasEvents = (date) => {
-  return events.value[date] && events.value[date].length > 0
-}
-
-// Profile image logic
-const profileImage = ref('https://via.placeholder.com/200')
-// Removed unused profileFile declaration
-const showChangePicture = ref(false)
-
-const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
-}
-
-const onFileSelected = (e) => {
-  const file = e.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
-      localStorage.setItem('profileImage', profileImage.value)
-    }
-    reader.readAsDataURL(file)
-  }
-}
-
-onMounted(() => {
-  const stored = localStorage.getItem('events')
-  if (stored) {
-    events.value = JSON.parse(stored)
-  }
-
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-})
-const goToPrevMonth = () => {
-  if (currentMonth.value === 0) {
-    currentMonth.value = 11
-    currentYear.value -= 1
-  } else {
-    currentMonth.value -= 1
-  }
-}
-const goToNextMonth = () => {
-  if (currentMonth.value === 11) {
-    currentMonth.value = 0
-    currentYear.value += 1
-  } else {
-    currentMonth.value += 1
-  }
-}
-</script>
-
 <style scoped>
 .dashboard-bg {
   background-image: url('public/images/Background.png');
@@ -654,7 +506,6 @@ const goToNextMonth = () => {
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  position: relative;
   position: relative;
 }
 
