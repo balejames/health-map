@@ -1,13 +1,15 @@
 <script setup>
-import { isAuthenticated } from '@/utils/supabase.js'
+import { isAuthenticated, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const drawer = ref(true)
 const router = useRouter()
 
-function logout() {
-  router.push('/login')
+const logout = async () => {
+  await supabase.auth.signOut()
+
+  router.push({ name: 'login' })
 }
 
 const fileInput = ref(null)
@@ -449,7 +451,7 @@ const goToNextMonth = () => {
 
 <style scoped>
 .dashboard-bg {
-  background-image: url('public/images/Background.png');
+  background-image: url('/images/Background.png');
   background-attachment: fixed;
   background-size: cover;
   background-position: center;

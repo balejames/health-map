@@ -1,10 +1,15 @@
 <script setup>
 import { onMounted, nextTick, ref } from 'vue'
+import { isAuthenticated, supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const logout = async () => {
+  await supabase.auth.signOut()
 
+  router.push({ name: 'login' })
+}
 // Sidebar Drawer toggle
 const drawer = ref(true)
 const isMapFullScreen = ref(false)
@@ -105,10 +110,7 @@ onMounted(() => {
   }).addTo(map)
 
   // Add default marker at Butuan City center
-  L.marker([8.9475, 125.5406])
-    .addTo(map)
-    .bindPopup('📍 Butuan City, Mindanao')
-    .openPopup()
+  L.marker([8.9475, 125.5406]).addTo(map).bindPopup('📍 Butuan City, Mindanao').openPopup()
 
   // Handle click events on the map
   map.on('click', function (e) {
@@ -119,8 +121,8 @@ onMounted(() => {
       .addTo(map)
       .bindPopup(
         `📍 You clicked here:<br><strong>Lat:</strong> ${lat.toFixed(
-          5
-        )}<br><strong>Lng:</strong> ${lng.toFixed(5)}`
+          5,
+        )}<br><strong>Lng:</strong> ${lng.toFixed(5)}`,
       )
       .openPopup()
   })
@@ -208,16 +210,21 @@ onMounted(() => {
         </div>
 
         <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" color="white" variant="text" @click="router.push('/dashboard')">
+        <v-btn
+          block
+          class="mt-9 mb-3"
+          color="white"
+          variant="text"
+          @click="router.push('/dashboard')"
+        >
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
-        <br><br><br>
-        <br><br><br>
-        <br><br><br>
-        <v-btn block class="mt-9" color="white" variant="text" @click="router.push('/login')">
+        <br /><br /><br /><br /><br />
+        <br /><br /><br /><br /><br />
+        <v-btn block class="mt-9" color="white" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
