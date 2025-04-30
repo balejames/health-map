@@ -7,9 +7,9 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const logout = async () => {
   await supabase.auth.signOut()
-
   router.push({ name: 'login' })
 }
+
 // Sidebar Drawer toggle
 const drawer = ref(true)
 const isMapFullScreen = ref(false)
@@ -52,7 +52,7 @@ const barangayCoordinates = {
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const todaysServices = ref([])
-const expandedServices = ref([])
+
 const mapRef = ref(null)
 
 // Normalize string for matching
@@ -82,15 +82,8 @@ const showServiceDetails = (barangay) => {
     selectedService.value = null
   }
 
+  console.log("Selected Service: ", selectedService.value)
   serviceDialog.value = true
-
-  nextTick(() => {
-    setTimeout(() => {
-      if (mapRef.value) {
-        mapRef.value.invalidateSize()
-      }
-    }, 300)
-  })
 }
 
 onMounted(() => {
@@ -118,7 +111,6 @@ onMounted(() => {
   if (storedServices) {
     const services = JSON.parse(storedServices)
     todaysServices.value = services[today] || []
-    expandedServices.value = todaysServices.value.map(() => false)
   }
 
   for (const [name, coords] of Object.entries(barangayCoordinates)) {
@@ -200,15 +192,13 @@ onMounted(() => {
           class="mt-9 mb-3"
           color="white"
           variant="text"
-          @click="router.push('/dashboard')"
+          @click="() => router.push('/dashboard')"
         >
           <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
-        <br /><br /><br /><br /><br />
-        <br /><br /><br /><br /><br />
         <v-btn block class="mt-9" color="white" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
@@ -230,6 +220,21 @@ onMounted(() => {
         <div id="map" :class="['map-container', isMapFullScreen ? 'full-screen' : '']"></div>
       </v-container>
     </v-main>
+
+    <!-- Service Details Dialog -->
+    <v-dialog v-model="serviceDialog" max-width="600px">
+      <v-card>
+        <v-card-title class="headline">Service Details</v-card-title>
+        <v-card-subtitle>{{ selectedService?.barangay }}</v-card-subtitle>
+        <v-card-text>
+          <p><strong>Service:</strong> {{ selectedService?.service }}</p>
+          <p><strong>Details:</strong> {{ selectedService?.details }}</p>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="blue darken-1" text @click="() => (serviceDialog = false)">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
