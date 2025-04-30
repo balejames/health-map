@@ -110,21 +110,6 @@ onMounted(() => {
     .bindPopup('📍 Butuan City, Mindanao')
     .openPopup()
 
-  // Handle click events on the map
-  map.on('click', function (e) {
-    const { lat, lng } = e.latlng
-
-    // Add a marker at the clicked location
-    L.marker([lat, lng])
-      .addTo(map)
-      .bindPopup(
-        `📍 You clicked here:<br><strong>Lat:</strong> ${lat.toFixed(
-          5
-        )}<br><strong>Lng:</strong> ${lng.toFixed(5)}`
-      )
-      .openPopup()
-  })
-
   const storedServices = localStorage.getItem('services')
   const today = selectedDate.value
 
