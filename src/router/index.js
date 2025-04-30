@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { supabase } from '@/utils/supabase.js'
+import { isAuthenticated, supabase } from '@/utils/supabase.js'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import DashboardView from '@/views/auth/DashboardView.vue'
@@ -46,24 +46,21 @@ const router = createRouter({
     },
   ],
 })
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_OUT') {
-    router.push('/login')
+router.beforeEach(async (to) => {
+  const loggedIn = await isAuthenticated()
+
+  // Redirect logged-in users from public pages to dashboard
+  if (loggedIn && !to.meta.requiresAuth) {
+    return { name: 'dashboard' }
   }
-})
 
-router.beforeEach(async (to, from, next) => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  const isAuthenticated = !!session
-
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login' })
-  } else {
-    next()
+  // Redirect guests from protected pages to home (not login)
+  if (!loggedIn && to.meta.requiresAuth) {
+    return { name: 'login' }
   }
+
+  // No redirection needed
+  return true
 })
 
 export default router
