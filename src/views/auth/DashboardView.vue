@@ -344,10 +344,10 @@ const goToNextMonth = () => {
                       ></v-checkbox>
                     </v-list-item-action>
 
-                    <v-list-item-content>
-                      <v-list-item-title>{{ service.title }}</v-list-item-title>
-                      <v-list-item-subtitle>{{ service.description }}</v-list-item-subtitle>
-                    </v-list-item-content>
+                    <div>
+                      <div class="text-subtitle-1 font-weight-medium">{{ service.title }}</div>
+                      <div class="text-body-2">{{ service.description }}</div>
+                    </div>
                   </v-list-item>
                 </v-list>
               </v-card-text>
