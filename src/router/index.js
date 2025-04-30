@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { isAuthenticated, supabase } from '@/utils/supabase.js'
+import { isAuthenticated } from '@/utils/supabase.js'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import DashboardView from '@/views/auth/DashboardView.vue'
 import MapView from '@/views/auth/MapView.vue'
-import ViewerView from '@/views/auth/ViewerDashboard.vue'
+import ResidentView from '@/views/auth/ResidentView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,9 +39,9 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/viewerdashboard',
-      name: 'viewer',
-      component: ViewerView,
+      path: '/residentdashboard',
+      name: 'residentdashboard',
+      component: ResidentView,
       meta: { requiresAuth: true },
     },
   ],
