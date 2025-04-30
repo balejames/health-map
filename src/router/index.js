@@ -4,7 +4,7 @@ import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import DashboardView from '@/views/auth/DashboardView.vue'
 import MapView from '@/views/auth/MapView.vue'
-import ResidentView from '@/views/auth/residentdashboard.vue'
+import ResidentView from '@/views/auth/ResidentView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
