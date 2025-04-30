@@ -50,7 +50,7 @@ router.beforeEach(async (to) => {
   const loggedIn = await isAuthenticated()
 
   // Redirect logged-in users from public pages to dashboard
-  if (loggedIn && !to.meta.requiresAuth) {
+  if (loggedIn && (to.name === 'login' || to.name === 'register')) {
     return { name: 'dashboard' }
   }
 
