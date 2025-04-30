@@ -1,12 +1,13 @@
 <script setup>
-import { isAuthenticated } from '@/utils/supabase.js'
+import { supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const drawer = ref(true)
 const router = useRouter()
 
-function logout() {
+const logout = async () => {
+  await supabase.auth.signOut()
   router.push('/login')
 }
 
