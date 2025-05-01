@@ -78,7 +78,6 @@ onMounted(() => {
   }
 })
 
-
 const barangayCoordinates = {
   Ambago: [8.9724, 125.4946],
   Ampayon: [8.9592, 125.615],
