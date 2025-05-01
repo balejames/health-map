@@ -40,7 +40,7 @@ const onSubmit = async () => {
         lastName: formData.value.lastName,
         barangay: formData.value.barangay,
         role: formData.value.role,
-        is_admin: true,
+        is_admin: false,
       },
     },
   })
@@ -57,7 +57,7 @@ const onSubmit = async () => {
       last_name: formData.value.lastName,
       barangay: formData.value.barangay,
       role: formData.value.role,
-      is_admin: true,
+      is_admin: false,
     })
 
     if (insertError) {
