@@ -460,7 +460,7 @@ const goToNextMonth = () => {
 
 <style scoped>
 .dashboard-bg {
-  background-image: url('/images/Background.png');
+  background-image: url('/images/DashboardBackground.png');
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
