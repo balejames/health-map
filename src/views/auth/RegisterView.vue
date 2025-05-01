@@ -71,7 +71,7 @@ const onFormSubmit = () => {
           <v-card class="pa-4 w-100" elevation="12">
             <template v-slot:title>
               <div class="text-center">
-                <h1 class="title">Create your account</h1>
+                <h2 class="title" style="color: #0dceda">Create your account</h2>
               </div>
             </template>
 
@@ -211,7 +211,8 @@ const onFormSubmit = () => {
   font-size: 35px;
   margin-bottom: 4px;
   font-weight: 600;
-  color: grey;
+  text-align: center;
+  color: #0dceda;
 }
 
 .subtitle {
