@@ -17,7 +17,7 @@ const toggleDrawer = () => {
   isMapFullScreen.value = !drawer.value
 }
 
-const profileImage = ref('\images\TemporaryProfile.jpg')
+const profileImage = ref('/images/TemporaryProfile.jpg')
 const profileFile = ref(null)
 const showChangePicture = ref(false)
 const toggleChangePicture = () => {
