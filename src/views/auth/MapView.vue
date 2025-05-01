@@ -233,4 +233,61 @@ onMounted(() => {
   top: 0;
   left: 0;
 }
+
+.v-avatar {
+  transition: transform 0.3s ease;
+}
+
+.v-avatar:hover {
+  transform: scale(1.1);
+}
+
+.v-navigation-drawer {
+  background: linear-gradient(135deg, #9bd1f8, #bddde4);
+}
+
+.v-btn:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.v-btn.text:hover {
+  color: #f44336;
+}
+
+#map {
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.v-dialog .v-card {
+  border-radius: 12px;
+  padding: 16px;
+  background-color: #fff;
+}
+
+.v-card-title {
+  font-weight: 600;
+  font-size: 20px;
+  color: #333;
+}
+
+.v-card-subtitle {
+  color: #555;
+}
+
+.v-file-input {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.v-file-input:focus {
+  opacity: 1;
+}
+
+.v-app-bar {
+  background: transparent;
+ /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+}
 </style>
