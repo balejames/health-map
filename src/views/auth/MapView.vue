@@ -1,19 +1,27 @@
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { onMounted, nextTick, ref } from 'vue'
+import { isAuthenticated, supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
 import { useRouter } from 'vue-router'
 
+const router = useRouter()
+const logout = async () => {
+  await supabase.auth.signOut()
+  router.push({ name: 'login' })
+}
+
 // Sidebar Drawer toggle
 const drawer = ref(true)
-const isMapFullScreen = ref(false)  // Add this line
+const isMapFullScreen = ref(false)
 
 const toggleDrawer = () => {
   drawer.value = !drawer.value
-  isMapFullScreen.value = !drawer.value  // Adjust the map full-screen mode based on drawer status
+  isMapFullScreen.value = !drawer.value
 }
 
 // Profile Picture Logic
 const profileImage = ref('https://via.placeholder.com/200')
+const profileFile = ref(null)
 const showChangePicture = ref(false)
 
 const toggleChangePicture = () => {
@@ -21,7 +29,7 @@ const toggleChangePicture = () => {
 }
 
 const onFileSelected = (e) => {
-  const file = e.target.files[0]
+  const file = e.target.files ? e.target.files[0] : profileFile.value
   if (file) {
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -31,13 +39,6 @@ const onFileSelected = (e) => {
     reader.readAsDataURL(file)
   }
 }
-
-onMounted(() => {
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-})
 
 // Barangay Coordinates
 const barangayCoordinates = {
@@ -51,62 +52,8 @@ const barangayCoordinates = {
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const todaysServices = ref([])
-const expandedServices = ref([])
+
 const mapRef = ref(null)
-
-onMounted(() => {
-  const storedServices = localStorage.getItem('services')
-  const today = selectedDate.value
-
-  if (storedServices) {
-    const services = JSON.parse(storedServices)
-    todaysServices.value = services[today] || []
-    expandedServices.value = todaysServices.value.map(() => false)
-  }
-
-  const map = L.map('map').setView([8.9475, 125.5406], 13)
-  mapRef.value = map
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map)
-
-  for (const [name, coords] of Object.entries(barangayCoordinates)) {
-    L.marker(coords).addTo(map).bindPopup(`📍 ${name}`)
-  }
-
-  if (storedServices) {
-    const services = JSON.parse(storedServices)
-    const activeBarangays = new Set()
-
-    Object.values(services).forEach((dayServices) => {
-      dayServices.forEach((service) => {
-        if (service.barangay) {
-          activeBarangays.add(normalize(service.barangay.trim()))
-        }
-      })
-    })
-
-    activeBarangays.forEach((barangayKey) => {
-      const entry = Object.entries(barangayCoordinates).find(
-        ([key]) => normalize(key) === barangayKey,
-      )
-      if (entry) {
-        const [name, coords] = entry
-        L.circleMarker(coords, {
-          radius: 10,
-          color: '#f44336',
-          fillColor: '#f44336',
-          fillOpacity: 0.7,
-        })
-          .addTo(map)
-          .bindPopup(`<b>Barangay ${name}</b><br>Has service today or upcoming.`)
-          .on('click', () => showServiceDetails(name))
-      }
-    })
-  }
-})
 
 // Normalize string for matching
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
@@ -135,16 +82,72 @@ const showServiceDetails = (barangay) => {
     selectedService.value = null
   }
 
+  console.log("Selected Service: ", selectedService.value)
   serviceDialog.value = true
-
-  nextTick(() => {
-    setTimeout(() => {
-      if (mapRef.value) {
-        mapRef.value.invalidateSize()
-      }
-    }, 300)
-  })
 }
+
+onMounted(() => {
+  const storedImage = localStorage.getItem('profileImage')
+  if (storedImage) {
+    profileImage.value = storedImage
+  }
+
+  // Initialize map centered at Butuan City
+  const map = L.map('map').setView([8.9475, 125.5406], 13)
+  mapRef.value = map
+
+  // Load OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map)
+
+  // Add default marker at Butuan City center
+  L.marker([8.9475, 125.5406]).addTo(map).bindPopup('📍 Butuan City, Mindanao').openPopup()
+
+  const storedServices = localStorage.getItem('services')
+  const today = selectedDate.value
+
+  if (storedServices) {
+    const services = JSON.parse(storedServices)
+    todaysServices.value = services[today] || []
+  }
+
+  for (const [name, coords] of Object.entries(barangayCoordinates)) {
+    L.marker(coords).addTo(mapRef.value).bindPopup(`📍 ${name}`)
+  }
+
+  if (storedServices) {
+    const services = JSON.parse(storedServices)
+    const activeBarangays = new Set()
+
+    Object.values(services).forEach((dayServices) => {
+      dayServices.forEach((service) => {
+        if (service.barangay) {
+          activeBarangays.add(normalize(service.barangay.trim()))
+        }
+      })
+    })
+
+    activeBarangays.forEach((barangayKey) => {
+      const entry = Object.entries(barangayCoordinates).find(
+        ([key]) => normalize(key) === barangayKey,
+      )
+      if (entry) {
+        const [name, coords] = entry
+        L.circleMarker(coords, {
+          radius: 10,
+          color: '#f44336',
+          fillColor: '#f44336',
+          fillOpacity: 0.7,
+        })
+          .addTo(mapRef.value)
+          .bindPopup(`<b>Barangay ${name}</b><br>Has service today or upcoming.`)
+          .on('click', () => showServiceDetails(name))
+      }
+    })
+  }
+})
 </script>
 
 <template>
@@ -170,20 +173,16 @@ const showServiceDetails = (barangay) => {
           </v-avatar>
 
           <!-- Hidden File Input for Changing Profile Picture -->
-          <input
+          <v-file-input
             v-if="showChangePicture"
-            type="file"
+            v-model="profileFile"
             accept="image/*"
+            label="Change Profile Picture"
+            hide-details
+            dense
+            prepend-icon="mdi-camera"
             @change="onFileSelected"
-            style="
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 80px;
-              height: 80px;
-              opacity: 0;
-              cursor: pointer;
-            "
+            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
           />
         </div>
 
@@ -193,17 +192,14 @@ const showServiceDetails = (barangay) => {
           class="mt-9 mb-3"
           color="white"
           variant="text"
-          @click="$router.push('/dashboard')"
+          @click="() => router.push('/dashboard')"
         >
-          <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
+          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
         </v-btn>
         <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
-        <v-spacer></v-spacer>
-        <br /><br /><br /><br /><br />
-        <br /><br /><br /><br /><br />
-        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
+        <v-btn block class="mt-9" color="white" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
@@ -225,26 +221,17 @@ const showServiceDetails = (barangay) => {
       </v-container>
     </v-main>
 
-    <!-- Modal for Service Details -->
-    <v-dialog v-model="serviceDialog" max-width="500px">
+    <!-- Service Details Dialog -->
+    <v-dialog v-model="serviceDialog" max-width="600px">
       <v-card>
-        <v-card-title>
-          <span class="headline">Service Details</span>
-        </v-card-title>
+        <v-card-title class="headline">Service Details</v-card-title>
+        <v-card-subtitle>{{ selectedService?.barangay }}</v-card-subtitle>
         <v-card-text>
-          <div v-if="selectedService">
-            <p><strong>Service Title:</strong> {{ selectedService.title }}</p>
-            <p><strong>Doctor:</strong> {{ selectedService.doctor }}</p>
-            <p><strong>Start Time:</strong> {{ selectedService.startTime }}</p>
-            <p><strong>End Time:</strong> {{ selectedService.endTime }}</p>
-            <p><strong>Description:</strong> {{ selectedService.description }}</p>
-          </div>
-          <div v-else>
-            <p>No service found for this barangay today.</p>
-          </div>
+          <p><strong>Service:</strong> {{ selectedService?.service }}</p>
+          <p><strong>Details:</strong> {{ selectedService?.details }}</p>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" @click="serviceDialog = false">Close</v-btn>
+          <v-btn color="blue darken-1" text @click="() => (serviceDialog = false)">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

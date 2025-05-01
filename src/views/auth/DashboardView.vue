@@ -1,5 +1,5 @@
 <script setup>
-import { supabase } from '@/utils/supabase.js'
+import { isAuthenticated, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -8,7 +8,8 @@ const router = useRouter()
 
 const logout = async () => {
   await supabase.auth.signOut()
-  router.push('/login')
+
+  router.push({ name: 'login' })
 }
 
 const fileInput = ref(null)
@@ -128,7 +129,6 @@ const addService = () => {
   getServicesForDate()
 }
 
-// 🆕 Multiple Delete Support
 // Multiple Delete Support
 const deleteDialog = ref(false)
 const selectedServices = ref([])
@@ -206,7 +206,6 @@ const goToNextMonth = () => {
 }
 </script>
 
-]
 <template>
   <v-app class="dashboard-bg">
     <!-- Sidebar -->
@@ -250,7 +249,7 @@ const goToNextMonth = () => {
         <v-btn block class="mt-9 mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/map')">
+        <v-btn block class="mb-3" color="white" variant="text" @click="router.push('/map')">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
         <v-spacer></v-spacer>
@@ -325,7 +324,7 @@ const goToNextMonth = () => {
             </v-card>
           </v-col>
 
-          <!-- Diri ibutang ang bag-ong delete dialog -->
+          <!-- Delete Dialog -->
           <v-dialog v-model="deleteDialog" max-width="500px">
             <v-card>
               <v-card-title>Select Service(s) to Delete</v-card-title>
@@ -345,10 +344,10 @@ const goToNextMonth = () => {
                       ></v-checkbox>
                     </v-list-item-action>
 
-                    <v-list-item-content>
-                      <v-list-item-title>{{ service.title }}</v-list-item-title>
-                      <v-list-item-subtitle>{{ service.description }}</v-list-item-subtitle>
-                    </v-list-item-content>
+                    <div>
+                      <div class="text-subtitle-1 font-weight-medium">{{ service.title }}</div>
+                      <div class="text-body-2">{{ service.description }}</div>
+                    </div>
                   </v-list-item>
                 </v-list>
               </v-card-text>
@@ -360,6 +359,7 @@ const goToNextMonth = () => {
               </v-card-actions>
             </v-card>
           </v-dialog>
+
           <!-- Calendar -->
           <v-col cols="12" md="6">
             <div class="calendar-wrapper">
@@ -451,7 +451,7 @@ const goToNextMonth = () => {
 
 <style scoped>
 .dashboard-bg {
-  background-image: url('public/images/Background.png');
+  background-image: url('/images/Background.png');
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
@@ -517,7 +517,7 @@ const goToNextMonth = () => {
 }
 
 .calendar-day.today {
-  background-color: #5da8ca;
+  background-color: #b3e5fc;
   color: #0277bd;
   font-weight: bold;
 }
@@ -529,7 +529,7 @@ const goToNextMonth = () => {
   transform: translateX(-50%);
   width: 8px;
   height: 8px;
-  background-color: rgb(94, 153, 221);
+  background-color: rgb(84, 101, 255);
   border-radius: 50%;
 }
 
