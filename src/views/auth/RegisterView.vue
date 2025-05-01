@@ -192,7 +192,7 @@ const onFormSubmit = () => {
 
                 <v-divider class="my-4" />
 
-                <h4 class="text-center">
+                <h4 class="text-center" style="color: #0dceda">
                   Already have an account?
                   <RouterLink class="text-primary" to="/login" style="text-decoration: none"
                     >Sign in!</RouterLink

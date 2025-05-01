@@ -114,10 +114,10 @@ const showEventDetails = (barangay) => {
       const eventDetails = barangayEvents
         .map(
           (event) => `Event: ${event.title}
-Doctor: ${event.doctor}
-Start Time: ${event.startTime}
-End Time: ${event.endTime}
-Description: ${event.description}`,
+                Doctor: ${event.doctor}
+                Start Time: ${event.startTime}
+                End Time: ${event.endTime}
+                Description: ${event.description}`,
         )
         .join('\n\n')
 

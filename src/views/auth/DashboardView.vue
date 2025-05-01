@@ -591,7 +591,6 @@ const goToNextMonth = () => {
   color: #f44336;
 }
 
-
 .v-dialog .v-card {
   border-radius: 12px;
   padding: 16px;
@@ -619,7 +618,6 @@ const goToNextMonth = () => {
 
 .v-app-bar {
   background: transparent;
- /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
 }
-
 </style>

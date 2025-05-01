@@ -139,7 +139,7 @@ const onFormSubmit = () => {
                   Log In
                 </v-btn>
                 <v-divider class="my-5"></v-divider>
-                <h4 class="text-center">
+                <h4 class="text-center" style="color: #0dceda">
                   Don't have an account?
                   <router-link class="text-primary" to="/register" style="text-decoration: none">
                     Sign up!
