@@ -40,8 +40,8 @@ const onSubmit = async () => {
         firstName: formData.value.firstName,
         lastName: formData.value.lastName,
         barangay: formData.value.barangay,
+        role: formData.value.role,
         is_admin: true,
-        // role: 'Administrator',
       },
     },
   })
@@ -116,11 +116,13 @@ const onFormSubmit = () => {
                   :rules="[requiredValidator, emailValidator]"
                 />
 
-                <v-text-field
+                <v-select
                   v-model="formData.barangay"
+                  :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
                   label="Barangay"
                   prepend-inner-icon="mdi-map-marker"
                   rounded
+                  required
                   variant="outlined"
                   :rules="[requiredValidator]"
                 />
@@ -134,7 +136,7 @@ const onFormSubmit = () => {
                   required
                   variant="outlined"
                   :rules="[requiredValidator]"
-                ></v-select>
+                />
 
                 <v-text-field
                   v-model="formData.password"

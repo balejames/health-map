@@ -49,7 +49,6 @@ const onFormSubmit = () => {
   })
 }
 </script>
-
 <template>
   <div class="login-wrapper">
     <v-container fluid>
@@ -97,16 +96,16 @@ const onFormSubmit = () => {
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   :rules="[requiredValidator]"
                 ></v-text-field>
-                <v-text-field
+                <v-select
                   v-model="formData.barangay"
+                  :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
                   label="Barangay"
                   prepend-inner-icon="mdi-map-marker"
                   rounded
-                  required
-                  type="text"
                   variant="outlined"
                   :rules="[requiredValidator]"
-                ></v-text-field>
+                  required
+                ></v-select>
                 <v-select
                   v-model="formData.role"
                   :items="['Employee', 'Resident']"

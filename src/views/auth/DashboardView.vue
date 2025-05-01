@@ -164,7 +164,7 @@ const hasServices = (date) => {
 }
 
 // Profile image logic
-const profileImage = ref('C:/Users/berou/Desktop/team-collab/public/images/temporary profile.jpg')
+const profileImage = ref('\images\TemporaryProfile.jpg')
 const showChangePicture = ref(false)
 
 const toggleChangePicture = () => {

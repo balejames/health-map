@@ -17,7 +17,7 @@ const toggleDrawer = () => {
   isMapFullScreen.value = !drawer.value
 }
 
-const profileImage = ref('C:/Users/berou/Desktop/team-collab/public/images/temporary profile.jpg')
+const profileImage = ref('\images\TemporaryProfile.jpg')
 const profileFile = ref(null)
 const showChangePicture = ref(false)
 const toggleChangePicture = () => {
