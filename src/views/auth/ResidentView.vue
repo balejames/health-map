@@ -80,8 +80,8 @@ onMounted(() => {
       if (coords) {
         L.circleMarker(coords, {
           radius: 10,
-          color: '#f44336',
-          fillColor: '#f44336',
+          color: '#0dceda', // Updated color here
+          fillColor: '#0dceda', // Updated color here
           fillOpacity: 0.7,
         })
           .addTo(map.value)
@@ -146,7 +146,7 @@ const resetMapView = () => {
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-app-bar app color="primary" dark>
+    <v-app-bar app :style="{ backgroundColor: '#9bd1f8' }" dark>
       <v-toolbar-title>Resident Map</v-toolbar-title>
       <v-spacer></v-spacer>
 
@@ -204,7 +204,7 @@ const resetMapView = () => {
         <div class="custom-zoom-controls">
           <v-tooltip text="Zoom In" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" color="primary" @click="zoomIn">
+              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="zoomIn">
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </template>
@@ -212,7 +212,7 @@ const resetMapView = () => {
 
           <v-tooltip text="Zoom Out" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" color="primary" @click="zoomOut">
+              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="zoomOut">
                 <v-icon>mdi-minus</v-icon>
               </v-btn>
             </template>
@@ -220,7 +220,7 @@ const resetMapView = () => {
 
           <v-tooltip text="Reset View" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" color="primary" @click="resetMapView">
+              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="resetMapView">
                 <v-icon>mdi-map-marker-radius</v-icon>
               </v-btn>
             </template>
@@ -248,7 +248,5 @@ const resetMapView = () => {
   z-index: 1000;
 }
 
-.text-red {
-  color: #e53935;
-}
+
 </style>
