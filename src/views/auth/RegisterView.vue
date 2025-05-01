@@ -40,7 +40,7 @@ const onSubmit = async () => {
         firstName: formData.value.firstName,
         lastName: formData.value.lastName,
         barangay: formData.value.barangay,
-        is_admin: false,
+        is_admin: true,
         // role: 'Administrator',
       },
     },
