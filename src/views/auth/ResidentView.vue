@@ -78,11 +78,14 @@ onMounted(() => {
   }
 })
 
+
 const barangayCoordinates = {
-  Ambago: [8.9706, 125.5334],
-  Ampayon: [8.9801, 125.553],
-  Libertad: [8.9489, 125.5372],
-  BaanRiverside: [8.9567, 125.5521],
+  Ambago: [8.9724, 125.4946],
+  Ampayon: [8.9592, 125.615],
+  BaanKM3: [8.9491, 125.57809],
+  Antongalon: [8.9493, 125.6209],
+  Taligaman: [8.9409, 125.6289],
+  Maon: [8.9316, 125.5447],
 }
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
