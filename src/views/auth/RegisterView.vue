@@ -65,94 +65,122 @@ const onFormSubmit = () => {
 </script>
 <template>
   <div class="create-account-wrapper">
-    <v-container fluid>
+    <v-container class="fill-height d-flex justify-center align-center" fluid>
       <v-row justify="center" align="center" class="fill-height">
-        <v-col cols="12" sm="4" md="5" lg="4" class="text-center mb-4">
-          <v-card class="mx-auto" elevation="24">
+        <v-col cols="12" sm="10" md="8" lg="6" xl="4">
+          <v-card class="pa-6 " elevation="12">
             <template v-slot:title>
-              <h2 class="text-center">Create account</h2>
+              <div class="text-center">
+                <h1 class="title">Create your account</h1>
+
+              </div>
             </template>
+
             <AlertNotification
               :form-success-message="formAction.formSuccessMessage"
               :form-error-message="formAction.formErrorMessage"
-            ></AlertNotification>
+            />
+
             <v-card-text>
               <v-form ref="refVForm" @submit.prevent="onFormSubmit">
-                <v-text-field
-                  v-model="formData.firstName"
-                  label="First Name"
-                  required
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                >
-                </v-text-field>
-                <v-text-field
-                  v-model="formData.lastName"
-                  label="Last Name"
-                  required
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                >
-                </v-text-field>
+                <v-row dense>
+  <v-col cols="12" sm="6">
+    <v-text-field
+      v-model="formData.firstName"
+      label="First Name"
+      prepend-inner-icon="mdi-account"
+      rounded
+      variant="outlined"
+      :rules="[requiredValidator]"
+    />
+  </v-col>
+
+  <v-col cols="12" sm="6">
+    <v-text-field
+      v-model="formData.lastName"
+      label="Last Name"
+      prepend-inner-icon="mdi-account"
+      rounded
+      variant="outlined"
+      :rules="[requiredValidator]"
+    />
+  </v-col>
+</v-row>
+
                 <v-text-field
                   v-model="formData.email"
-                  label="Email"
-                  required
+                  label="Email Address"
+                  prepend-inner-icon="mdi-email"
+                  rounded
                   type="email"
                   variant="outlined"
                   :rules="[requiredValidator, emailValidator]"
-                ></v-text-field>
+                />
 
                 <v-text-field
                   v-model="formData.barangay"
                   label="Barangay"
-                  required
-                  type="text"
+                  prepend-inner-icon="mdi-map-marker"
+                  rounded
                   variant="outlined"
                   :rules="[requiredValidator]"
-                ></v-text-field>
+                />
+
+                <v-select
+  v-model="formData.role"
+  :items="['Barangay', 'Viewer']"
+  label="Role"
+  prepend-inner-icon="mdi-account-group"
+  rounded
+  required
+  variant="outlined"
+  :rules="[requiredValidator]"
+></v-select>
 
                 <v-text-field
                   v-model="formData.password"
                   label="Password"
-                  required
-                  variant="outlined"
+                  prepend-inner-icon="mdi-lock"
+                  rounded
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  variant="outlined"
                   :rules="[requiredValidator, passwordValidator]"
-                ></v-text-field>
+                />
 
                 <v-text-field
                   v-model="formData.password_confirmation"
-                  label="Password Confirmation"
-                  required
-                  variant="outlined"
+                  label="Confirm Password"
+                  prepend-inner-icon="mdi-shield-lock"
+                  rounded
                   :type="isPasswordConfirmVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordConfirmVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordConfirmVisible = !isPasswordConfirmVisible"
+                  variant="outlined"
                   :rules="[
                     requiredValidator,
                     confirmedValidator(formData.password_confirmation, formData.password),
                   ]"
-                ></v-text-field>
+                />
 
                 <v-btn
                   type="submit"
-                  style="background-color: #0dceda; color: white"
-                  class="custom-create my-2 mx-auto d-block"
+                  class="custom-create my-4"
+                  color="primary"
                   :disabled="formAction.formProcess"
                   :loading="formAction.formProcess"
+                  block
                 >
-                  Create Account
+                  Sign Up
                 </v-btn>
-                <v-divider class="my-5"></v-divider>
-                <h4 class="text-center">
-                  Already have an account?
-                  <RouterLink class="text-primary" to="/login" style="text-decoration: none"
-                    >Sign in!</RouterLink
-                  >
-                </h4>
+
+                <v-divider class="my-4" />
+
+                <h4 class="text-center account-login-text">
+  Already have an account?
+  <RouterLink class="login-link" to="/login">Sign in!</RouterLink>
+</h4>
               </v-form>
             </v-card-text>
           </v-card>
@@ -165,30 +193,53 @@ const onFormSubmit = () => {
 <style scoped>
 .create-account-wrapper {
   height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.custom-create {
-  height: 50px;
-  width: 200px;
-  font-size: 16px;
-  border-radius: 8px;
-}
-h2 {
-  color: #6a777b;
-  font-family: 'Times New Roman', Times, serif;
-}
-
-.create-account-wrapper {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-image: url('/images/Background-Register.png');
+  width: 100%;
+  background-color: #B3E5FC;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px; /* ensures spacing on small screens */
+  overflow: auto;
+}
+
+.title {
+
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 35px;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: grey;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.custom-create {
+  height: 50px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.login-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+
+.v-card {
+  max-width: 500px;
+  width: 100%;
+  border-radius: 16px;
+  background-color: #ffffff;
 }
 </style>
+
+
