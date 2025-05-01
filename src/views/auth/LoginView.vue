@@ -115,7 +115,7 @@ const onFormSubmit = () => {
                   class="custom-login my-2 mx-auto d-block"
                   :disabled="formAction.formProcess"
                   :loading="formAction.formProcess"
-                  @click="onSubmit"
+                  @click="onFormSubmit"
                   type="submit"
                 >
                   Log In
