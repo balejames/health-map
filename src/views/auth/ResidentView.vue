@@ -1,6 +1,24 @@
 <script setup>
+import { formActionDefault, supabase } from '@/utils/supabase.js'
+import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import L from 'leaflet'
+
+const router = useRouter()
+const formAction = ref({ ...formActionDefault })
+
+const logout = async () => {
+  formAction.value = { ...formActionDefault }
+  formAction.value.formProcess = true
+
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error('Error logging out:', error)
+    return
+  }
+  formAction.value.formProcess = false
+  router.replace('/')
+}
 
 const isProfileMenuOpen = ref(false)
 const profileImage = ref('C:/Users/berou/Desktop/team-collab/public/images/temporary profile.jpg')
@@ -21,10 +39,6 @@ const onFileSelected = (event) => {
     }
     reader.readAsDataURL(profileFile.value)
   }
-}
-
-const logout = () => {
-  console.log('Logout clicked')
 }
 
 const map = ref(null)
