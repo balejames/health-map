@@ -25,20 +25,31 @@ const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
 
+  //Sign in with email + password only
   const { data, error } = await supabase.auth.signInWithPassword({
     email: formData.value.email,
     password: formData.value.password,
-    barangay: formData.value.barangay,
-    role: formData.value.role,
   })
+
   if (error) {
     formAction.value.formErrorMessage = error.message
     formAction.value.formStatus = error.status
-  } else if (data) {
-    console.log(data)
-    formAction.value.formSuccessMessage = 'Account Logged in successfully!'
-    router.replace('/dashboard')
+  } else if (data?.user) {
+    const userMeta = data.user.user_metadata
+
+    // Validate barangay and role
+    if (userMeta.barangay !== formData.value.barangay || userMeta.role !== formData.value.role) {
+      formAction.value.formErrorMessage =
+        'Invalid credentials. Please check your barangay and role.'
+      formAction.value.formStatus = 401
+      //sign out the user immediately
+      await supabase.auth.signOut()
+    } else {
+      formAction.value.formSuccessMessage = 'Account Logged in successfully!'
+      router.replace('/dashboard')
+    }
   }
+
   refVForm.value?.reset()
   formAction.value.formProcess = false
 }

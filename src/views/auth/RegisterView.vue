@@ -29,7 +29,6 @@ const formAction = ref({ ...formActionDefault })
 
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
-
   formAction.value.formProcess = true
 
   const { data, error } = await supabase.auth.signUp({
@@ -45,14 +44,30 @@ const onSubmit = async () => {
       },
     },
   })
+
   if (error) {
     formAction.value.formErrorMessage = error.message
     formAction.value.formStatus = error.status
-  } else if (data) {
-    console.log(data)
-    formAction.value.formSuccessMessage = 'Account created successfully!'
-    router.replace('/dashboard')
+  } else if (data.user) {
+    // 🟢 Insert into profiles table
+    const { error: insertError } = await supabase.from('profiles').insert({
+      id: data.user.id,
+      email: data.user.email,
+      first_name: formData.value.firstName,
+      last_name: formData.value.lastName,
+      barangay: formData.value.barangay,
+      role: formData.value.role,
+      is_admin: true,
+    })
+
+    if (insertError) {
+      formAction.value.formErrorMessage = insertError.message
+    } else {
+      formAction.value.formSuccessMessage = 'Account created successfully!'
+      router.replace('/dashboard')
+    }
   }
+
   refVForm.value?.reset()
   formAction.value.formProcess = false
 }
