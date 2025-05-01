@@ -252,6 +252,15 @@ const goToNextMonth = () => {
         <v-btn block class="mb-3" color="white" variant="text" @click="router.push('/map')">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
+        <v-btn
+          block
+          class="mb-3"
+          color="white"
+          variant="text"
+          @click="router.push('/residentdashboard')"
+        >
+          <v-icon left>mdi-map</v-icon> <b>Resident View</b>
+        </v-btn>
         <v-spacer></v-spacer>
         <br /><br /><br /><br /><br />
         <br /><br /><br /><br /><br />
