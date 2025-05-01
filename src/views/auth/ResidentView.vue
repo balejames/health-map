@@ -2,16 +2,17 @@
 import { ref, onMounted } from 'vue'
 import L from 'leaflet'
 
-// Profile Picture Logic
+const isProfileMenuOpen = ref(false)
 const profileImage = ref('https://via.placeholder.com/200')
 const profileFile = ref(null)
-const showChangePicture = ref(false)
+const fileInput = ref(null)
 
-const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
+const triggerFileInput = () => {
+  fileInput.value?.click()
 }
 
-const onFileSelected = () => {
+const onFileSelected = (event) => {
+  profileFile.value = event.target.files[0]
   if (profileFile.value) {
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -22,54 +23,34 @@ const onFileSelected = () => {
   }
 }
 
-// Barangay Coordinates
-const barangayCoordinates = {
-  Ambago: [8.9706, 125.5334],
-  Ampayon: [8.9801, 125.553],
-  Libertad: [8.9489, 125.5372],
-  BaanRiverside: [8.9567, 125.5521],
-  // Add more barangays as needed
+const logout = () => {
+  console.log('Logout clicked')
 }
 
-onMounted(() => {
-  // Initialize map centered at Butuan City
-  const map = L.map('map').setView([8.9475, 125.5406], 13)
+const map = ref(null)
 
-  // Load OpenStreetMap tiles
+onMounted(() => {
+  const storedImage = localStorage.getItem('profileImage')
+  if (storedImage) {
+    profileImage.value = storedImage
+  }
+
+  map.value = L.map('map').setView([8.9475, 125.5406], 13)
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map)
+  }).addTo(map.value)
 
-  // Add default marker at Butuan City center
-  L.marker([8.9475, 125.5406]).addTo(map).bindPopup('📍 Butuan City, Mindanao').openPopup()
+  L.marker([8.9475, 125.5406]).addTo(map.value).bindPopup('📍 Butuan City, Mindanao').openPopup()
 
-  // Handle click events on the map
-  map.on('click', function (e) {
-    const { lat, lng } = e.latlng
-
-    // Add a marker at the clicked location
-    L.marker([lat, lng])
-      .addTo(map)
-      .bindPopup(
-        `📍 You clicked here:<br><strong>Lat:</strong> ${lat.toFixed(
-          5,
-        )}<br><strong>Lng:</strong> ${lng.toFixed(5)}`,
-      )
-      .openPopup()
-  })
-
-  // Add markers for each barangay
   for (const [name, coords] of Object.entries(barangayCoordinates)) {
-    L.marker(coords).addTo(map).bindPopup(`📍 ${name}`)
+    L.marker(coords).addTo(map.value).bindPopup(`📍 ${name}`)
   }
 
-  // Your code for displaying event indicators
   const storedEvents = localStorage.getItem('events')
   if (storedEvents) {
     const events = JSON.parse(storedEvents)
-
-    // Track which barangays have at least one event
     const activeBarangays = new Set()
 
     Object.values(events).forEach((dayEvents) => {
@@ -80,7 +61,6 @@ onMounted(() => {
       })
     })
 
-    // Show indicator for each barangay with event
     activeBarangays.forEach((barangay) => {
       const coords = barangayCoordinates[barangay]
       if (coords) {
@@ -90,7 +70,7 @@ onMounted(() => {
           fillColor: '#f44336',
           fillOpacity: 0.7,
         })
-          .addTo(map)
+          .addTo(map.value)
           .bindPopup(`<b>Barangay ${barangay}</b><br>Has event today or upcoming.`)
           .on('click', () => showEventDetails(barangay))
       }
@@ -98,8 +78,15 @@ onMounted(() => {
   }
 })
 
-// Function to display event details when a barangay is clicked
-const selectedDate = ref(new Date().toISOString().split('T')[0]) // Initialize with today's date
+const barangayCoordinates = {
+  Ambago: [8.9706, 125.5334],
+  Ampayon: [8.9801, 125.553],
+  Libertad: [8.9489, 125.5372],
+  BaanRiverside: [8.9567, 125.5521],
+}
+
+const selectedDate = ref(new Date().toISOString().split('T')[0])
+
 const showEventDetails = (barangay) => {
   const storedEvents = localStorage.getItem('events')
   if (storedEvents) {
@@ -110,13 +97,11 @@ const showEventDetails = (barangay) => {
     if (barangayEvents.length > 0) {
       const eventDetails = barangayEvents
         .map(
-          (event) => `
-      Event: ${event.title}
-      Doctor: ${event.doctor}
-      Start Time: ${event.startTime}
-      End Time: ${event.endTime}
-      Description: ${event.description}
-      `,
+          (event) => `Event: ${event.title}
+Doctor: ${event.doctor}
+Start Time: ${event.startTime}
+End Time: ${event.endTime}
+Description: ${event.description}`,
         )
         .join('\n\n')
 
@@ -128,62 +113,100 @@ const showEventDetails = (barangay) => {
     alert('No events data found.')
   }
 }
+
+const zoomIn = () => {
+  map.value?.zoomIn()
+}
+
+const zoomOut = () => {
+  map.value?.zoomOut()
+}
+
+const resetMapView = () => {
+  map.value?.setView([8.9475, 125.5406], 13)
+}
 </script>
+
 <template>
   <v-app>
-    <!-- Sidebar -->
-    <v-navigation-drawer app permanent color="#03a9f4" dark>
-      <v-container class="text-center py-5">
-        <!-- Profile Picture as Clickable Circle -->
-        <div style="position: relative; display: inline-block">
-          <v-avatar
-            size="80"
-            class="mx-auto mb-4"
-            @click="toggleChangePicture"
-            style="cursor: pointer"
-          >
-            <img
-              :src="profileImage"
-              alt="Profile"
-              width="80"
-              height="80"
-              style="object-fit: cover"
+    <!-- App Bar -->
+    <v-app-bar app color="primary" dark>
+      <v-toolbar-title>Resident Map</v-toolbar-title>
+      <v-spacer></v-spacer>
+
+      <!-- Profile Menu -->
+      <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props">
+            <v-icon>mdi-account-circle</v-icon>
+          </v-btn>
+        </template>
+
+        <v-card class="w-64 pa-2">
+          <v-list>
+            <!-- Profile Picture -->
+            <v-list-item>
+              <v-avatar size="64" class="mx-auto mb-2">
+                <v-img :src="profileImage" alt="Profile Picture" />
+              </v-avatar>
+            </v-list-item>
+
+            <!-- Trigger File Input -->
+            <v-list-item link @click="triggerFileInput">
+              <v-list-item-title>Change Profile Picture</v-list-item-title>
+            </v-list-item>
+
+            <!-- Hidden File Input -->
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              @change="onFileSelected"
+              style="display: none"
             />
-          </v-avatar>
 
-          <!-- Hidden File Input for Changing Profile Picture -->
-          <v-file-input
-            v-if="showChangePicture"
-            v-model="profileFile"
-            accept="image/*"
-            label="Change Profile Picture"
-            hide-details
-            dense
-            prepend-icon="mdi-camera"
-            @change="onFileSelected"
-            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
-          />
-        </div>
+            <v-divider></v-divider>
 
-        <!-- Navigation Buttons -->
-        <v-btn block class="mb-3" style="background-color: #0288d1" variant="elevated">
-          <v-icon left>mdi-map</v-icon> Map View
-        </v-btn>
-        <v-btn block class="mb-3" color="white" variant="text" @click="$router.push('/inquiry')">
-          <v-icon left>mdi-comment-question</v-icon> Inquiry
-        </v-btn>
-        <v-btn block class="mt-9" color="white" variant="text" @click="$router.push('/login')">
-          <v-icon left>mdi-logout</v-icon> Log out
-        </v-btn>
-      </v-container>
-    </v-navigation-drawer>
+            <!-- Logout -->
+            <v-list-item link @click="logout">
+              <v-list-item-title class="text-red">Logout</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </v-app-bar>
 
-    <!-- Main Content -->
+    <!-- Map -->
     <v-main>
       <v-container fluid class="pa-0 fill-height">
-        <!-- Map Section -->
         <div id="map" class="map-container"></div>
-        <!-- Placeholder for the map -->
+
+        <!-- Zoom and Reset Controls -->
+        <div class="custom-zoom-controls">
+          <v-tooltip text="Zoom In" location="right">
+            <template #activator="{ props }">
+              <v-btn icon v-bind="props" color="primary" @click="zoomIn">
+                <v-icon>mdi-plus</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+
+          <v-tooltip text="Zoom Out" location="right">
+            <template #activator="{ props }">
+              <v-btn icon v-bind="props" color="primary" @click="zoomOut">
+                <v-icon>mdi-minus</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+
+          <v-tooltip text="Reset View" location="right">
+            <template #activator="{ props }">
+              <v-btn icon v-bind="props" color="primary" @click="resetMapView">
+                <v-icon>mdi-map-marker-radius</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </div>
       </v-container>
     </v-main>
   </v-app>
@@ -194,5 +217,19 @@ const showEventDetails = (barangay) => {
   width: 100%;
   height: 100vh;
   z-index: 1;
+}
+
+.custom-zoom-controls {
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.text-red {
+  color: #e53935;
 }
 </style>

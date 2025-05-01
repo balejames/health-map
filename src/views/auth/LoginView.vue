@@ -57,9 +57,9 @@ const onFormSubmit = () => {
         <v-col cols="12" md="6" class="text-section">
           <div class="align-center">
             <h1 class="header mb-0 text-start">Health Map</h1>
-            <p>
-              Health Map links residents with local health resources by helping barangay clinics
-              share services and keep the community informed about medical schedules.
+            <p style="padding-right: 2rem">
+              Connects residents to local health services by helping barangay clinics share updates
+              and schedules.
             </p>
           </div>
         </v-col>
@@ -109,7 +109,7 @@ const onFormSubmit = () => {
                 ></v-text-field>
                 <v-select
                   v-model="formData.role"
-                  :items="['Resident', 'Employee']"
+                  :items="['Employee', 'Resident']"
                   label="Role"
                   prepend-inner-icon="mdi-account"
                   rounded
@@ -163,7 +163,7 @@ const onFormSubmit = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url('/images/Background (3).png');
+  background-image: url('/images/LogInBackground.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

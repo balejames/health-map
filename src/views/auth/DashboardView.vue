@@ -1,15 +1,23 @@
 <script setup>
-import { isAuthenticated, supabase } from '@/utils/supabase.js'
+import { formActionDefault, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const drawer = ref(true)
 const router = useRouter()
+const formAction = ref({ ...formActionDefault })
 
 const logout = async () => {
-  await supabase.auth.signOut()
+  formAction.value = { ...formActionDefault }
+  formAction.value.formProcess = true
 
-  router.push({ name: 'login' })
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error('Error logging out:', error)
+    return
+  }
+  formAction.value.formProcess = false
+  router.replace('/')
 }
 
 const fileInput = ref(null)
@@ -252,6 +260,15 @@ const goToNextMonth = () => {
         <v-btn block class="mb-3" color="white" variant="text" @click="router.push('/map')">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
+        <v-btn
+          block
+          class="mb-3"
+          color="white"
+          variant="text"
+          @click="router.push('/residentdashboard')"
+        >
+          <v-icon left>mdi-map</v-icon> <b>Resident View</b>
+        </v-btn>
         <v-spacer></v-spacer>
         <br /><br /><br /><br /><br />
         <br /><br /><br /><br /><br />
@@ -451,7 +468,7 @@ const goToNextMonth = () => {
 
 <style scoped>
 .dashboard-bg {
-  background-image: url('/images/Background.png');
+  background-image: url('/images/DashboardBackground.png');
   background-attachment: fixed;
   background-size: cover;
   background-position: center;
