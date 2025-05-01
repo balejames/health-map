@@ -1,15 +1,23 @@
 <script setup>
-import { isAuthenticated, supabase } from '@/utils/supabase.js'
+import { formActionDefault, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const drawer = ref(true)
 const router = useRouter()
+const formAction = ref({ ...formActionDefault })
 
 const logout = async () => {
-  await supabase.auth.signOut()
+  formAction.value = { ...formActionDefault }
+  formAction.value.formProcess = true
 
-  router.push({ name: 'login' })
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error('Error logging out:', error)
+    return
+  }
+  formAction.value.formProcess = false
+  router.replace('/')
 }
 
 const fileInput = ref(null)

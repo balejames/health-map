@@ -109,7 +109,7 @@ const onFormSubmit = () => {
                 ></v-text-field>
                 <v-select
                   v-model="formData.role"
-                  :items="['Resident', 'Employee']"
+                  :items="['Employee', 'Resident']"
                   label="Role"
                   prepend-inner-icon="mdi-account"
                   rounded
