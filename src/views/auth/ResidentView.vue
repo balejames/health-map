@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import L from 'leaflet'
 
 const isProfileMenuOpen = ref(false)
-const profileImage = ref('https://via.placeholder.com/200')
+const profileImage = ref('C:/Users/berou/Desktop/team-collab/public/images/temporary profile.jpg')
 const profileFile = ref(null)
 const fileInput = ref(null)
 
@@ -138,7 +138,10 @@ const resetMapView = () => {
       <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
-            <v-icon>mdi-account-circle</v-icon>
+            <!-- Use the profile image here -->
+            <v-avatar size="32">
+              <v-img :src="profileImage" alt="Profile Picture" />
+            </v-avatar>
           </v-btn>
         </template>
 
