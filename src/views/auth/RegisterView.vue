@@ -164,6 +164,7 @@ const onFormSubmit = () => {
                 />
 
                 <v-btn
+                  @click="onFormSubmit"
                   type="submit"
                   class="custom-create my-2 mx-auto d-block"
                   :disabled="formAction.formProcess"
