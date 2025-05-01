@@ -164,7 +164,7 @@ const hasServices = (date) => {
 }
 
 // Profile image logic
-const profileImage = ref('https://via.placeholder.com/200')
+const profileImage = ref('/images/TemporaryProfile.jpg')
 const showChangePicture = ref(false)
 
 const toggleChangePicture = () => {
@@ -257,6 +257,7 @@ const goToNextMonth = () => {
         <v-btn block class="mt-9 mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
         </v-btn>
+
         <v-btn block class="mb-3" color="white" variant="text" @click="router.push('/map')">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
@@ -567,5 +568,56 @@ const goToNextMonth = () => {
   padding: 16px;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
+}
+
+.v-avatar {
+  transition: transform 0.3s ease;
+}
+
+.v-avatar:hover {
+  transform: scale(1.1);
+}
+
+.v-navigation-drawer {
+  background: linear-gradient(135deg, #9bd1f8, #bddde4);
+}
+
+.v-btn:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
+.v-btn.text:hover {
+  color: #f44336;
+}
+
+.v-dialog .v-card {
+  border-radius: 12px;
+  padding: 16px;
+  background-color: #fff;
+}
+
+.v-card-title {
+  font-weight: 600;
+  font-size: 20px;
+  color: #333;
+}
+
+.v-card-subtitle {
+  color: #555;
+}
+
+.v-file-input {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.v-file-input:focus {
+  opacity: 1;
+}
+
+.v-app-bar {
+  background: transparent;
+  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
 }
 </style>

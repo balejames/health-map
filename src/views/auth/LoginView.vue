@@ -25,20 +25,31 @@ const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
 
+  //Sign in with email + password only
   const { data, error } = await supabase.auth.signInWithPassword({
     email: formData.value.email,
     password: formData.value.password,
-    barangay: formData.value.barangay,
-    role: formData.value.role,
   })
+
   if (error) {
     formAction.value.formErrorMessage = error.message
     formAction.value.formStatus = error.status
-  } else if (data) {
-    console.log(data)
-    formAction.value.formSuccessMessage = 'Account Logged in successfully!'
-    router.replace('/dashboard')
+  } else if (data?.user) {
+    const userMeta = data.user.user_metadata
+
+    // Validate barangay and role
+    if (userMeta.barangay !== formData.value.barangay || userMeta.role !== formData.value.role) {
+      formAction.value.formErrorMessage =
+        'Invalid credentials. Please check your barangay and role.'
+      formAction.value.formStatus = 401
+      //sign out the user immediately
+      await supabase.auth.signOut()
+    } else {
+      formAction.value.formSuccessMessage = 'Account Logged in successfully!'
+      router.replace('/dashboard')
+    }
   }
+
   refVForm.value?.reset()
   formAction.value.formProcess = false
 }
@@ -49,7 +60,6 @@ const onFormSubmit = () => {
   })
 }
 </script>
-
 <template>
   <div class="login-wrapper">
     <v-container fluid>
@@ -97,16 +107,16 @@ const onFormSubmit = () => {
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   :rules="[requiredValidator]"
                 ></v-text-field>
-                <v-text-field
+                <v-select
                   v-model="formData.barangay"
+                  :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
                   label="Barangay"
                   prepend-inner-icon="mdi-map-marker"
                   rounded
-                  required
-                  type="text"
                   variant="outlined"
                   :rules="[requiredValidator]"
-                ></v-text-field>
+                  required
+                ></v-select>
                 <v-select
                   v-model="formData.role"
                   :items="['Employee', 'Resident']"
@@ -129,7 +139,7 @@ const onFormSubmit = () => {
                   Log In
                 </v-btn>
                 <v-divider class="my-5"></v-divider>
-                <h4 class="text-center">
+                <h4 class="text-center" style="color: #0dceda">
                   Don't have an account?
                   <router-link class="text-primary" to="/register" style="text-decoration: none">
                     Sign up!

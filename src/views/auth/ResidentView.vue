@@ -1,9 +1,27 @@
 <script setup>
+import { formActionDefault, supabase } from '@/utils/supabase.js'
+import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import L from 'leaflet'
 
+const router = useRouter()
+const formAction = ref({ ...formActionDefault })
+
+const logout = async () => {
+  formAction.value = { ...formActionDefault }
+  formAction.value.formProcess = true
+
+  const { error } = await supabase.auth.signOut()
+  if (error) {
+    console.error('Error logging out:', error)
+    return
+  }
+  formAction.value.formProcess = false
+  router.replace('/')
+}
+
 const isProfileMenuOpen = ref(false)
-const profileImage = ref('https://via.placeholder.com/200')
+const profileImage = ref('C:/Users/berou/Desktop/team-collab/public/images/temporary profile.jpg')
 const profileFile = ref(null)
 const fileInput = ref(null)
 
@@ -21,10 +39,6 @@ const onFileSelected = (event) => {
     }
     reader.readAsDataURL(profileFile.value)
   }
-}
-
-const logout = () => {
-  console.log('Logout clicked')
 }
 
 const map = ref(null)
@@ -66,8 +80,8 @@ onMounted(() => {
       if (coords) {
         L.circleMarker(coords, {
           radius: 10,
-          color: '#f44336',
-          fillColor: '#f44336',
+          color: '#0dceda', // Updated color here
+          fillColor: '#0dceda', // Updated color here
           fillOpacity: 0.7,
         })
           .addTo(map.value)
@@ -79,10 +93,12 @@ onMounted(() => {
 })
 
 const barangayCoordinates = {
-  Ambago: [8.9706, 125.5334],
-  Ampayon: [8.9801, 125.553],
-  Libertad: [8.9489, 125.5372],
-  BaanRiverside: [8.9567, 125.5521],
+  Ambago: [8.9724, 125.4946],
+  Ampayon: [8.9592, 125.615],
+  BaanKM3: [8.9491, 125.57809],
+  Antongalon: [8.9493, 125.6209],
+  Taligaman: [8.9409, 125.6289],
+  Maon: [8.9316, 125.5447],
 }
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
@@ -98,10 +114,10 @@ const showEventDetails = (barangay) => {
       const eventDetails = barangayEvents
         .map(
           (event) => `Event: ${event.title}
-Doctor: ${event.doctor}
-Start Time: ${event.startTime}
-End Time: ${event.endTime}
-Description: ${event.description}`,
+                Doctor: ${event.doctor}
+                Start Time: ${event.startTime}
+                End Time: ${event.endTime}
+                Description: ${event.description}`,
         )
         .join('\n\n')
 
@@ -130,7 +146,7 @@ const resetMapView = () => {
 <template>
   <v-app>
     <!-- App Bar -->
-    <v-app-bar app color="primary" dark>
+    <v-app-bar app :style="{ backgroundColor: '#9bd1f8' }" dark>
       <v-toolbar-title>Resident Map</v-toolbar-title>
       <v-spacer></v-spacer>
 
@@ -138,7 +154,10 @@ const resetMapView = () => {
       <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
-            <v-icon>mdi-account-circle</v-icon>
+            <!-- Use the profile image here -->
+            <v-avatar size="32">
+              <v-img :src="profileImage" alt="Profile Picture" />
+            </v-avatar>
           </v-btn>
         </template>
 
@@ -185,7 +204,7 @@ const resetMapView = () => {
         <div class="custom-zoom-controls">
           <v-tooltip text="Zoom In" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" color="primary" @click="zoomIn">
+              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="zoomIn">
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </template>
@@ -193,7 +212,7 @@ const resetMapView = () => {
 
           <v-tooltip text="Zoom Out" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" color="primary" @click="zoomOut">
+              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="zoomOut">
                 <v-icon>mdi-minus</v-icon>
               </v-btn>
             </template>
@@ -201,7 +220,7 @@ const resetMapView = () => {
 
           <v-tooltip text="Reset View" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" color="primary" @click="resetMapView">
+              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="resetMapView">
                 <v-icon>mdi-map-marker-radius</v-icon>
               </v-btn>
             </template>
@@ -229,7 +248,5 @@ const resetMapView = () => {
   z-index: 1000;
 }
 
-.text-red {
-  color: #e53935;
-}
+
 </style>

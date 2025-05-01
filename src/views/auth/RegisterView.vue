@@ -29,7 +29,6 @@ const formAction = ref({ ...formActionDefault })
 
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
-
   formAction.value.formProcess = true
 
   const { data, error } = await supabase.auth.signUp({
@@ -40,19 +39,35 @@ const onSubmit = async () => {
         firstName: formData.value.firstName,
         lastName: formData.value.lastName,
         barangay: formData.value.barangay,
-        is_admin: true,
-        // role: 'Administrator',
+        role: formData.value.role,
+        is_admin: false,
       },
     },
   })
+
   if (error) {
     formAction.value.formErrorMessage = error.message
     formAction.value.formStatus = error.status
-  } else if (data) {
-    console.log(data)
-    formAction.value.formSuccessMessage = 'Account created successfully!'
-    router.replace('/dashboard')
+  } else if (data.user) {
+    // 🟢 Insert into profiles table
+    const { error: insertError } = await supabase.from('profiles').insert({
+      id: data.user.id,
+      email: data.user.email,
+      first_name: formData.value.firstName,
+      last_name: formData.value.lastName,
+      barangay: formData.value.barangay,
+      role: formData.value.role,
+      is_admin: false,
+    })
+
+    if (insertError) {
+      formAction.value.formErrorMessage = insertError.message
+    } else {
+      formAction.value.formSuccessMessage = 'Account created successfully!'
+      router.replace('/dashboard')
+    }
   }
+
   refVForm.value?.reset()
   formAction.value.formProcess = false
 }
@@ -116,11 +131,13 @@ const onFormSubmit = () => {
                   :rules="[requiredValidator, emailValidator]"
                 />
 
-                <v-text-field
+                <v-select
                   v-model="formData.barangay"
+                  :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
                   label="Barangay"
                   prepend-inner-icon="mdi-map-marker"
                   rounded
+                  required
                   variant="outlined"
                   :rules="[requiredValidator]"
                 />
@@ -134,7 +151,7 @@ const onFormSubmit = () => {
                   required
                   variant="outlined"
                   :rules="[requiredValidator]"
-                ></v-select>
+                />
 
                 <v-text-field
                   v-model="formData.password"
@@ -175,7 +192,7 @@ const onFormSubmit = () => {
 
                 <v-divider class="my-4" />
 
-                <h4 class="text-center">
+                <h4 class="text-center" style="color: #0dceda">
                   Already have an account?
                   <RouterLink class="text-primary" to="/login" style="text-decoration: none"
                     >Sign in!</RouterLink
