@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, nextTick, ref } from 'vue'
-import { isAuthenticated, supabase } from '@/utils/supabase.js'
+import { onMounted, ref } from 'vue'
+import { supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
 import { useRouter } from 'vue-router'
 
@@ -10,24 +10,19 @@ const logout = async () => {
   router.push({ name: 'login' })
 }
 
-// Sidebar Drawer toggle
 const drawer = ref(true)
 const isMapFullScreen = ref(false)
-
 const toggleDrawer = () => {
   drawer.value = !drawer.value
   isMapFullScreen.value = !drawer.value
 }
 
-// Profile Picture Logic
 const profileImage = ref('https://via.placeholder.com/200')
 const profileFile = ref(null)
 const showChangePicture = ref(false)
-
 const toggleChangePicture = () => {
   showChangePicture.value = !showChangePicture.value
 }
-
 const onFileSelected = (e) => {
   const file = e.target.files ? e.target.files[0] : profileFile.value
   if (file) {
@@ -40,7 +35,7 @@ const onFileSelected = (e) => {
   }
 }
 
-// Barangay Coordinates
+// Coordinates
 const barangayCoordinates = {
   Ambago: [8.9724, 125.4946],
   Ampayon: [8.9592, 125.615],
@@ -50,40 +45,76 @@ const barangayCoordinates = {
   Maon: [8.9316, 125.5447],
 }
 
+// Date & Service States
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const todaysServices = ref([])
-
+const servicesFromDB = ref([])
 const mapRef = ref(null)
 
-// Normalize string for matching
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
-// Show service details in modal
 const serviceDialog = ref(false)
 const selectedService = ref(null)
 
 const showServiceDetails = (barangay) => {
-  const storedServices = localStorage.getItem('services')
-  if (storedServices) {
-    const services = JSON.parse(storedServices)
-    const todayServices = services[selectedDate.value] || []
+  const normalizedBarangay = normalize(barangay)
+  const today = selectedDate.value
 
-    const normalizedBarangay = normalize(barangay)
-    const barangayServices = todayServices.filter(
-      (service) => normalize(service.barangay) === normalizedBarangay,
-    )
+  const filtered = servicesFromDB.value.filter(
+    (s) => s.date === today && normalize(s.barangay) === normalizedBarangay,
+  )
 
-    if (barangayServices.length > 0) {
-      selectedService.value = barangayServices[0]
-    } else {
-      selectedService.value = null
+  if (filtered.length > 0) {
+    selectedService.value = {
+      barangay: filtered[0].barangay,
+      service: filtered[0].title,
+      details: filtered[0].description,
     }
   } else {
     selectedService.value = null
   }
 
-  console.log("Selected Service: ", selectedService.value)
   serviceDialog.value = true
+}
+
+const showBarangayMarkers = () => {
+  const activeBarangays = new Set()
+
+  servicesFromDB.value.forEach((service) => {
+    if (service.barangay) {
+      activeBarangays.add(normalize(service.barangay.trim()))
+    }
+  })
+
+  activeBarangays.forEach((barangayKey) => {
+    const entry = Object.entries(barangayCoordinates).find(
+      ([key]) => normalize(key) === barangayKey,
+    )
+    if (entry) {
+      const [name, coords] = entry
+      L.circleMarker(coords, {
+        radius: 10,
+        color: '#f44336',
+        fillColor: '#f44336',
+        fillOpacity: 0.7,
+      })
+        .addTo(mapRef.value)
+        .bindPopup(`<b>Barangay ${name}</b><br>Has service today or upcoming.`)
+        .on('click', () => showServiceDetails(name))
+    }
+  })
+}
+
+const fetchServices = async () => {
+  const { data, error } = await supabase.from('services').select('*')
+  if (error) {
+    console.error('Error fetching services:', error)
+    return
+  }
+
+  servicesFromDB.value = data
+  todaysServices.value = data.filter((svc) => svc.date === selectedDate.value)
+  showBarangayMarkers()
 }
 
 onMounted(() => {
@@ -92,70 +123,27 @@ onMounted(() => {
     profileImage.value = storedImage
   }
 
-  // Initialize map centered at Butuan City
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
 
-  // Load OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map)
 
-  // Add default marker at Butuan City center
   L.marker([8.9475, 125.5406]).addTo(map).bindPopup('📍 Butuan City, Mindanao').openPopup()
-
-  const storedServices = localStorage.getItem('services')
-  const today = selectedDate.value
-
-  if (storedServices) {
-    const services = JSON.parse(storedServices)
-    todaysServices.value = services[today] || []
-  }
 
   for (const [name, coords] of Object.entries(barangayCoordinates)) {
     L.marker(coords).addTo(mapRef.value).bindPopup(`📍 ${name}`)
   }
 
-  if (storedServices) {
-    const services = JSON.parse(storedServices)
-    const activeBarangays = new Set()
-
-    Object.values(services).forEach((dayServices) => {
-      dayServices.forEach((service) => {
-        if (service.barangay) {
-          activeBarangays.add(normalize(service.barangay.trim()))
-        }
-      })
-    })
-
-    activeBarangays.forEach((barangayKey) => {
-      const entry = Object.entries(barangayCoordinates).find(
-        ([key]) => normalize(key) === barangayKey,
-      )
-      if (entry) {
-        const [name, coords] = entry
-        L.circleMarker(coords, {
-          radius: 10,
-          color: '#f44336',
-          fillColor: '#f44336',
-          fillOpacity: 0.7,
-        })
-          .addTo(mapRef.value)
-          .bindPopup(`<b>Barangay ${name}</b><br>Has service today or upcoming.`)
-          .on('click', () => showServiceDetails(name))
-      }
-    })
-  }
+  fetchServices()
 })
 </script>
 
 <template>
   <v-app>
-    <!-- Sidebar -->
     <v-navigation-drawer v-model="drawer" app color="#9bd1f8" dark>
       <v-container class="text-center py-5">
-        <!-- Profile Picture as Clickable Circle -->
         <div style="position: relative; display: inline-block">
           <v-avatar
             size="80"
@@ -171,8 +159,6 @@ onMounted(() => {
               style="object-fit: cover"
             />
           </v-avatar>
-
-          <!-- Hidden File Input for Changing Profile Picture -->
           <v-file-input
             v-if="showChangePicture"
             v-model="profileFile"
@@ -185,8 +171,6 @@ onMounted(() => {
             style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
           />
         </div>
-
-        <!-- Navigation Buttons -->
         <v-btn
           block
           class="mt-9 mb-3"
@@ -199,13 +183,13 @@ onMounted(() => {
         <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
+        <v-spacer style="height: 200px"></v-spacer>
         <v-btn block class="mt-9" color="white" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
     </v-navigation-drawer>
 
-    <!-- Top App Bar -->
     <v-app-bar app color="transparent" dark elevation="0">
       <v-app-bar-nav-icon @click="toggleDrawer">
         <v-icon>{{ drawer ? 'mdi-menu-open' : 'mdi-menu' }}</v-icon>
@@ -213,15 +197,12 @@ onMounted(() => {
       <v-toolbar-title>Dashboard</v-toolbar-title>
     </v-app-bar>
 
-    <!-- Main Content -->
     <v-main>
       <v-container fluid class="pa-0 fill-height">
-        <!-- Map Section -->
         <div id="map" :class="['map-container', isMapFullScreen ? 'full-screen' : '']"></div>
       </v-container>
     </v-main>
 
-    <!-- Service Details Dialog -->
     <v-dialog v-model="serviceDialog" max-width="600px">
       <v-card>
         <v-card-title class="headline">Service Details</v-card-title>
@@ -245,7 +226,6 @@ onMounted(() => {
   z-index: 1;
   transition: all 0.3s ease;
 }
-
 .full-screen {
   height: 100vh;
   width: 100%;
