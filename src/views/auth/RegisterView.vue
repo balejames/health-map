@@ -65,14 +65,13 @@ const onFormSubmit = () => {
 </script>
 <template>
   <div class="create-account-wrapper">
-    <v-container class="fill-height d-flex justify-center align-center" fluid>
-      <v-row justify="center" align="center" class="fill-height">
-        <v-col cols="12" sm="10" md="8" lg="6" xl="4">
-          <v-card class="pa-6 " elevation="12">
+    <v-container class="fill-height" fluid>
+      <v-row justify="center" align="center">
+        <v-col cols="12" sm="10" md="8" lg="6" xl="4" class="d-flex justify-center">
+          <v-card class="pa-4 w-100" elevation="12">
             <template v-slot:title>
               <div class="text-center">
                 <h1 class="title">Create your account</h1>
-
               </div>
             </template>
 
@@ -84,28 +83,28 @@ const onFormSubmit = () => {
             <v-card-text>
               <v-form ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-row dense>
-  <v-col cols="12" sm="6">
-    <v-text-field
-      v-model="formData.firstName"
-      label="First Name"
-      prepend-inner-icon="mdi-account"
-      rounded
-      variant="outlined"
-      :rules="[requiredValidator]"
-    />
-  </v-col>
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="formData.firstName"
+                      label="First Name"
+                      prepend-inner-icon="mdi-account"
+                      rounded
+                      variant="outlined"
+                      :rules="[requiredValidator]"
+                    />
+                  </v-col>
 
-  <v-col cols="12" sm="6">
-    <v-text-field
-      v-model="formData.lastName"
-      label="Last Name"
-      prepend-inner-icon="mdi-account"
-      rounded
-      variant="outlined"
-      :rules="[requiredValidator]"
-    />
-  </v-col>
-</v-row>
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="formData.lastName"
+                      label="Last Name"
+                      prepend-inner-icon="mdi-account"
+                      rounded
+                      variant="outlined"
+                      :rules="[requiredValidator]"
+                    />
+                  </v-col>
+                </v-row>
 
                 <v-text-field
                   v-model="formData.email"
@@ -127,15 +126,15 @@ const onFormSubmit = () => {
                 />
 
                 <v-select
-  v-model="formData.role"
-  :items="['Barangay', 'Viewer']"
-  label="Role"
-  prepend-inner-icon="mdi-account-group"
-  rounded
-  required
-  variant="outlined"
-  :rules="[requiredValidator]"
-></v-select>
+                  v-model="formData.role"
+                  :items="['Employee', 'Resident']"
+                  label="Role"
+                  prepend-inner-icon="mdi-account-group"
+                  rounded
+                  required
+                  variant="outlined"
+                  :rules="[requiredValidator]"
+                ></v-select>
 
                 <v-text-field
                   v-model="formData.password"
@@ -166,21 +165,21 @@ const onFormSubmit = () => {
 
                 <v-btn
                   type="submit"
-                  class="custom-create my-4"
-                  color="primary"
+                  class="custom-create my-2 mx-auto d-block"
                   :disabled="formAction.formProcess"
                   :loading="formAction.formProcess"
-                  block
                 >
                   Sign Up
                 </v-btn>
 
                 <v-divider class="my-4" />
 
-                <h4 class="text-center account-login-text">
-  Already have an account?
-  <RouterLink class="login-link" to="/login">Sign in!</RouterLink>
-</h4>
+                <h4 class="text-center">
+                  Already have an account?
+                  <RouterLink class="text-primary" to="/login" style="text-decoration: none"
+                    >Sign in!</RouterLink
+                  >
+                </h4>
               </v-form>
             </v-card-text>
           </v-card>
@@ -189,12 +188,11 @@ const onFormSubmit = () => {
     </v-container>
   </div>
 </template>
-
 <style scoped>
 .create-account-wrapper {
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
-  background-color: #B3E5FC;
+  background-color: #b3e5fc;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -202,12 +200,12 @@ const onFormSubmit = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px; /* ensures spacing on small screens */
-  overflow: auto;
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .title {
-
   font-family: 'Times New Roman', Times, serif;
   font-size: 35px;
   margin-bottom: 4px;
@@ -222,24 +220,20 @@ const onFormSubmit = () => {
 }
 
 .custom-create {
+  background-color: #0dceda;
+  color: white;
   height: 50px;
+  width: 150px;
   font-size: 16px;
   border-radius: 8px;
 }
 
-.login-link {
-  color: #1976d2;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-
 .v-card {
   max-width: 500px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
   border-radius: 16px;
   background-color: #ffffff;
 }
 </style>
-
-
