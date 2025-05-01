@@ -67,7 +67,7 @@ const onFormSubmit = () => {
         <v-col cols="12" sm="10" md="6" lg="4">
           <v-card class="mx-auto" elevation="24">
             <template v-slot:title>
-              <h2 class="text-center">Log In</h2>
+              <h2 class="text-center pt-4">Log In</h2>
             </template>
             <AlertNotification
               :form-success-message="formAction.formSuccessMessage"
@@ -78,6 +78,8 @@ const onFormSubmit = () => {
                 <v-text-field
                   v-model="formData.email"
                   label="Email"
+                  prepend-inner-icon="mdi-email"
+                  rounded
                   required
                   type="email"
                   variant="outlined"
@@ -85,6 +87,8 @@ const onFormSubmit = () => {
                 ></v-text-field>
                 <v-text-field
                   label="Password"
+                  prepend-inner-icon="mdi-lock"
+                  rounded
                   required
                   variant="outlined"
                   v-model="formData.password"
@@ -96,6 +100,8 @@ const onFormSubmit = () => {
                 <v-text-field
                   v-model="formData.barangay"
                   label="Barangay"
+                  prepend-inner-icon="mdi-map-marker"
+                  rounded
                   required
                   type="text"
                   variant="outlined"
@@ -105,6 +111,8 @@ const onFormSubmit = () => {
                   v-model="formData.role"
                   :items="['Resident', 'Employee']"
                   label="Role"
+                  prepend-inner-icon="mdi-account"
+                  rounded
                   required
                   variant="outlined"
                   :rules="[requiredValidator]"
@@ -168,7 +176,7 @@ const onFormSubmit = () => {
   font-family: 'Merriweather', serif;
 }
 h2 {
-  color: #6a777b;
+  color: #0dceda;
   font-family: 'Times New Roman', Times, serif;
 }
 p {
