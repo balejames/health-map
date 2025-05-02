@@ -22,7 +22,7 @@ const logout = async () => {
 }
 
 const isProfileMenuOpen = ref(false)
-const profileImage = ref('C:/Users/berou/Desktop/team-collab/public/images/temporary profile.jpg')
+const profileImage = ref('/images/TemporaryProfile.jpg')
 const profileFile = ref(null)
 const fileInput = ref(null)
 
