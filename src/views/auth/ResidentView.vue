@@ -7,6 +7,7 @@ import L from 'leaflet'
 const router = useRouter()
 const formAction = ref({ ...formActionDefault })
 
+// Logout Logic
 const logout = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
@@ -204,7 +205,12 @@ const resetMapView = () => {
         <div class="custom-zoom-controls">
           <v-tooltip text="Zoom In" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="zoomIn">
+              <v-btn
+                icon
+                v-bind="props"
+                :style="{ backgroundColor: '#9bd1f8', color: 'white' }"
+                @click="zoomIn"
+              >
                 <v-icon>mdi-plus</v-icon>
               </v-btn>
             </template>
@@ -212,7 +218,12 @@ const resetMapView = () => {
 
           <v-tooltip text="Zoom Out" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="zoomOut">
+              <v-btn
+                icon
+                v-bind="props"
+                :style="{ backgroundColor: '#9bd1f8', color: 'white' }"
+                @click="zoomOut"
+              >
                 <v-icon>mdi-minus</v-icon>
               </v-btn>
             </template>
@@ -220,7 +231,12 @@ const resetMapView = () => {
 
           <v-tooltip text="Reset View" location="right">
             <template #activator="{ props }">
-              <v-btn icon v-bind="props" :style="{ backgroundColor: '#9bd1f8', color: 'white' }" @click="resetMapView">
+              <v-btn
+                icon
+                v-bind="props"
+                :style="{ backgroundColor: '#9bd1f8', color: 'white' }"
+                @click="resetMapView"
+              >
                 <v-icon>mdi-map-marker-radius</v-icon>
               </v-btn>
             </template>
@@ -247,6 +263,4 @@ const resetMapView = () => {
   gap: 8px;
   z-index: 1000;
 }
-
-
 </style>

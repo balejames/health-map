@@ -158,7 +158,6 @@ onMounted(() => {
       <!-- Navigation Buttons -->
       <v-btn text @click="router.push('/dashboard')">Dashboard</v-btn>
       <v-btn text @click="router.push('/map')">Map View</v-btn>
-      <v-btn text @click="router.push('/residents')">Resident View</v-btn>
 
       <v-spacer></v-spacer>
 

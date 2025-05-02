@@ -296,8 +296,6 @@ const goToNextMonth = () => {
       <!-- Navigation Buttons -->
       <v-btn text @click="router.push('/dashboard')">Dashboard</v-btn>
       <v-btn text @click="router.push('/map')">Map View</v-btn>
-      <v-btn text @click="router.push('/residents')">Resident View</v-btn>
-
       <v-spacer></v-spacer>
 
       <!-- Profile Menu -->
@@ -356,12 +354,12 @@ const goToNextMonth = () => {
 
         <v-row>
           <!-- Service Today Column -->
-            <v-col cols="12" md="6" class="pt-6">
+          <v-col cols="12" md="6" class="pt-6">
             <!-- Services Card -->
             <v-card class="mb-4">
               <v-card-title class="service-title">
-              Service Today
-              <v-spacer />
+                Service Today
+                <v-spacer />
               </v-card-title>
 
               <v-divider></v-divider>
@@ -489,11 +487,7 @@ const goToNextMonth = () => {
               <v-text-field v-model="newService.title" label="Service Title" />
               <v-textarea v-model="newService.description" label="Description" rows="2" />
               <v-text-field v-model="newService.doctor" label="Doctor" />
-              <v-select
-                v-model="newService.barangay"
-                :items="barangayOptions"
-                label="Barangay"
-              />
+              <v-select v-model="newService.barangay" :items="barangayOptions" label="Barangay" />
               <v-row>
                 <v-col cols="6">
                   <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
