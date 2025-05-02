@@ -79,82 +79,95 @@ const onFormSubmit = () => {
           />
         </v-col>
 
-        <!-- 👇 Login Form -->
+        <!-- Login Form -->
         <v-col cols="12" sm="10" md="6" lg="4">
-          <v-card class="mx-auto" elevation="24">
-            <template v-slot:title>
-              <h2 class="text-center pt-4">Log In</h2>
-            </template>
-            <AlertNotification
-              :form-success-message="formAction.formSuccessMessage"
-              :form-error-message="formAction.formErrorMessage"
-            ></AlertNotification>
-            <v-card-text>
-              <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
-                <v-text-field
-                  v-model="formData.email"
-                  label="Email"
-                  prepend-inner-icon="mdi-email"
-                  rounded
-                  required
-                  type="email"
-                  variant="outlined"
-                  :rules="[requiredValidator, emailValidator]"
-                ></v-text-field>
-                <v-text-field
-                  label="Password"
-                  prepend-inner-icon="mdi-lock"
-                  rounded
-                  required
-                  variant="outlined"
-                  v-model="formData.password"
-                  :type="isPasswordVisible ? 'text' : 'password'"
-                  :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
-                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
-                  :rules="[requiredValidator]"
-                ></v-text-field>
-                <v-select
-                  v-model="formData.barangay"
-                  :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
-                  label="Barangay"
-                  prepend-inner-icon="mdi-map-marker"
-                  rounded
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                  required
-                ></v-select>
-                <v-select
-                  v-model="formData.role"
-                  :items="['Employee', 'Resident']"
-                  label="Role"
-                  prepend-inner-icon="mdi-account"
-                  rounded
-                  required
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                ></v-select>
+  <v-card class="mx-auto" elevation="24">
+    <template v-slot:title>
+      <h2 class="text-center pt-4">Log In</h2>
+    </template>
 
-                <v-btn
-                  style="background-color: #0dceda; color: white"
-                  class="custom-login my-2 mx-auto d-block"
-                  :disabled="formAction.formProcess"
-                  :loading="formAction.formProcess"
-                  @click="onFormSubmit"
-                  type="submit"
-                >
-                  Log In
-                </v-btn>
-                <v-divider class="my-5"></v-divider>
-                <h4 class="text-center" style="color: #0dceda">
-                  Don't have an account?
-                  <router-link class="text-primary" to="/register" style="text-decoration: none">
-                    Sign up!
-                  </router-link>
-                </h4>
-              </v-form>
-            </v-card-text>
-          </v-card>
-        </v-col>
+    <AlertNotification
+      :form-success-message="formAction.formSuccessMessage"
+      :form-error-message="formAction.formErrorMessage"
+    ></AlertNotification>
+
+    <v-card-text>
+      <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
+        <v-text-field
+          v-model="formData.email"
+          label="Email"
+          prepend-inner-icon="mdi-email"
+          rounded
+          required
+          type="email"
+          variant="outlined"
+          :rules="[requiredValidator, emailValidator]"
+        ></v-text-field>
+
+        <v-text-field
+          label="Password"
+          prepend-inner-icon="mdi-lock"
+          rounded
+          required
+          variant="outlined"
+          v-model="formData.password"
+          :type="isPasswordVisible ? 'text' : 'password'"
+          :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
+          @click:append-inner="isPasswordVisible = !isPasswordVisible"
+          :rules="[requiredValidator]"
+        ></v-text-field>
+
+        <v-row dense>
+          <v-col cols="6">
+            <v-select
+              v-model="formData.barangay"
+              :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
+              label="Barangay"
+              prepend-inner-icon="mdi-map-marker"
+              rounded
+              variant="outlined"
+              :rules="[requiredValidator]"
+              required
+            ></v-select>
+          </v-col>
+
+          <v-col cols="6">
+            <v-select
+              v-model="formData.role"
+              :items="['Employee', 'Resident']"
+              label="Role"
+              prepend-inner-icon="mdi-account"
+              rounded
+              required
+              variant="outlined"
+              :rules="[requiredValidator]"
+            ></v-select>
+          </v-col>
+        </v-row>
+
+        <v-btn
+          style="background-color: #0dceda; color: white"
+          class="custom-login my-2 mx-auto d-block"
+          :disabled="formAction.formProcess"
+          :loading="formAction.formProcess"
+          @click="onFormSubmit"
+          type="submit"
+        >
+          Log In
+        </v-btn>
+
+        <v-divider class="my-5"></v-divider>
+
+        <h4 class="text-center" style="color: #0dceda">
+          Don't have an account?
+          <router-link class="text-primary" to="/register" style="text-decoration: none">
+            Sign up!
+          </router-link>
+        </h4>
+      </v-form>
+    </v-card-text>
+  </v-card>
+</v-col>
       </v-row>
     </v-container>
   </div>
