@@ -84,7 +84,7 @@ const onFormSubmit = () => {
           />
         </v-col>
 
-        <!-- 👇 Login Form -->
+        <!-- Login Form -->
         <v-col cols="12" sm="10" md="6" lg="4">
   <v-card class="mx-auto" elevation="24">
     <template v-slot:title>
@@ -173,8 +173,6 @@ const onFormSubmit = () => {
     </v-card-text>
   </v-card>
 </v-col>
-
-
       </v-row>
     </v-container>
   </div>
