@@ -7,6 +7,7 @@ const drawer = ref(true)
 const router = useRouter()
 const formAction = ref({ ...formActionDefault })
 
+// Logout Logic
 const logout = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
@@ -20,11 +21,17 @@ const logout = async () => {
   router.replace('/')
 }
 
+// File Input for Profile Image
 const fileInput = ref(null)
 function editAccount() {
   fileInput.value.click()
 }
+// Check if there are services for a given date
+const hasServices = (date) => {
+  return services.value[date] && services.value[date].length > 0
+}
 
+// Reactive form for New Service
 const selectedDate = ref('')
 const newService = ref({
   title: '',
@@ -34,8 +41,8 @@ const newService = ref({
   startTime: '',
   endTime: '',
 })
-const services = ref({})
-const dailyServices = ref([])
+const services = ref({}) // Grouped services by date
+const dailyServices = ref([]) // Services for the selected date
 const dialog = ref(false)
 
 // Barangay List (Dropdown)
@@ -50,10 +57,10 @@ const barangayList = [
 
 const barangayOptions = computed(() => barangayList.map((b) => b.name))
 
+// Date Management for Calendar
 const today = new Date()
 const currentMonth = ref(today.getMonth())
 const currentYear = ref(today.getFullYear())
-
 const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 const monthYearLabel = computed(() =>
@@ -90,51 +97,96 @@ const getServicesForDate = () => {
   dailyServices.value = services.value[selectedDate.value] || []
 }
 
+// Format Time for Display
+const formatTime = (timeInput) => {
+  if (!timeInput) return ''
+
+  try {
+    // Handle ISO string format from Supabase timestamptz
+    const date = new Date(timeInput)
+    if (isNaN(date)) return '' // Invalid date
+
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch (e) {
+    console.error('Error formatting time:', e)
+    return ''
+  }
+}
+
+// Open Add Service Dialog
 const openServiceDialog = () => {
   dialog.value = true
 }
 
-const addService = () => {
-  const { title, description, barangay, doctor, startTime, endTime } = newService.value
+// Add Service to Supabase
+const addService = async () => {
+  try {
+    // Create ISO format timestamp strings that include timezone info
+    const startDateTime = new Date(`${selectedDate.value}T${newService.value.startTime}:00`)
+    const endDateTime = new Date(`${selectedDate.value}T${newService.value.endTime}:00`)
 
-  if (
-    !title.trim() ||
-    !description.trim() ||
-    !barangay ||
-    !doctor.trim() ||
-    !startTime ||
-    !endTime
-  ) {
-    alert('Please fill out all fields before saving.')
+    // Format for timestamptz in Supabase
+    const startTimestamptz = startDateTime.toISOString()
+    const endTimestamptz = endDateTime.toISOString()
+
+    const { data, error } = await supabase.from('services').insert([
+      {
+        title: newService.value.title,
+        description: newService.value.description,
+        doctor: newService.value.doctor,
+        barangay: newService.value.barangay,
+        start_date_time: startTimestamptz,
+        end_date_time: endTimestamptz,
+        date: selectedDate.value,
+      },
+    ])
+
+    if (error) {
+      console.error('Failed to add service:', error.message)
+      return
+    }
+
+    console.log('Service added:', data)
+    dialog.value = false
+    await fetchServices()
+    resetServiceForm()
+  } catch (e) {
+    console.error('Unexpected error while adding service:', e)
+  }
+}
+// Fetch Services from Supabase
+const fetchServices = async () => {
+  const { data, error } = await supabase.from('services').select('*')
+
+  if (error) {
+    console.error('Error fetching services:', error.message)
     return
   }
 
-  if (!services.value[selectedDate.value]) {
-    services.value[selectedDate.value] = []
-  }
-
-  services.value[selectedDate.value].push({
-    title,
-    description,
-    barangay,
-    doctor,
-    startTime,
-    endTime,
+  const grouped = {}
+  data.forEach((service) => {
+    if (!grouped[service.date]) {
+      grouped[service.date] = []
+    }
+    grouped[service.date].push(service)
   })
 
-  localStorage.setItem('services', JSON.stringify(services.value))
+  services.value = grouped
+  getServicesForDate() // Update daily services for the selected date
+}
 
-  newService.value = {
-    title: '',
-    description: '',
-    barangay: '',
-    doctor: '',
-    startTime: '',
-    endTime: '',
-  }
-
-  dialog.value = false
-  getServicesForDate()
+// Reset Service Form
+const resetServiceForm = () => {
+  newService.value.title = ''
+  newService.value.description = ''
+  newService.value.doctor = ''
+  newService.value.barangay = ''
+  newService.value.startTime = ''
+  newService.value.endTime = ''
 }
 
 // Multiple Delete Support
@@ -146,24 +198,39 @@ const openDeleteServiceDialog = () => {
   deleteDialog.value = true
 }
 
-const deleteSelectedServices = () => {
-  if (selectedServices.value.length) {
-    if (confirm(`Are you sure you want to delete ${selectedServices.value.length} service(s)?`)) {
-      dailyServices.value = dailyServices.value.filter(
-        (_, index) => !selectedServices.value.includes(index),
-      )
-      services.value[selectedDate.value] = dailyServices.value
-      localStorage.setItem('services', JSON.stringify(services.value))
+const deleteSelectedServices = async () => {
+  try {
+    // Get the IDs of services to delete
+    const servicesToDelete = selectedServices.value
+      .map((i) => dailyServices.value[i]?.id)
+      .filter(Boolean)
+
+    if (!servicesToDelete.length) {
+      console.log('No services selected for deletion')
+      return
     }
+
+    // Delete from Supabase without browser confirmation
+    const { error } = await supabase.from('services').delete().in('id', servicesToDelete)
+
+    if (error) {
+      console.error('Error deleting services:', error)
+      alert('Failed to delete services: ' + error.message)
+      return
+    }
+
+    console.log(`${servicesToDelete.length} service(s) deleted successfully`)
+    deleteDialog.value = false
+
+    // Refresh services list after deletion
+    await fetchServices()
+  } catch (e) {
+    console.error('Unexpected error while deleting services:', e)
+    alert('An unexpected error occurred while deleting services')
   }
-  deleteDialog.value = false
 }
 
-const hasServices = (date) => {
-  return services.value[date] && services.value[date].length > 0
-}
-
-// Profile image logic
+// Profile image logic (as before)
 const profileImage = ref('/images/TemporaryProfile.jpg')
 const showChangePicture = ref(false)
 
@@ -183,18 +250,16 @@ const onFileSelected = (e) => {
   }
 }
 
+// On Mounted, fetch services
 onMounted(() => {
-  const stored = localStorage.getItem('services')
-  if (stored) {
-    services.value = JSON.parse(stored)
-  }
-
   const storedImage = localStorage.getItem('profileImage')
   if (storedImage) {
     profileImage.value = storedImage
   }
+  fetchServices() // Fetch services on component mount
 })
 
+// Calendar Navigation
 const goToPrevMonth = () => {
   if (currentMonth.value === 0) {
     currentMonth.value = 11
@@ -261,19 +326,9 @@ const goToNextMonth = () => {
         <v-btn block class="mb-3" color="white" variant="text" @click="router.push('/map')">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
-        <v-btn
-          block
-          class="mb-3"
-          color="white"
-          variant="text"
-          @click="router.push('/residentdashboard')"
-        >
-          <v-icon left>mdi-map</v-icon> <b>Resident View</b>
-        </v-btn>
-        <v-spacer></v-spacer>
-        <br /><br /><br /><br /><br />
-        <br /><br /><br /><br /><br />
-        <v-btn block class="mt-9" color="white" variant="text" @click="logout">
+
+        <v-spacer style="height: 300px"></v-spacer>
+        <v-btn block class="mt-9" color="red" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
@@ -321,7 +376,10 @@ const goToNextMonth = () => {
 
                         <div class="d-flex align-center">
                           <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-                          <span>{{ service.startTime }} - {{ service.endTime }}</span>
+                          <span>
+                            {{ formatTime(service.start_date_time) }} -
+                            {{ formatTime(service.end_date_time) }}
+                          </span>
                         </div>
                       </div>
                     </v-card>
@@ -331,12 +389,8 @@ const goToNextMonth = () => {
                 <div v-else>No service for this day.</div>
 
                 <div class="d-flex mt-4" v-if="selectedDate">
-                  <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog">
-                    Add New Service
-                  </v-btn>
-                  <v-btn color="error" small @click="openDeleteServiceDialog">
-                    Delete Service
-                  </v-btn>
+                  <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog"> Add </v-btn>
+                  <v-btn color="error" small @click="openDeleteServiceDialog"> Delete </v-btn>
                 </div>
               </v-card-text>
             </v-card>

@@ -183,8 +183,8 @@ onMounted(() => {
         <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
           <v-icon left>mdi-map</v-icon> <b>Map View</b>
         </v-btn>
-        <v-spacer style="height: 200px"></v-spacer>
-        <v-btn block class="mt-9" color="white" variant="text" @click="logout">
+        <v-spacer style="height: 300px"></v-spacer>
+        <v-btn block class="mt-9" color="red" variant="text" @click="logout">
           <v-icon left>mdi-logout</v-icon> <b>Log out</b>
         </v-btn>
       </v-container>
