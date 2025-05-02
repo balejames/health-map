@@ -141,60 +141,65 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-app>
-    <v-navigation-drawer v-model="drawer" app color="#9bd1f8" dark>
-      <v-container class="text-center py-5">
-        <div style="position: relative; display: inline-block">
-          <v-avatar
-            size="80"
-            class="mx-auto mb-4"
-            @click="toggleChangePicture"
-            style="cursor: pointer"
-          >
-            <img
-              :src="profileImage"
-              alt="Profile"
-              width="80"
-              height="80"
-              style="object-fit: cover"
-            />
-          </v-avatar>
-          <v-file-input
-            v-if="showChangePicture"
-            v-model="profileFile"
-            accept="image/*"
-            label="Change Profile Picture"
-            hide-details
-            dense
-            prepend-icon="mdi-camera"
-            @change="onFileSelected"
-            style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; opacity: 0"
-          />
-        </div>
-        <v-btn
-          block
-          class="mt-9 mb-3"
-          color="white"
-          variant="text"
-          @click="() => router.push('/dashboard')"
-        >
-          <v-icon left>mdi-view-dashboard</v-icon> Dashboard
-        </v-btn>
-        <v-btn block class="mb-3" style="background-color: #bddde4" variant="elevated">
-          <v-icon left>mdi-map</v-icon> <b>Map View</b>
-        </v-btn>
-        <v-spacer style="height: 300px"></v-spacer>
-        <v-btn block class="mt-9" color="red" variant="text" @click="logout">
-          <v-icon left>mdi-logout</v-icon> <b>Log out</b>
-        </v-btn>
-      </v-container>
-    </v-navigation-drawer>
+  <v-app class="dashboard-bg">
+    <!-- Top Bar -->
+    <v-app-bar app color="#9bd1f8" dark elevate-on-scroll>
+      <v-img
+        src="/images/DASHBOARD-LOGO PIXIE .jpg"
+        alt="Logo"
+        contain
+        max-width="40"
+        max-height="40"
+        class="ml-4 mr-2"
+      ></v-img>
 
-    <v-app-bar app color="transparent" dark elevation="0">
-      <v-app-bar-nav-icon @click="toggleDrawer">
-        <v-icon>{{ drawer ? 'mdi-menu-open' : 'mdi-menu' }}</v-icon>
-      </v-app-bar-nav-icon>
-      <v-toolbar-title>Dashboard</v-toolbar-title>
+      <v-toolbar-title class="white-text">Map View</v-toolbar-title>
+
+      <!-- Navigation Buttons -->
+      <v-btn text @click="router.push('/dashboard')">Dashboard</v-btn>
+      <v-btn text @click="router.push('/map')">Map View</v-btn>
+      <v-btn text @click="router.push('/residents')">Resident View</v-btn>
+
+      <v-spacer></v-spacer>
+
+      <!-- Profile Menu -->
+      <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props">
+            <v-avatar size="32">
+              <v-img :src="profileImage" alt="Profile Picture" />
+            </v-avatar>
+          </v-btn>
+        </template>
+
+        <v-card class="w-64 pa-2">
+          <v-list>
+            <v-list-item>
+              <v-avatar size="64" class="mx-auto mb-2">
+                <v-img :src="profileImage" alt="Profile Picture" />
+              </v-avatar>
+            </v-list-item>
+
+            <v-list-item link @click="toggleChangePicture">
+              <v-list-item-title>Change Profile Picture</v-list-item-title>
+            </v-list-item>
+
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              @change="onFileSelected"
+              style="display: none"
+            />
+
+            <v-divider></v-divider>
+
+            <v-list-item link @click="logout">
+              <v-list-item-title class="text-red">Logout</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
     </v-app-bar>
 
     <v-main>
