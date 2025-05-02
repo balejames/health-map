@@ -64,18 +64,13 @@ const onFormSubmit = () => {
   <div class="login-wrapper">
     <v-container fluid>
       <v-row class="fill-height pa-4" align="center" justify="center" style="gap: 2rem">
-
         <!-- 👇 Mobile Logo Above Form -->
         <v-col cols="12" class="d-md-none text-center mb-4">
           <img src="/images/LOGO PIXIE.jpg" class="mobile-logo" alt="Health Map Logo" />
         </v-col>
 
         <!-- 👇 Desktop Logo Left Side -->
-        <v-col
-          cols="12"
-          md="6"
-          class="text-section d-none d-md-flex align-center justify-center"
-        >
+        <v-col cols="12" md="6" class="text-section d-none d-md-flex align-center justify-center">
           <img
             ref="logoRef"
             src="/images/LOGO PIXIE.jpg"
@@ -184,7 +179,7 @@ const onFormSubmit = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url('/images/BACKGROUND.png');
+  background: url('/images/LogInBackground.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -235,11 +230,17 @@ p {
 }
 
 @keyframes bounce {
-  0%   { transform: translateY(0); }
-  30%  { transform: translateY(-20px); }
-  60%  { transform: translateY(10px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-20px);
+  }
+  60% {
+    transform: translateY(10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
-
 </style>
-
