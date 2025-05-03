@@ -150,8 +150,13 @@ const addService = async () => {
     const endTimestamptz = endDateTime.toISOString()
 
     // Form validation
-    if (!newService.value.title || !newService.value.barangay || !serviceDate ||
-        !newService.value.startTime || !newService.value.endTime) {
+    if (
+      !newService.value.title ||
+      !newService.value.barangay ||
+      !serviceDate ||
+      !newService.value.startTime ||
+      !newService.value.endTime
+    ) {
       alert('Please fill in all required fields (title, barangay, date, start and end time)')
       return
     }
@@ -186,7 +191,7 @@ const addService = async () => {
     // For immediate UI update without waiting for database refresh
     services.value[serviceDate].push({
       ...newServiceData,
-      id: data?.[0]?.id || Date.now() // Use returned ID or fallback to timestamp
+      id: data?.[0]?.id || Date.now(), // Use returned ID or fallback to timestamp
     })
 
     // If we're viewing the date that just had a service added, update daily services
@@ -197,7 +202,6 @@ const addService = async () => {
     dialog.value = false
     await fetchServices() // Refresh all services
     resetServiceForm()
-
   } catch (e) {
     console.error('Unexpected error while adding service:', e)
     alert('Unexpected error while adding service')
@@ -324,13 +328,10 @@ const checkScreen = () => {
 const setupRealtimeSubscription = () => {
   const channel = supabase
     .channel('services-changes')
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'services' },
-      (payload) => {
-        console.log('Realtime update received in Dashboard:', payload)
-        fetchServices() // Refresh services when there's a change
-      }
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update received in Dashboard:', payload)
+      fetchServices() // Refresh services when there's a change
+    })
     .subscribe((status) => {
       console.log('Dashboard subscription status:', status)
     })
@@ -372,13 +373,7 @@ onMounted(() => {
         class="ml-2 mr-2"
       ></v-img>
 
-      <v-toolbar-title
-        class="white--text truncate-title"
-        @click="router.push('/dashboard')"
-        style="color: white; cursor: pointer"
-      >
-        Health Map
-      </v-toolbar-title>
+      <h2 class="white--text truncate-title" style="color: white; cursor: pointer">Health Map</h2>
 
       <!-- Navigation Buttons - Hide on mobile -->
       <div class="d-none d-sm-flex">
@@ -460,11 +455,7 @@ onMounted(() => {
     <v-main>
       <v-container fluid class="px-2 px-sm-4">
         <!-- Carousel with responsive height -->
-        <v-carousel
-          :height="isMobile ? 200 : 300"
-          hide-delimiter-background
-          show-arrows="hover"
-        >
+        <v-carousel :height="isMobile ? 200 : 300" hide-delimiter-background show-arrows="hover">
           <v-carousel-item src="/images/CAROUSEL1.png" cover></v-carousel-item>
           <v-carousel-item src="/images/CAROUSEL2.png" cover></v-carousel-item>
         </v-carousel>
@@ -509,7 +500,11 @@ onMounted(() => {
             <!-- Services Card -->
             <v-card class="mb-4">
               <v-card-title class="service-title">
-                {{ selectedDate === new Date().toISOString().split('T')[0] ? 'Service Today' : 'Services for ' + selectedDate }}
+                {{
+                  selectedDate === new Date().toISOString().split('T')[0]
+                    ? 'Service Today'
+                    : 'Services for ' + selectedDate
+                }}
                 <v-spacer />
               </v-card-title>
 
@@ -520,8 +515,12 @@ onMounted(() => {
                   <v-list-item v-for="(service, index) in dailyServices" :key="index">
                     <v-card class="pa-3 pa-md-4" color="#e6f2fc" flat rounded>
                       <div>
-                        <div class="text-primary font-weight-bold text-body-1 text-md-h6">{{ service.title }}</div>
-                        <div class="mb-2 text-caption text-md-body-2">{{ service.description }}</div>
+                        <div class="text-primary font-weight-bold text-body-1 text-md-h6">
+                          {{ service.title }}
+                        </div>
+                        <div class="mb-2 text-caption text-md-body-2">
+                          {{ service.description }}
+                        </div>
 
                         <div class="d-flex align-center mb-1 text-caption text-md-body-2">
                           <v-icon size="small" class="mr-2">mdi-account</v-icon>
@@ -548,8 +547,22 @@ onMounted(() => {
                 <div v-else class="text-center py-4">No service for this day.</div>
 
                 <div class="d-flex justify-center mt-4" v-if="selectedDate">
-                  <v-btn color="#5da8ca" :size="isMobile ? 'small' : 'default'" class="mr-2" @click="openServiceDialog"> Add </v-btn>
-                  <v-btn color="error" :size="isMobile ? 'small' : 'default'" @click="openDeleteServiceDialog" :disabled="!dailyServices.length"> Delete </v-btn>
+                  <v-btn
+                    color="#5da8ca"
+                    :size="isMobile ? 'small' : 'default'"
+                    class="mr-2"
+                    @click="openServiceDialog"
+                  >
+                    Add
+                  </v-btn>
+                  <v-btn
+                    color="error"
+                    :size="isMobile ? 'small' : 'default'"
+                    @click="openDeleteServiceDialog"
+                    :disabled="!dailyServices.length"
+                  >
+                    Delete
+                  </v-btn>
                 </div>
               </v-card-text>
             </v-card>
@@ -610,7 +623,7 @@ onMounted(() => {
                 label="Barangay"
                 required
                 dense
-                :rules="[v => !!v || 'Barangay is required']"
+                :rules="[(v) => !!v || 'Barangay is required']"
               />
 
               <!-- Add date picker -->
