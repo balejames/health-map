@@ -368,8 +368,13 @@ onMounted(() => {
       </v-toolbar-title>
 
       <!-- Navigation Buttons -->
-      <v-btn text style="color: white" @click="router.push('/dashboard')">Dashboard</v-btn>
-      <v-btn text style="color: white" @click="router.push('/map')">Map View</v-btn>
+      <router-link to="/dashboard">
+        <v-btn text style="color: white"> Dashboard </v-btn>
+      </router-link>
+
+      <router-link to="/map">
+        <v-btn text style="color: white"> Map View </v-btn>
+      </router-link>
       <v-spacer></v-spacer>
 
       <!-- Profile Menu -->
