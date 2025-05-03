@@ -1,6 +1,6 @@
 <script setup>
 import AlertNotification from '@/components/layout/AlertNotification.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { requiredValidator, emailValidator } from '@/utils/validators.js'
 import { formActionDefault, supabase } from '@/utils/supabase.js'
@@ -20,6 +20,27 @@ const formAction = ref({ ...formActionDefault })
 
 const isPasswordVisible = ref(false)
 const refVForm = ref()
+const logoRef = ref(null)
+const isAnimating = ref(true)
+
+// Animation function to be called on mount
+onMounted(() => {
+  startLogoAnimation();
+})
+
+const startLogoAnimation = () => {
+  if (logoRef.value) {
+    // Add the floating animation class to the logo
+    logoRef.value.classList.add('floating-animation');
+  }
+}
+
+const stopLogoAnimation = () => {
+  if (isAnimating.value && logoRef.value) {
+    logoRef.value.classList.remove('floating-animation');
+    isAnimating.value = false;
+  }
+}
 
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
@@ -55,6 +76,9 @@ const onSubmit = async () => {
 }
 
 const onFormSubmit = () => {
+  // Stop the animation when user clicks login
+  stopLogoAnimation();
+
   refVForm.value?.validate().then(({ valid }) => {
     if (valid) onSubmit()
   })
@@ -64,12 +88,12 @@ const onFormSubmit = () => {
   <div class="login-wrapper">
     <v-container fluid>
       <v-row class="fill-height pa-4" align="center" justify="center" style="gap: 2rem">
-        <!-- 👇 Mobile Logo Above Form -->
+
         <v-col cols="12" class="d-md-none text-center mb-4">
           <img src="/images/LoginIcon.png" class="mobile-logo" alt="Health Map Logo" />
         </v-col>
 
-        <!-- 👇 Desktop Logo Left Side -->
+        <!--Logo-->
         <v-col cols="12" md="6" class="text-section d-none d-md-flex align-center justify-center">
           <img
             ref="logoRef"
@@ -219,9 +243,12 @@ p {
 .animated-logo {
   width: 500px;
   height: 500px;
-  transition: transform 0.3s ease-in-out;
   will-change: transform;
   margin-left: -200px;
+}
+
+.animated-logo.floating-animation {
+  animation: floatingForm 3s ease-in-out infinite;
 }
 
 .animated-logo:hover {
@@ -240,6 +267,23 @@ p {
 
 .logo-bounce {
   animation: bounce 0.6s ease;
+}
+
+.floating-animation {
+  animation: floatingForm 3s ease-in-out infinite;
+  position: relative;
+}
+
+@keyframes floatingForm {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 @keyframes bounce {
