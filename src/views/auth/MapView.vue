@@ -478,16 +478,16 @@ const navigateTo = (route) => {
 
         <!-- Map Legend - Moved to Top Right -->
         <div class="map-legend" :class="{ 'map-legend-mobile': isMobile }">
-          <div class="legend-title">Map Legend</div>
-          <div class="legend-item">
-            <div class="legend-marker active"></div>
-            <span>Barangay with scheduled service</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-marker"></div>
-            <span>Barangay (no service scheduled)</span>
-          </div>
-        </div>
+  <div class="legend-title">Map Legend</div>
+  <div class="legend-item">
+    <div class="legend-marker active"></div>
+    <span>Barangay with scheduled service</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-marker"></div>
+    <span>Barangay (no service scheduled)</span>
+  </div>
+</div>
 
         <!-- Zoom Control Buttons - Responsive -->
         <div class="map-controls" :class="{ 'map-controls-mobile': isMobile }">
@@ -614,8 +614,8 @@ const navigateTo = (route) => {
 
 .map-legend {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
+  top: 80px;
+  right: 10px;
   background-color: white;
   padding: 10px 15px;
   border-radius: 8px;
@@ -626,16 +626,16 @@ const navigateTo = (route) => {
 }
 
 .map-legend-mobile {
-  bottom: 10px;
+  top: 70px;
   right: 10px;
   padding: 8px;
-  max-width: 180px;
+  max-width: 220px;
   font-size: 12px;
 }
 
 .legend-title {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .map-legend-mobile .legend-title {
@@ -646,7 +646,7 @@ const navigateTo = (route) => {
 .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .map-legend-mobile .legend-item {
@@ -655,10 +655,10 @@ const navigateTo = (route) => {
 }
 
 .legend-marker {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background-color: #bbb;
+  background-color: #ccc;
   margin-right: 8px;
 }
 
@@ -670,7 +670,6 @@ const navigateTo = (route) => {
 
 .legend-marker.active {
   background-color: #f44336;
-  border: 1px solid #d32f2f;
 }
 
 /* Custom marker styles - these will be applied globally but scoped to the markers */
