@@ -21,11 +21,6 @@ const logout = async () => {
   router.replace('/')
 }
 
-// File Input for Profile Image
-const fileInput = ref(null)
-function editAccount() {
-  fileInput.value.click()
-}
 // Check if there are services for a given date
 const hasServices = (date) => {
   return services.value[date] && services.value[date].length > 0
@@ -189,7 +184,6 @@ const resetServiceForm = () => {
   newService.value.endTime = ''
 }
 
-// Multiple Delete Support
 const deleteDialog = ref(false)
 const selectedServices = ref([])
 
@@ -200,7 +194,6 @@ const openDeleteServiceDialog = () => {
 
 const deleteSelectedServices = async () => {
   try {
-    // Get the IDs of services to delete
     const servicesToDelete = selectedServices.value
       .map((i) => dailyServices.value[i]?.id)
       .filter(Boolean)
@@ -209,8 +202,6 @@ const deleteSelectedServices = async () => {
       console.log('No services selected for deletion')
       return
     }
-
-    // Delete from Supabase without browser confirmation
     const { error } = await supabase.from('services').delete().in('id', servicesToDelete)
 
     if (error) {
@@ -222,7 +213,6 @@ const deleteSelectedServices = async () => {
     console.log(`${servicesToDelete.length} service(s) deleted successfully`)
     deleteDialog.value = false
 
-    // Refresh services list after deletion
     await fetchServices()
   } catch (e) {
     console.error('Unexpected error while deleting services:', e)
@@ -232,10 +222,12 @@ const deleteSelectedServices = async () => {
 
 // Profile image logic (as before)
 const profileImage = ref('/images/TemporaryProfile.jpg')
+const fileInput = ref(null)
 const showChangePicture = ref(false)
+const isProfileMenuOpen = ref(false)
 
 const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
+  fileInput.value.click()
 }
 
 const onFileSelected = (e) => {
@@ -250,13 +242,14 @@ const onFileSelected = (e) => {
   }
 }
 
-// On Mounted, fetch services
+// Load saved profile image on mount
 onMounted(() => {
   const storedImage = localStorage.getItem('profileImage')
   if (storedImage) {
     profileImage.value = storedImage
   }
-  fetchServices() // Fetch services on component mount
+  // Your existing fetchServices() call remains here
+  fetchServices()
 })
 
 // Calendar Navigation
@@ -278,76 +271,84 @@ const goToNextMonth = () => {
   }
 }
 </script>
-
 <template>
   <v-app class="dashboard-bg">
-    <!-- Sidebar -->
-    <v-navigation-drawer v-model="drawer" app color="#9bd1f8" dark>
-      <v-container class="text-center py-5">
-        <!-- Profile Picture -->
-        <div style="position: relative; display: inline-block">
-          <v-avatar
-            size="80"
-            class="mx-auto mb-4"
-            @click="toggleChangePicture"
-            style="cursor: pointer"
-          >
-            <img
-              :src="profileImage"
-              alt="Profile"
-              width="80"
-              height="80"
-              style="object-fit: cover"
+    <!-- Top Bar -->
+    <v-app-bar app color="#9bd1f8" dark elevate-on-scroll>
+      <v-img
+        src="/images/DASHBOARD-LOGO PIXIE .jpg"
+        alt="Logo"
+        contain
+        max-width="40"
+        max-height="40"
+        class="ml-4 mr-2"
+      ></v-img>
+
+      <v-toolbar-title class="white-text">Dashboard</v-toolbar-title>
+
+      <!-- Navigation Buttons -->
+      <v-btn text @click="router.push('/dashboard')">Dashboard</v-btn>
+      <v-btn text @click="router.push('/map')">Map View</v-btn>
+      <v-spacer></v-spacer>
+
+      <!-- Profile Menu -->
+      <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props">
+            <!-- Use the profile image here -->
+            <v-avatar size="32">
+              <v-img :src="profileImage" alt="Profile Picture" />
+            </v-avatar>
+          </v-btn>
+        </template>
+
+        <v-card class="w-64 pa-2">
+          <v-list>
+            <!-- Profile Picture -->
+            <v-list-item>
+              <v-avatar size="64" class="mx-auto mb-2">
+                <v-img :src="profileImage" alt="Profile Picture" />
+              </v-avatar>
+            </v-list-item>
+
+            <!-- Trigger File Input -->
+            <v-list-item link @click="toggleChangePicture">
+              <v-list-item-title>Change Profile Picture</v-list-item-title>
+            </v-list-item>
+
+            <!-- Hidden File Input -->
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              @change="onFileSelected"
+              style="display: none"
             />
-          </v-avatar>
-          <input
-            v-if="showChangePicture"
-            ref="fileInput"
-            type="file"
-            accept="image/*"
-            @change="onFileSelected"
-            style="
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 80px;
-              height: 80px;
-              opacity: 0;
-              cursor: pointer;
-            "
-          />
-        </div>
 
-        <!-- Navigation Buttons -->
-        <v-btn block class="mt-9 mb-3" style="background-color: #bddde4" variant="elevated">
-          <v-icon left>mdi-view-dashboard</v-icon> <b>Dashboard</b>
-        </v-btn>
+            <v-divider></v-divider>
 
-        <v-btn block class="mb-3" color="white" variant="text" @click="router.push('/map')">
-          <v-icon left>mdi-map</v-icon> <b>Map View</b>
-        </v-btn>
-
-        <v-spacer style="height: 300px"></v-spacer>
-        <v-btn block class="mt-9" color="red" variant="text" @click="logout">
-          <v-icon left>mdi-logout</v-icon> <b>Log out</b>
-        </v-btn>
-      </v-container>
-    </v-navigation-drawer>
-
-    <!-- Topbar -->
-    <v-app-bar app color="transparent" dark elevation="0">
-      <v-app-bar-nav-icon @click="drawer = !drawer">
-        <v-icon>{{ drawer ? 'mdi-menu-open' : 'mdi-menu' }}</v-icon>
-      </v-app-bar-nav-icon>
-      <v-toolbar-title>Dashboard</v-toolbar-title>
+            <!-- Logout -->
+            <v-list-item link @click="logout">
+              <v-list-item-title class="text-red">Logout</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
     </v-app-bar>
 
     <!-- Main Content -->
     <v-main>
       <v-container fluid>
+        <!-- Carousel -->
+        <v-carousel>
+          <v-carousel-item src="/images/CAROUSELWELCOME.png" cover></v-carousel-item>
+          <v-carousel-item src="/images/CAROUSELWELCOME2.png" cover></v-carousel-item>
+        </v-carousel>
+
         <v-row>
-          <!-- Service Display -->
-          <v-col cols="12" md="6">
+          <!-- Service Today Column -->
+          <v-col cols="12" md="6" class="pt-6">
+            <!-- Services Card -->
             <v-card class="mb-4">
               <v-card-title class="service-title">
                 Service Today
@@ -396,44 +397,8 @@ const goToNextMonth = () => {
             </v-card>
           </v-col>
 
-          <!-- Delete Dialog -->
-          <v-dialog v-model="deleteDialog" max-width="500px">
-            <v-card>
-              <v-card-title>Select Service(s) to Delete</v-card-title>
-              <v-card-text>
-                <v-list dense>
-                  <v-list-item
-                    v-for="(service, index) in dailyServices"
-                    :key="index"
-                    class="hoverable"
-                  >
-                    <v-list-item-action>
-                      <v-checkbox
-                        v-model="selectedServices"
-                        :value="index"
-                        color="error"
-                        hide-details
-                      ></v-checkbox>
-                    </v-list-item-action>
-
-                    <div>
-                      <div class="text-subtitle-1 font-weight-medium">{{ service.title }}</div>
-                      <div class="text-body-2">{{ service.description }}</div>
-                    </div>
-                  </v-list-item>
-                </v-list>
-              </v-card-text>
-
-              <v-card-actions>
-                <v-spacer />
-                <v-btn text @click="deleteDialog = false">Cancel</v-btn>
-                <v-btn color="error" text @click="deleteSelectedServices">Delete</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-
-          <!-- Calendar -->
-          <v-col cols="12" md="6">
+          <!-- Calendar Column -->
+          <v-col cols="12" md="6" class="pt-6">
             <div class="calendar-wrapper">
               <div class="calendar-header">
                 <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
@@ -451,6 +416,7 @@ const goToNextMonth = () => {
                   :key="'b-' + blank"
                   class="calendar-day empty"
                 ></div>
+
                 <div
                   v-for="day in daysInMonth"
                   :key="day"
@@ -466,6 +432,42 @@ const goToNextMonth = () => {
           </v-col>
         </v-row>
 
+        <!-- Delete Service Dialog -->
+        <v-dialog v-model="deleteDialog" max-width="500px">
+          <v-card>
+            <v-card-title>Select Service(s) to Delete</v-card-title>
+            <v-card-text>
+              <v-list dense>
+                <v-list-item
+                  v-for="(service, index) in dailyServices"
+                  :key="index"
+                  class="hoverable"
+                >
+                  <v-list-item-action>
+                    <v-checkbox
+                      v-model="selectedServices"
+                      :value="index"
+                      color="error"
+                      hide-details
+                    ></v-checkbox>
+                  </v-list-item-action>
+
+                  <div>
+                    <div class="text-subtitle-1 font-weight-medium">{{ service.title }}</div>
+                    <div class="text-body-2">{{ service.description }}</div>
+                  </div>
+                </v-list-item>
+              </v-list>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer />
+              <v-btn text @click="deleteDialog = false">Cancel</v-btn>
+              <v-btn color="error" text @click="deleteSelectedServices">Delete</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
         <!-- Add Service Dialog -->
         <v-dialog v-model="dialog" max-width="500">
           <v-card class="pa-4 pa-sm-6">
@@ -474,30 +476,11 @@ const goToNextMonth = () => {
               <v-spacer />
             </v-card-title>
 
-            <!-- Form part -->
             <v-card-text class="pa-4">
-              <v-text-field
-                v-model="newService.title"
-                label="Service Title"
-                placeholder="Enter service title"
-              />
-              <v-textarea
-                v-model="newService.description"
-                label="Description"
-                placeholder="Enter service description"
-                rows="2"
-              />
-              <v-text-field
-                v-model="newService.doctor"
-                label="Doctor"
-                placeholder="Enter doctor's name"
-              />
-              <v-select
-                v-model="newService.barangay"
-                :items="barangayOptions"
-                label="Barangay"
-                placeholder="Select barangay"
-              />
+              <v-text-field v-model="newService.title" label="Service Title" />
+              <v-textarea v-model="newService.description" label="Description" rows="2" />
+              <v-text-field v-model="newService.doctor" label="Doctor" />
+              <v-select v-model="newService.barangay" :items="barangayOptions" label="Barangay" />
               <v-row>
                 <v-col cols="6">
                   <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
@@ -508,7 +491,6 @@ const goToNextMonth = () => {
               </v-row>
             </v-card-text>
 
-            <!-- Action buttons -->
             <v-card-actions class="pa-4">
               <v-spacer />
               <v-btn text @click="dialog = false">Cancel</v-btn>
@@ -572,6 +554,12 @@ const goToNextMonth = () => {
   .calendar-days {
     gap: 6px;
   }
+}
+
+.toolbar-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
 }
 
 .calendar-day {

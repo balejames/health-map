@@ -31,27 +31,34 @@ const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
   formAction.value.formProcess = true
 
-  const { data, error } = await supabase.auth.signUp({
-    email: formData.value.email,
-    password: formData.value.password,
-    options: {
-      data: {
-        firstName: formData.value.firstName,
-        lastName: formData.value.lastName,
-        barangay: formData.value.barangay,
-        role: formData.value.role,
-        is_admin: false,
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email: formData.value.email,
+      password: formData.value.password,
+      options: {
+        data: {
+          firstName: formData.value.firstName,
+          lastName: formData.value.lastName,
+          barangay: formData.value.barangay,
+          role: formData.value.role,
+          is_admin: false,
+        },
       },
-    },
-  })
+    })
 
-  if (error) {
-    formAction.value.formErrorMessage = error.message
-    formAction.value.formStatus = error.status
-  } else if (data.user) {
-    // 🟢 Insert into profiles table
+    if (error) {
+      formAction.value.formErrorMessage = error.message
+      formAction.value.formStatus = error.status
+      return
+    }
+
+    if (!data.user) {
+      formAction.value.formErrorMessage = 'User registration failed'
+      return
+    }
+    const numericId = Date.now()
     const { error: insertError } = await supabase.from('profiles').insert({
-      id: data.user.id,
+      id: numericId,
       email: data.user.email,
       first_name: formData.value.firstName,
       last_name: formData.value.lastName,
@@ -61,15 +68,18 @@ const onSubmit = async () => {
     })
 
     if (insertError) {
-      formAction.value.formErrorMessage = insertError.message
+      console.error('Profile insertion error:', insertError)
+      formAction.value.formErrorMessage = `Profile creation failed: ${insertError.message}`
     } else {
       formAction.value.formSuccessMessage = 'Account created successfully!'
       router.replace('/dashboard')
     }
+  } catch (err) {
+    console.error('Registration error:', err)
+    formAction.value.formErrorMessage = `An unexpected error occurred: ${err.message}`
+  } finally {
+    formAction.value.formProcess = false
   }
-
-  refVForm.value?.reset()
-  formAction.value.formProcess = false
 }
 
 const onFormSubmit = () => {
