@@ -35,6 +35,7 @@ const newService = ref({
   doctor: '',
   startTime: '',
   endTime: '',
+  date: '', // Add date field to the form
 })
 const services = ref({}) // Grouped services by date
 const dailyServices = ref([]) // Services for the selected date
@@ -114,15 +115,20 @@ const formatTime = (timeInput) => {
 
 // Open Add Service Dialog
 const openServiceDialog = () => {
+  // Initialize form with selected date
+  newService.value.date = selectedDate.value
   dialog.value = true
 }
 
 // Add Service to Supabase
 const addService = async () => {
   try {
+    // Use the form's date field instead of selectedDate
+    const serviceDate = newService.value.date || selectedDate.value
+
     // Create ISO format timestamp strings that include timezone info
-    const startDateTime = new Date(`${selectedDate.value}T${newService.value.startTime}:00`)
-    const endDateTime = new Date(`${selectedDate.value}T${newService.value.endTime}:00`)
+    const startDateTime = new Date(`${serviceDate}T${newService.value.startTime}:00`)
+    const endDateTime = new Date(`${serviceDate}T${newService.value.endTime}:00`)
 
     // Format for timestamptz in Supabase
     const startTimestamptz = startDateTime.toISOString()
@@ -136,7 +142,7 @@ const addService = async () => {
         barangay: newService.value.barangay,
         start_date_time: startTimestamptz,
         end_date_time: endTimestamptz,
-        date: selectedDate.value,
+        date: serviceDate,
       },
     ])
 
@@ -182,6 +188,7 @@ const resetServiceForm = () => {
   newService.value.barangay = ''
   newService.value.startTime = ''
   newService.value.endTime = ''
+  newService.value.date = ''
 }
 
 const deleteDialog = ref(false)
@@ -487,6 +494,15 @@ const goToNextMonth = () => {
               <v-textarea v-model="newService.description" label="Description" rows="2" />
               <v-text-field v-model="newService.doctor" label="Doctor" />
               <v-select v-model="newService.barangay" :items="barangayOptions" label="Barangay" />
+
+              <!-- Add date picker -->
+              <v-text-field
+                v-model="newService.date"
+                label="Date"
+                type="date"
+                :min="new Date().toISOString().split('T')[0]"
+              />
+
               <v-row>
                 <v-col cols="6">
                   <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
