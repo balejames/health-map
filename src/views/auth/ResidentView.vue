@@ -1,30 +1,49 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
-import { formActionDefault, supabase } from '@/utils/supabase.js'
+import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 
 const router = useRouter()
-const formAction = ref({ ...formActionDefault })
-const isProfileMenuOpen = ref(false)
-const profileImage = ref('/images/TemporaryProfile.jpg')
-const profileFile = ref(null)
-const fileInput = ref(null)
-const map = ref(null)
-const selectedDate = ref(new Date().toISOString().split('T')[0])
-const services = ref([])
-const selectedBarangay = ref(null)
-const loading = ref(true)
-const showServiceCard = ref(false)
-const selectedBarangayServices = ref([])
-const showAllServices = ref(false)
-const serviceFilter = ref({
-  barangay: '',
-  date: new Date().toISOString().split('T')[0],
-  doctor: '',
-})
 
-// Barangay coordinates
+const logout = async () => {
+  await supabase.auth.signOut()
+  router.push({ name: 'login' })
+}
+
+const fileInput = ref(null)
+const showChangePicture = ref(false)
+const isProfileMenuOpen = ref(false)
+const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
+const mobileDrawerOpen = ref(false) // For mobile navigation drawer
+
+// Watch for window resize to update mobile state
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+const toggleMobileDrawer = () => {
+  mobileDrawerOpen.value = !mobileDrawerOpen.value
+}
+
+const toggleChangePicture = () => {
+  fileInput.value.click()
+}
+
+const onFileSelected = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = () => {
+      // Use the shared update function from eventBus
+      updateProfileImage(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
 const barangayCoordinates = {
   Ambago: [8.9724, 125.4946],
   Ampayon: [8.9592, 125.615],
@@ -34,289 +53,294 @@ const barangayCoordinates = {
   Maon: [8.9316, 125.5447],
 }
 
-// Main color theme for consistent styling
-const themeColor = '#0dceda'
-const secondaryColor = '#9bd1f8'
+const selectedDate = ref(new Date().toISOString().split('T')[0])
+const services = ref({}) // All services grouped by date
+const todaysServices = ref([])
 
-// Computed property for services per barangay
-const servicesPerBarangay = computed(() => {
-  const counts = {}
-  services.value.forEach((service) => {
-    if (!counts[service.barangay]) {
-      counts[service.barangay] = 0
-    }
-    counts[service.barangay]++
-  })
-  return counts
-})
+const mapRef = ref(null)
+const markers = ref({}) // Store markers for easy removal/update
 
-// Filtered services
-const filteredServices = computed(() => {
-  return services.value.filter((service) => {
-    // Filter by barangay if specified
-    if (serviceFilter.value.barangay && service.barangay !== serviceFilter.value.barangay) {
-      return false
-    }
+const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
-    // Filter by date if specified
-    if (serviceFilter.value.date) {
-      const serviceDate = new Date(service.service_date).toISOString().split('T')[0]
-      const filterDate = new Date(serviceFilter.value.date).toISOString().split('T')[0]
-      if (serviceDate !== filterDate) {
-        return false
-      }
-    }
+const serviceDialog = ref(false)
+const selectedService = ref(null)
 
-    // Filter by doctor if specified
-    if (
-      serviceFilter.value.doctor &&
-      !service.provider_name?.toLowerCase().includes(serviceFilter.value.doctor.toLowerCase())
-    ) {
-      return false
-    }
-
-    return true
-  })
-})
-
-// Unique barangay and doctor lists for filters
-const uniqueBarangays = computed(() => {
-  const barangays = new Set()
-  services.value.forEach((service) => {
-    if (service.barangay) barangays.add(service.barangay)
-  })
-  return Array.from(barangays).sort()
-})
-
-const uniqueDoctors = computed(() => {
-  const doctors = new Set()
-  services.value.forEach((service) => {
-    if (service.provider_name) doctors.add(service.provider_name)
-  })
-  return Array.from(doctors).sort()
-})
-
-// Reset filters
-const resetFilters = () => {
-  serviceFilter.value = {
-    barangay: '',
-    date: new Date().toISOString().split('T')[0],
-    doctor: '',
-  }
-}
-
-// Logout Logic
-const logout = async () => {
-  formAction.value = { ...formActionDefault, formProcess: true }
+// Format Time for Display
+const formatTime = (timeInput) => {
+  if (!timeInput) return ''
 
   try {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
-  } catch (error) {
-    console.error('Error logging out:', error)
-  } finally {
-    formAction.value.formProcess = false
-    await router.replace('/login')
-  }
-}
+    // Handle ISO string format from Supabase timestamptz
+    const date = new Date(timeInput)
+    if (isNaN(date)) return '' // Invalid date
 
-// Profile management
-const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-const onFileSelected = (event) => {
-  profileFile.value = event.target.files[0]
-  if (profileFile.value) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
-      localStorage.setItem('profileImage', profileImage.value)
-    }
-    reader.readAsDataURL(profileFile.value)
-  }
-}
-
-// Map controls
-const zoomIn = () => map.value?.zoomIn()
-const zoomOut = () => map.value?.zoomOut()
-const resetMapView = () => map.value?.setView([8.9475, 125.5406], 13)
-
-// Service handling
-const fetchServices = async () => {
-  loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('services')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-    services.value = data || []
-  } catch (error) {
-    console.error('Error fetching services:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-const addServiceMarkers = () => {
-  if (!map.value) return
-
-  // Add markers for each barangay with the count of services
-  Object.entries(barangayCoordinates).forEach(([barangay, coords]) => {
-    const count = servicesPerBarangay.value[barangay] || 0
-    const markerColor = count > 0 ? themeColor : '#cccccc'
-    const markerSize = count > 0 ? 10 + Math.min(count, 10) : 8
-
-    L.circleMarker(coords, {
-      radius: markerSize,
-      color: markerColor,
-      fillColor: markerColor,
-      fillOpacity: 0.7,
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
     })
-      .addTo(map.value)
-      .bindPopup(`<b>Barangay ${barangay}</b><br>${count} services available`)
-      .on('click', () => showBarangayServices(barangay))
-  })
+  } catch (e) {
+    console.error('Error formatting time:', e)
+    return ''
+  }
 }
 
-const showBarangayServices = (barangay) => {
-  selectedBarangay.value = barangay
-  selectedBarangayServices.value = services.value.filter((service) => service.barangay === barangay)
-  showServiceCard.value = true
+const showServiceDetails = (barangay) => {
+  const normalizedBarangay = normalize(barangay)
+  const today = selectedDate.value
+
+  // Find all services for this barangay on the selected date
+  const servicesForBarangay = todaysServices.value.filter(
+    (s) => normalize(s.barangay) === normalizedBarangay,
+  )
+
+  if (servicesForBarangay.length > 0) {
+    // If multiple services, show the first one with info about total count
+    const service = servicesForBarangay[0]
+    selectedService.value = {
+      barangay: service.barangay,
+      service: service.title,
+      doctor: service.doctor,
+      description: service.description,
+      startTime: formatTime(service.start_date_time),
+      endTime: formatTime(service.end_date_time),
+      totalServices: servicesForBarangay.length,
+    }
+  } else {
+    selectedService.value = {
+      barangay: barangay,
+      service: 'No services scheduled',
+      description: '',
+      totalServices: 0,
+    }
+  }
+
+  serviceDialog.value = true
 }
 
-const closeServiceCard = () => {
-  showServiceCard.value = false
+// Clear existing markers from map
+const clearMarkers = () => {
+  for (const key in markers.value) {
+    if (markers.value[key]) {
+      mapRef.value.removeLayer(markers.value[key])
+      delete markers.value[key]
+    }
+  }
 }
 
-const toggleAllServices = () => {
-  showAllServices.value = !showAllServices.value
-}
+const showBarangayMarkers = () => {
+  clearMarkers()
 
-// Event handling
-const addEventMarkers = () => {
-  const storedEvents = localStorage.getItem('events')
-  if (!storedEvents) return
-
-  const events = JSON.parse(storedEvents)
   const activeBarangays = new Set()
 
-  Object.values(events).forEach((dayEvents) => {
-    dayEvents.forEach((event) => {
-      if (event.barangay) {
-        activeBarangays.add(event.barangay.trim())
-      }
-    })
-  })
-
-  activeBarangays.forEach((barangay) => {
-    const coords = barangayCoordinates[barangay]
-    if (coords) {
-      L.circleMarker(coords, {
-        radius: 10,
-        color: themeColor,
-        fillColor: themeColor,
-        fillOpacity: 0.7,
-      })
-        .addTo(map.value)
-        .bindPopup(`<b>Barangay ${barangay}</b><br>Has event today or upcoming.`)
-        .on('click', () => showEventDetails(barangay))
+  // Get all unique barangays with services for today
+  todaysServices.value.forEach((service) => {
+    if (service.barangay) {
+      activeBarangays.add(normalize(service.barangay.trim()))
     }
   })
+
+  // Add a normal marker for each barangay
+  for (const [name, coords] of Object.entries(barangayCoordinates)) {
+    const normalizedName = normalize(name)
+    const hasService = activeBarangays.has(normalizedName)
+
+    // Create a marker for each barangay
+    const marker = L.marker(coords, {
+      icon: L.divIcon({
+        className: 'custom-div-icon',
+        html: `<div class="marker-pin ${hasService ? 'active' : ''}"></div>`,
+        iconSize: [30, 42],
+        iconAnchor: [15, 42],
+      }),
+    })
+      .addTo(mapRef.value)
+      .bindPopup(
+        `<b>Barangay ${name}</b>${hasService ? '<br><span class="service-available">Has service today</span>' : ''}`,
+      )
+      .on('click', () => showServiceDetails(name))
+
+    markers.value[normalizedName] = marker
+
+    // Add a red circle indicator for barangays with services
+    if (hasService) {
+      const circleMarker = L.circleMarker(coords, {
+        radius: 15,
+        color: '#f44336',
+        fillColor: '#f44336',
+        fillOpacity: 0.4,
+        weight: 2,
+      })
+        .addTo(mapRef.value)
+        .on('click', () => showServiceDetails(name))
+
+      // Store the circle marker too
+      markers.value[`${normalizedName}-circle`] = circleMarker
+    }
+  }
 }
 
-const showEventDetails = (barangay) => {
-  const storedEvents = localStorage.getItem('events')
-  if (!storedEvents) {
-    alert('No events data found.')
+const fetchServices = async () => {
+  const { data, error } = await supabase.from('services').select('*')
+  if (error) {
+    console.error('Error fetching services:', error)
     return
   }
 
-  const events = JSON.parse(storedEvents)
-  const todayEvents = events[selectedDate.value] || []
-  const barangayEvents = todayEvents.filter((event) => event.barangay === barangay)
-
-  if (barangayEvents.length > 0) {
-    const eventDetails = barangayEvents
-      .map(
-        (event) =>
-          `Event: ${event.title}
-           Doctor: ${event.doctor}
-           Start Time: ${event.startTime}
-           End Time: ${event.endTime}
-           Description: ${event.description}`,
-      )
-      .join('\n\n')
-
-    alert(`Events in Barangay ${barangay}:\n\n${eventDetails}`)
-  } else {
-    alert(`No events today in Barangay ${barangay}.`)
-  }
-}
-
-// Formatting helpers
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  // Group services by date for easy access
+  const grouped = {}
+  data.forEach((service) => {
+    // Ensure we have a valid date
+    if (service.date) {
+      if (!grouped[service.date]) {
+        grouped[service.date] = []
+      }
+      grouped[service.date].push(service)
+    }
   })
+
+  services.value = grouped
+  // Update today's services
+  todaysServices.value = grouped[selectedDate.value] || []
+
+  // Update markers after fetching services
+  if (mapRef.value) {
+    showBarangayMarkers()
+  }
 }
 
-// Initialize map and data
-onMounted(async () => {
-  // Load profile image from localStorage
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
+// Set up Supabase real-time subscription for service changes
+const setupRealtimeSubscription = () => {
+  // First, unsubscribe if there's an existing subscription
+  const channel = supabase
+    .channel('services-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update received:', payload)
+      // Always fetch all services when any change happens
+      fetchServices()
+    })
+    .subscribe((status) => {
+      console.log('Subscription status:', status)
+    })
+}
 
-  // Initialize map
-  map.value = L.map('map').setView([8.9475, 125.5406], 13)
+// Watch for date changes
+watch(selectedDate, (newDate) => {
+  todaysServices.value = services.value[newDate] || []
+  showBarangayMarkers()
+})
+
+onMounted(() => {
+  // Initialize the map
+  const map = L.map('map').setView([8.9475, 125.5406], 13)
+  mapRef.value = map
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map.value)
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map)
 
-  // Add Butuan City marker
-  L.marker([8.9475, 125.5406]).addTo(map.value).bindPopup('📍 Butuan City, Mindanao').openPopup()
+  // Fetch services and set up real-time updates
+  fetchServices()
+  setupRealtimeSubscription()
 
-  // Add barangay markers
-  Object.entries(barangayCoordinates).forEach(([name, coords]) => {
-    L.marker(coords).addTo(map.value).bindPopup(`📍 ${name}`)
-  })
+  // Add window resize listener
+  window.addEventListener('resize', handleResize)
+  handleResize() // Initialize on mount
 
-  // Fetch services and add markers
-  await fetchServices()
-  addServiceMarkers()
+  // Set up a polling mechanism as backup in case realtime doesn't catch all changes
+  const pollingInterval = setInterval(() => {
+    fetchServices()
+  }, 30000) // Poll every 30 seconds
 
-  // Add event markers
-  addEventMarkers()
+  // Clean up on component unmount
+  return () => {
+    clearInterval(pollingInterval)
+    window.removeEventListener('resize', handleResize)
+  }
 })
+
+const zoomIn = () => {
+  mapRef.value.zoomIn()
+}
+
+const zoomOut = () => {
+  mapRef.value.zoomOut()
+}
+
+const resetView = () => {
+  mapRef.value.setView([8.9475, 125.5406], 13)
+}
+
+// Change selected date
+const goToToday = () => {
+  selectedDate.value = new Date().toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
+}
+
+const goToTomorrow = () => {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  selectedDate.value = tomorrow.toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
+}
+
+const goToNextWeek = () => {
+  const nextWeek = new Date()
+  nextWeek.setDate(nextWeek.getDate() + 7)
+  selectedDate.value = nextWeek.toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
+}
+
+const navigateTo = (route) => {
+  router.push(route)
+  if (isMobile.value) mobileDrawerOpen.value = false
+}
 </script>
 
 <template>
   <v-app>
-    <!-- App Bar -->
-    <v-app-bar app :style="{ backgroundColor: secondaryColor }" dark>
-      <v-toolbar-title>Resident Map</v-toolbar-title>
-      <v-spacer></v-spacer>
+    <!-- Desktop App Bar -->
+    <v-app-bar app color="#9bd1f8" dark v-if="!isMobile">
+      <v-img
+        src="/images/DASHBOARD-LOGO PIXIE .jpg"
+        alt="Logo"
+        contain
+        max-width="40"
+        max-height="40"
+        class="ml-4 mr-2"
+      />
 
-      <!-- Services Button -->
-      <v-btn icon @click="toggleAllServices">
-        <v-icon>mdi-medical-bag</v-icon>
-      </v-btn>
+      <v-toolbar-title
+        class="white--text"
+        @click="router.push('/residentdashboard')"
+        style="padding-left: 0; margin-left: 10px; color: white; cursor: pointer"
+      >
+        Health Map
+      </v-toolbar-title>
 
-      <!-- Profile Menu -->
+      <v-spacer />
+
+      <!-- Date Controls -->
+      <div class="date-filter mr-4">
+        <span class="mr-2 date-label">View services for: </span>
+        <v-btn
+          size="small"
+          color="white"
+          variant="text"
+          @click="goToToday"
+          :class="{ 'v-btn--active': selectedDate === new Date().toISOString().split('T')[0] }"
+        >
+          Today
+        </v-btn>
+        <v-btn size="small" color="white" variant="text" @click="goToTomorrow">Tomorrow</v-btn>
+        <v-btn size="small" color="white" variant="text" @click="goToNextWeek">Next Week</v-btn>
+      </div>
+
+      <!-- Profile Dropdown -->
       <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
-            <v-avatar size="32">
+            <v-avatar size="36">
               <v-img :src="profileImage" alt="Profile Picture" />
             </v-avatar>
           </v-btn>
@@ -324,7 +348,6 @@ onMounted(async () => {
 
         <v-card class="w-64 pa-2">
           <v-list>
-            <!-- Profile Picture -->
             <v-list-item>
               <v-avatar size="64" class="mx-auto mb-2">
                 <v-img :src="profileImage" alt="Profile Picture" />
@@ -332,7 +355,7 @@ onMounted(async () => {
             </v-list-item>
 
             <!-- Trigger File Input -->
-            <v-list-item link @click="triggerFileInput">
+            <v-list-item link @click="toggleChangePicture">
               <v-list-item-title>Change Profile Picture</v-list-item-title>
             </v-list-item>
 
@@ -345,9 +368,8 @@ onMounted(async () => {
               style="display: none"
             />
 
-            <v-divider></v-divider>
+            <v-divider />
 
-            <!-- Logout -->
             <v-list-item link @click="logout">
               <v-list-item-title class="text-red">Logout</v-list-item-title>
             </v-list-item>
@@ -356,265 +378,177 @@ onMounted(async () => {
       </v-menu>
     </v-app-bar>
 
-    <!-- Main Content -->
+    <!-- Mobile App Bar -->
+    <v-app-bar app color="#9bd1f8" dark v-if="isMobile">
+      <v-app-bar-nav-icon @click="toggleMobileDrawer" color="white"></v-app-bar-nav-icon>
+
+      <v-img
+        src="/images/DASHBOARD-LOGO PIXIE .jpg"
+        alt="Logo"
+        contain
+        max-width="32"
+        max-height="32"
+        class="mr-2"
+      />
+
+      <v-toolbar-title
+        class="white--text truncate-title"
+        @click="router.push('/residentdashboard')"
+        style="color: white; cursor: pointer"
+      >
+        Health Map
+      </v-toolbar-title>
+
+      <!-- Mobile Profile Menu -->
+      <v-menu v-model="isProfileMenuOpen" location="bottom end">
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props" size="small">
+            <v-avatar size="32">
+              <v-img :src="profileImage" alt="Profile Picture" />
+            </v-avatar>
+          </v-btn>
+        </template>
+
+        <v-card class="pa-2">
+          <v-list>
+            <v-list-item>
+              <v-avatar size="48" class="mx-auto mb-2">
+                <v-img :src="profileImage" alt="Profile Picture" />
+              </v-avatar>
+            </v-list-item>
+
+            <v-list-item link @click="toggleChangePicture">
+              <v-list-item-title>Change Profile Picture</v-list-item-title>
+            </v-list-item>
+
+            <v-divider />
+
+            <v-list-item link @click="logout">
+              <v-list-item-title class="text-red">Logout</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </v-app-bar>
+
+    <!-- Mobile Navigation Drawer -->
+    <v-navigation-drawer v-model="mobileDrawerOpen" temporary v-if="isMobile">
+      <v-list>
+        <v-list-item>
+          <v-list-item-title class="text-h6">Health Map</v-list-item-title>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list-item-title class="px-4 py-2 text-subtitle-2">View services for:</v-list-item-title>
+
+        <v-list-item
+          @click="goToToday"
+          :active="selectedDate === new Date().toISOString().split('T')[0]"
+        >
+          <v-list-item-title>Today</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="goToTomorrow">
+          <v-list-item-title>Tomorrow</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="goToNextWeek">
+          <v-list-item-title>Next Week</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
     <v-main>
       <v-container fluid class="pa-0 fill-height">
-        <div id="map" class="map-container"></div>
+        <div id="map" class="map-container" />
 
-        <!-- Zoom and Reset Controls -->
-        <div class="custom-zoom-controls">
-          <v-tooltip text="Zoom In" location="right">
-            <template #activator="{ props }">
-              <v-btn
-                icon
-                v-bind="props"
-                :style="{ backgroundColor: secondaryColor, color: 'white' }"
-                @click="zoomIn"
-              >
-                <v-icon>mdi-plus</v-icon>
-              </v-btn>
-            </template>
-          </v-tooltip>
-
-          <v-tooltip text="Zoom Out" location="right">
-            <template #activator="{ props }">
-              <v-btn
-                icon
-                v-bind="props"
-                :style="{ backgroundColor: secondaryColor, color: 'white' }"
-                @click="zoomOut"
-              >
-                <v-icon>mdi-minus</v-icon>
-              </v-btn>
-            </template>
-          </v-tooltip>
-
-          <v-tooltip text="Reset View" location="right">
-            <template #activator="{ props }">
-              <v-btn
-                icon
-                v-bind="props"
-                :style="{ backgroundColor: secondaryColor, color: 'white' }"
-                @click="resetMapView"
-              >
-                <v-icon>mdi-map-marker-radius</v-icon>
-              </v-btn>
-            </template>
-          </v-tooltip>
+        <!-- Map Legend - Moved to Top Right -->
+        <div class="map-legend" :class="{ 'map-legend-mobile': isMobile }">
+          <div class="legend-title">Map Legend</div>
+          <div class="legend-item">
+            <div class="legend-marker active"></div>
+            <span>Barangay with scheduled service</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-marker"></div>
+            <span>Barangay (no service scheduled)</span>
+          </div>
         </div>
 
-        <!-- All Services Panel -->
-        <v-navigation-drawer
-          v-model="showAllServices"
-          temporary
-          right
-          width="400"
-          class="services-drawer"
+        <!-- Zoom Control Buttons - Responsive -->
+        <div class="map-controls" :class="{ 'map-controls-mobile': isMobile }">
+          <v-btn @click="zoomIn" class="map-btn zoom-in" :size="isMobile ? 'small' : 'default'">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+          <v-btn @click="zoomOut" class="map-btn zoom-out" :size="isMobile ? 'small' : 'default'">
+            <v-icon>mdi-minus</v-icon>
+          </v-btn>
+          <v-btn
+            @click="resetView"
+            class="map-btn reset-view"
+            :size="isMobile ? 'small' : 'default'"
+          >
+            <v-icon>mdi-map-marker-radius</v-icon>
+          </v-btn>
+        </div>
+
+        <!-- Mobile Date Selector Fab -->
+        <v-btn
+          v-if="isMobile"
+          class="date-fab"
+          color="#9bd1f8"
+          size="large"
+          icon
+          @click="toggleMobileDrawer"
         >
-          <v-card flat class="h-full">
-            <v-card-title
-              class="d-flex justify-space-between align-center"
-              :style="{ backgroundColor: '#e3f2fd' }"
-            >
-              <span>Health Services</span>
-              <v-btn icon @click="toggleAllServices">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-
-            <v-card-text class="pt-4">
-              <!-- Filters -->
-              <v-row>
-                <v-col cols="12">
-                  <v-select
-                    v-model="serviceFilter.barangay"
-                    :items="uniqueBarangays"
-                    label="Filter by Barangay"
-                    clearable
-                    variant="outlined"
-                    density="compact"
-                  ></v-select>
-                </v-col>
-                <v-col cols="12">
-                  <v-text-field
-                    v-model="serviceFilter.doctor"
-                    label="Filter by Doctor"
-                    clearable
-                    variant="outlined"
-                    density="compact"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12">
-                  <v-text-field
-                    v-model="serviceFilter.date"
-                    label="Filter by Date"
-                    type="date"
-                    variant="outlined"
-                    density="compact"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" class="d-flex justify-end">
-                  <v-btn :color="themeColor" @click="resetFilters" size="small"
-                    >Reset Filters</v-btn
-                  >
-                </v-col>
-              </v-row>
-
-              <v-divider class="my-4"></v-divider>
-
-              <!-- Services List -->
-              <div v-if="loading" class="d-flex justify-center my-4">
-                <v-progress-circular indeterminate :color="themeColor"></v-progress-circular>
-              </div>
-
-              <div v-else-if="filteredServices.length === 0" class="text-center py-4">
-                <v-icon size="64" color="grey lighten-2">mdi-alert-circle-outline</v-icon>
-                <p class="mt-2">No services available with current filters.</p>
-              </div>
-
-              <div v-else class="services-list">
-                <v-card
-                  v-for="service in filteredServices"
-                  :key="service.id"
-                  class="mb-4 service-card"
-                  elevation="2"
-                >
-                  <v-card-title class="text-h6" :style="{ backgroundColor: '#e3f2fd' }">
-                    {{ service.service_name }}
-                  </v-card-title>
-
-                  <v-card-text>
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2">mdi-map-marker</v-icon>
-                      <strong>Barangay:</strong> {{ service.barangay }}
-                    </p>
-
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2"
-                        >mdi-account-outline</v-icon
-                      >
-                      <strong>Doctor:</strong> {{ service.provider_name || 'Not specified' }}
-                    </p>
-
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2">mdi-calendar</v-icon>
-                      <strong>Date:</strong> {{ formatDate(service.service_date) }}
-                    </p>
-
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2"
-                        >mdi-clock-outline</v-icon
-                      >
-                      <strong>Time:</strong> {{ service.start_time || '—' }} -
-                      {{ service.end_time || '—' }}
-                    </p>
-
-                    <p v-if="service.description" class="mt-3">
-                      <v-icon size="small" :color="themeColor" class="me-2"
-                        >mdi-information-outline</v-icon
-                      >
-                      <strong>Description:</strong>
-                    </p>
-                    <p class="ps-8 mt-1">{{ service.description || 'No description available' }}</p>
-                  </v-card-text>
-
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn variant="text" :color="themeColor" size="small">
-                      MORE INFORMATION
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </div>
-            </v-card-text>
-          </v-card>
-        </v-navigation-drawer>
-
-        <!-- Services Card -->
-        <div class="service-dialog-overlay" v-if="showServiceCard" @click.self="closeServiceCard">
-          <v-card class="service-dialog" max-width="400">
-            <v-card-title
-              class="d-flex justify-space-between align-center"
-              :style="{ backgroundColor: '#e3f2fd' }"
-            >
-              <span>Services in {{ selectedBarangay }}</span>
-              <v-btn icon @click="closeServiceCard">
-                <v-icon>mdi-close</v-icon>
-              </v-btn>
-            </v-card-title>
-
-            <v-card-text class="service-dialog-content">
-              <v-progress-circular
-                v-if="loading"
-                indeterminate
-                :color="themeColor"
-                class="d-flex mx-auto my-4"
-              ></v-progress-circular>
-
-              <div v-else-if="selectedBarangayServices.length === 0" class="text-center py-4">
-                <v-icon size="64" color="grey lighten-2">mdi-alert-circle-outline</v-icon>
-                <p class="mt-2">No services available in this barangay.</p>
-              </div>
-
-              <div v-else>
-                <v-card
-                  v-for="(service, index) in selectedBarangayServices"
-                  :key="index"
-                  class="mb-4 service-card"
-                  elevation="2"
-                >
-                  <v-card-title :style="{ backgroundColor: '#e3f2fd' }">
-                    {{ service.service_name }}
-                  </v-card-title>
-
-                  <v-card-text>
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2">mdi-map-marker</v-icon>
-                      <strong>Barangay:</strong> {{ service.barangay }}
-                    </p>
-
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2"
-                        >mdi-account-outline</v-icon
-                      >
-                      <strong>Doctor:</strong> {{ service.provider_name || 'Not specified' }}
-                    </p>
-
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2">mdi-calendar</v-icon>
-                      <strong>Date:</strong> {{ formatDate(service.service_date) }}
-                    </p>
-
-                    <p class="mb-2">
-                      <v-icon size="small" :color="themeColor" class="me-2"
-                        >mdi-clock-outline</v-icon
-                      >
-                      <strong>Time:</strong> {{ service.start_time || '—' }} -
-                      {{ service.end_time || '—' }}
-                    </p>
-
-                    <p v-if="service.description" class="mt-3">
-                      <v-icon size="small" :color="themeColor" class="me-2"
-                        >mdi-information-outline</v-icon
-                      >
-                      <strong>Description:</strong>
-                    </p>
-                    <p class="ps-8 mt-1">{{ service.description || 'No description available' }}</p>
-                  </v-card-text>
-
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn variant="text" :color="themeColor" size="small">
-                      MORE INFORMATION
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </div>
-            </v-card-text>
-          </v-card>
-        </div>
+          <v-icon>mdi-calendar</v-icon>
+        </v-btn>
       </v-container>
     </v-main>
+
+    <!-- Service Details Dialog - Responsive -->
+    <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
+      <v-card>
+        <v-card-title class="service-title">
+          <span v-if="selectedService?.totalServices === 0">No Services</span>
+          <span v-else-if="selectedService?.totalServices === 1">Service Details</span>
+          <span v-else>{{ selectedService?.totalServices }} Services Available</span>
+        </v-card-title>
+
+        <v-card-subtitle>Barangay {{ selectedService?.barangay }}</v-card-subtitle>
+
+        <v-card-text v-if="selectedService?.totalServices > 0">
+          <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
+            <div class="text-primary font-weight-bold text-h6 mb-2">
+              {{ selectedService?.service }}
+            </div>
+            <div class="mb-3">{{ selectedService?.description }}</div>
+
+            <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
+              <v-icon small class="mr-2">mdi-account</v-icon>
+              <span>{{ selectedService?.doctor }}</span>
+            </div>
+
+            <div class="d-flex align-center">
+              <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
+              <span> {{ selectedService?.startTime }} - {{ selectedService?.endTime }} </span>
+            </div>
+          </v-card>
+
+          <div v-if="selectedService?.totalServices > 1" class="text-center">
+            <v-btn color="primary" @click="navigateTo('/dashboard')">
+              View All Services on Dashboard
+            </v-btn>
+          </div>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="serviceDialog = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -622,59 +556,180 @@ onMounted(async () => {
 .map-container {
   width: 100%;
   height: 100vh;
+  min-height: 400px;
+  border-radius: 8px;
   z-index: 1;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-.custom-zoom-controls {
+.map-controls {
   position: absolute;
   top: 80px;
   left: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  z-index: 1000;
+  gap: 5px;
+  z-index: 10;
 }
 
-.service-dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+.map-controls-mobile {
+  top: 70px;
+  left: 5px;
+}
+
+.map-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgb(84, 187, 228);
+  color: white;
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1001;
+  justify-content: center;
 }
 
-.service-dialog {
-  max-height: 80vh;
-  width: 90%;
-  max-width: 400px;
+.map-controls-mobile .map-btn {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 3px;
 }
 
-.service-dialog-content {
-  max-height: 60vh;
-  overflow-y: auto;
+.map-btn:hover {
+  background-color: #0288d1;
 }
 
-.service-card {
-  transition: transform 0.2s;
+/* Updated map-legend positioning to top-right */
+.map-legend {
+  position: absolute;
+  top: 80px;
+  right: 10px; /* Changed from left to right */
+  background-color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
+  z-index: 10;
+  max-width: 90vw;
 }
 
-.service-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+.map-legend-mobile {
+  top: 70px; /* Adjusted top position for mobile */
+  right: 10px;
+  padding: 8px;
+  max-width: 180px;
+  font-size: 12px;
 }
 
-.services-drawer {
-  z-index: 1002;
+.legend-title {
+  font-weight: bold;
+  margin-bottom: 5px;
 }
 
-.services-list {
-  max-height: 65vh;
-  overflow-y: auto;
-  padding-right: 8px;
+.map-legend-mobile .legend-title {
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.map-legend-mobile .legend-item {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.legend-marker {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #bbb;
+  margin-right: 8px;
+}
+
+.map-legend-mobile .legend-marker {
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+
+.legend-marker.active {
+  background-color: #f44336;
+  border: 1px solid #d32f2f;
+}
+
+/* Custom marker styles - these will be applied globally but scoped to the markers */
+:global(.custom-div-icon) {
+  background: transparent;
+  border: none;
+}
+
+:global(.marker-pin) {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  background: #3388ff;
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 50%;
+  top: 50%;
+  margin: -15px 0 0 -15px;
+}
+
+:global(.marker-pin.active) {
+  background: #f44336;
+}
+
+:global(.marker-pin::after) {
+  content: '';
+  width: 20px;
+  height: 20px;
+  margin: 5px 0 0 5px;
+  background: #fff;
+  position: absolute;
+  border-radius: 50%;
+}
+
+:global(.service-available) {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 600px) {
+  .map-container {
+    height: calc(100vh - 56px);
+    border-radius: 0;
+    border: none;
+  }
+
+  .service-title {
+    font-size: 16px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-controls-mobile .map-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .map-legend-mobile {
+    max-width: 150px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .map-container {
+    height: calc(100vh - 48px);
+  }
+
+  .map-controls-mobile {
+    top: 60px;
+  }
 }
 </style>
