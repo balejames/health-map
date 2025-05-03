@@ -1,8 +1,9 @@
+// Fix for dashboard component (paste.txt)
 <script setup>
 import { formActionDefault, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { requiredValidator } from '@/utils/validators.js'
+import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 
 const drawer = ref(true)
 const router = useRouter()
@@ -19,7 +20,7 @@ const logout = async () => {
     return
   }
   formAction.value.formProcess = false
-  await router.replace('/login')
+  router.replace('/')
 }
 
 // Check if there are services for a given date
@@ -36,10 +37,10 @@ const newService = ref({
   doctor: '',
   startTime: '',
   endTime: '',
-  date: '',
+  date: '', // Add date field to the form
 })
-const services = ref({})
-const dailyServices = ref([])
+const services = ref({}) // Grouped services by date
+const dailyServices = ref([]) // Services for the selected date
 const dialog = ref(false)
 
 // Barangay List (Dropdown)
@@ -150,28 +151,25 @@ const addService = async () => {
     const endTimestamptz = endDateTime.toISOString()
 
     // Form validation
-    if (
-      !newService.value.title ||
-      !newService.value.barangay ||
-      !serviceDate ||
-      !newService.value.startTime ||
-      !newService.value.endTime
-    ) {
+    if (!newService.value.title || !newService.value.barangay || !serviceDate ||
+        !newService.value.startTime || !newService.value.endTime) {
       alert('Please fill in all required fields (title, barangay, date, start and end time)')
       return
     }
 
-    const { data, error } = await supabase.from('services').insert([
-      {
-        title: newService.value.title,
-        description: newService.value.description,
-        doctor: newService.value.doctor,
-        barangay: newService.value.barangay,
-        start_date_time: startTimestamptz,
-        end_date_time: endTimestamptz,
-        date: serviceDate,
-      },
-    ])
+    // Create new service object
+    const newServiceData = {
+      title: newService.value.title,
+      description: newService.value.description,
+      doctor: newService.value.doctor,
+      barangay: newService.value.barangay,
+      start_date_time: startTimestamptz,
+      end_date_time: endTimestamptz,
+      date: serviceDate,
+    }
+
+    // Insert to database
+    const { data, error } = await supabase.from('services').insert([newServiceData])
 
     if (error) {
       console.error('Failed to add service:', error.message)
@@ -179,10 +177,28 @@ const addService = async () => {
       return
     }
 
-    console.log('Service added:', data)
+    console.log('Service added successfully:', data)
+
+    // Update the local services state to include the new service
+    if (!services.value[serviceDate]) {
+      services.value[serviceDate] = []
+    }
+
+    // For immediate UI update without waiting for database refresh
+    services.value[serviceDate].push({
+      ...newServiceData,
+      id: data?.[0]?.id || Date.now() // Use returned ID or fallback to timestamp
+    })
+
+    // If we're viewing the date that just had a service added, update daily services
+    if (selectedDate.value === serviceDate) {
+      getServicesForDate()
+    }
+
     dialog.value = false
-    await fetchServices()
+    await fetchServices() // Refresh all services
     resetServiceForm()
+
   } catch (e) {
     console.error('Unexpected error while adding service:', e)
     alert('Unexpected error while adding service')
@@ -194,7 +210,7 @@ const fetchServices = async () => {
   const { data, error } = await supabase.from('services').select('*')
 
   if (error) {
-    console.error('Error fetching services:', error.message)
+    console.error('Error fetching services:', error)
     return
   }
 
@@ -271,8 +287,8 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      profileImage.value = reader.result
-      localStorage.setItem('profileImage', profileImage.value)
+      // Use the shared update function
+      updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
   }
@@ -299,13 +315,18 @@ const goToNextMonth = () => {
 
 // Set up Supabase subscription for real-time updates
 const setupRealtimeSubscription = () => {
-  supabase
+  const channel = supabase
     .channel('services-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
-      console.log('Realtime update:', payload)
-      fetchServices() // Refresh services when there's a change
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'services' },
+      (payload) => {
+        console.log('Realtime update received in Dashboard:', payload)
+        fetchServices() // Refresh services when there's a change
+      }
+    )
+    .subscribe((status) => {
+      console.log('Dashboard subscription status:', status)
     })
-    .subscribe()
 }
 
 // On component mount - FIXED: Updated to use consistent date formatting
@@ -324,6 +345,7 @@ onMounted(() => {
   setupRealtimeSubscription()
 })
 </script>
+
 <template>
   <v-app class="dashboard-bg">
     <!-- Top Bar -->
@@ -354,13 +376,14 @@ onMounted(() => {
       <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
+            <!-- Use the profile image here -->
             <v-avatar size="32">
               <v-img :src="profileImage" alt="Profile Picture" />
             </v-avatar>
           </v-btn>
         </template>
 
-        <v-card class="w-64 pa-2" max-width="100%">
+        <v-card class="w-64 pa-2">
           <v-list>
             <!-- Profile Picture -->
             <v-list-item>
@@ -399,21 +422,17 @@ onMounted(() => {
       <v-container fluid>
         <!-- Carousel -->
         <v-carousel>
-            <v-carousel-item src="/images/CAROUSEL1.png" cover></v-carousel-item>
+          <v-carousel-item src="/images/CAROUSEL1.png" cover></v-carousel-item>
           <v-carousel-item src="/images/CAROUSEL2.png" cover></v-carousel-item>
         </v-carousel>
 
-        <v-row class="mt-4" dense>
+        <v-row>
           <!-- Service Today Column -->
-          <v-col cols="12" md="6" class="pb-4">
+          <v-col cols="12" md="6" class="pt-6">
             <!-- Services Card -->
             <v-card class="mb-4">
               <v-card-title class="service-title">
-                {{
-                  selectedDate === new Date().toISOString().split('T')[0]
-                    ? 'Service Today'
-                    : 'Services for ' + selectedDate
-                }}
+                {{ selectedDate === new Date().toISOString().split('T')[0] ? 'Service Today' : 'Services for ' + selectedDate }}
                 <v-spacer />
               </v-card-title>
 
@@ -453,21 +472,14 @@ onMounted(() => {
 
                 <div class="d-flex mt-4" v-if="selectedDate">
                   <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog"> Add </v-btn>
-                  <v-btn
-                    color="error"
-                    small
-                    @click="openDeleteServiceDialog"
-                    :disabled="!dailyServices.length"
-                  >
-                    Delete
-                  </v-btn>
+                  <v-btn color="error" small @click="openDeleteServiceDialog" :disabled="!dailyServices.length"> Delete </v-btn>
                 </div>
               </v-card-text>
             </v-card>
           </v-col>
 
           <!-- Calendar Column -->
-          <v-col cols="12" md="6" class="pb-4">
+          <v-col cols="12" md="6" class="pt-6">
             <div class="calendar-wrapper">
               <div class="calendar-header">
                 <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
@@ -546,29 +558,15 @@ onMounted(() => {
             </v-card-title>
 
             <v-card-text class="pa-4">
-              <v-text-field
-                v-model="newService.title"
-                label="Service Title"
-                required
-                :rules="[requiredValidator]"
-              />
-              <v-textarea
-                v-model="newService.description"
-                label="Description"
-                rows="2"
-                :rules="[requiredValidator]"
-              />
-              <v-text-field
-                v-model="newService.doctor"
-                label="Doctor"
-                :rules="[requiredValidator]"
-              />
+              <v-text-field v-model="newService.title" label="Service Title" required />
+              <v-textarea v-model="newService.description" label="Description" rows="2" />
+              <v-text-field v-model="newService.doctor" label="Doctor" />
               <v-select
                 v-model="newService.barangay"
                 :items="barangayOptions"
                 label="Barangay"
                 required
-                :rules="[requiredValidator]"
+                :rules="[v => !!v || 'Barangay is required']"
               />
 
               <!-- Add date picker -->
@@ -577,11 +575,10 @@ onMounted(() => {
                 label="Date"
                 type="date"
                 :min="new Date().toISOString().split('T')[0]"
-                :rules="[requiredValidator]"
                 required
               />
 
-              <v-row :rules="[requiredValidator]">
+              <v-row>
                 <v-col cols="6">
                   <v-text-field
                     v-model="newService.startTime"
@@ -604,7 +601,7 @@ onMounted(() => {
             <v-card-actions class="pa-4">
               <v-spacer />
               <v-btn text @click="dialog = false">Cancel</v-btn>
-              <v-btn color="primary" @click="addService" type="submit">Save Service</v-btn>
+              <v-btn color="primary" @click="addService">Save Service</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>

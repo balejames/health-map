@@ -1,3 +1,4 @@
+// Fix for map view component (paste-2.txt)
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -179,13 +180,17 @@ const fetchServices = async () => {
   // Group services by date for easy access
   const grouped = {}
   data.forEach((service) => {
-    if (!grouped[service.date]) {
-      grouped[service.date] = []
+    // Ensure we have a valid date
+    if (service.date) {
+      if (!grouped[service.date]) {
+        grouped[service.date] = []
+      }
+      grouped[service.date].push(service)
     }
-    grouped[service.date].push(service)
   })
 
   services.value = grouped
+  // Update today's services
   todaysServices.value = grouped[selectedDate.value] || []
 
   // Update markers after fetching services
@@ -196,12 +201,17 @@ const fetchServices = async () => {
 
 // Set up Supabase real-time subscription for service changes
 const setupRealtimeSubscription = () => {
-  supabase
+  // First, unsubscribe if there's an existing subscription
+  const channel = supabase
     .channel('services-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
-      console.log('Realtime update received:', payload)
-      fetchServices() // Refresh services when there's a change
-    })
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'services' },
+      (payload) => {
+        console.log('Realtime update received:', payload)
+        // Always fetch all services when any change happens
+        fetchServices()
+      }
+    )
     .subscribe((status) => {
       console.log('Subscription status:', status)
     })
@@ -225,6 +235,16 @@ onMounted(() => {
   // Fetch services and set up real-time updates
   fetchServices()
   setupRealtimeSubscription()
+
+  // Set up a polling mechanism as backup in case realtime doesn't catch all changes
+  const pollingInterval = setInterval(() => {
+    fetchServices()
+  }, 30000) // Poll every 30 seconds
+
+  // Clean up on component unmount
+  return () => {
+    clearInterval(pollingInterval)
+  }
 })
 
 const zoomIn = () => {
