@@ -399,8 +399,8 @@ onMounted(() => {
       <v-container fluid>
         <!-- Carousel -->
         <v-carousel>
-          <v-carousel-item src="/images/CAROUSELWELCOME.png" cover></v-carousel-item>
-          <v-carousel-item src="/images/CAROUSELWELCOME2.png" cover></v-carousel-item>
+            <v-carousel-item src="/images/CAROUSEL1.png" cover></v-carousel-item>
+          <v-carousel-item src="/images/CAROUSEL2.png" cover></v-carousel-item>
         </v-carousel>
 
         <v-row>
