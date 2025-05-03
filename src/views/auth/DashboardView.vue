@@ -1,6 +1,6 @@
 <script setup>
 import { formActionDefault, supabase } from '@/utils/supabase.js'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const drawer = ref(true)
@@ -73,14 +73,28 @@ const blankDays = computed(() => {
   return Array.from({ length: firstDay }, (_, i) => i)
 })
 
+// FIXED: Updated getDate function to properly format date without timezone issues
 const getDate = (day) => {
+  // Create date object using local timezone
   const date = new Date(currentYear.value, currentMonth.value, day)
-  return date.toISOString().split('T')[0]
+
+  // Format to YYYY-MM-DD ensuring we don't lose a day due to timezone conversion
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const dayStr = String(day).padStart(2, '0')
+
+  // Return in YYYY-MM-DD format
+  return `${year}-${month}-${dayStr}`
 }
 
+// FIXED: Updated isToday function to use the same date formatting approach
 const isToday = (dateString) => {
-  const todayDate = new Date()
-  const todayFormatted = todayDate.toISOString().split('T')[0]
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  const todayFormatted = `${year}-${month}-${day}`
+
   return dateString === todayFormatted
 }
 
@@ -134,6 +148,18 @@ const addService = async () => {
     const startTimestamptz = startDateTime.toISOString()
     const endTimestamptz = endDateTime.toISOString()
 
+    // Form validation
+    if (
+      !newService.value.title ||
+      !newService.value.barangay ||
+      !serviceDate ||
+      !newService.value.startTime ||
+      !newService.value.endTime
+    ) {
+      alert('Please fill in all required fields (title, barangay, date, start and end time)')
+      return
+    }
+
     const { data, error } = await supabase.from('services').insert([
       {
         title: newService.value.title,
@@ -148,6 +174,7 @@ const addService = async () => {
 
     if (error) {
       console.error('Failed to add service:', error.message)
+      alert('Failed to add service: ' + error.message)
       return
     }
 
@@ -157,8 +184,10 @@ const addService = async () => {
     resetServiceForm()
   } catch (e) {
     console.error('Unexpected error while adding service:', e)
+    alert('Unexpected error while adding service')
   }
 }
+
 // Fetch Services from Supabase
 const fetchServices = async () => {
   const { data, error } = await supabase.from('services').select('*')
@@ -227,8 +256,7 @@ const deleteSelectedServices = async () => {
   }
 }
 
-// Profile image logic (as before)
-const profileImage = ref('/images/TemporaryProfile.jpg')
+// Profile image logic
 const fileInput = ref(null)
 const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
@@ -249,16 +277,6 @@ const onFileSelected = (e) => {
   }
 }
 
-// Load saved profile image on mount
-onMounted(() => {
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-  // Your existing fetchServices() call remains here
-  fetchServices()
-})
-
 // Calendar Navigation
 const goToPrevMonth = () => {
   if (currentMonth.value === 0) {
@@ -277,6 +295,33 @@ const goToNextMonth = () => {
     currentMonth.value += 1
   }
 }
+
+// Set up Supabase subscription for real-time updates
+const setupRealtimeSubscription = () => {
+  supabase
+    .channel('services-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update:', payload)
+      fetchServices() // Refresh services when there's a change
+    })
+    .subscribe()
+}
+
+// On component mount - FIXED: Updated to use consistent date formatting
+onMounted(() => {
+  // Set default selected date to today using consistent date format
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  selectedDate.value = `${year}-${month}-${day}`
+
+  // Fetch services
+  fetchServices()
+
+  // Set up realtime updates
+  setupRealtimeSubscription()
+})
 </script>
 <template>
   <v-app class="dashboard-bg">
@@ -364,7 +409,11 @@ const goToNextMonth = () => {
             <!-- Services Card -->
             <v-card class="mb-4">
               <v-card-title class="service-title">
-                Service Today
+                {{
+                  selectedDate === new Date().toISOString().split('T')[0]
+                    ? 'Service Today'
+                    : 'Services for ' + selectedDate
+                }}
                 <v-spacer />
               </v-card-title>
 
@@ -404,7 +453,14 @@ const goToNextMonth = () => {
 
                 <div class="d-flex mt-4" v-if="selectedDate">
                   <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog"> Add </v-btn>
-                  <v-btn color="error" small @click="openDeleteServiceDialog"> Delete </v-btn>
+                  <v-btn
+                    color="error"
+                    small
+                    @click="openDeleteServiceDialog"
+                    :disabled="!dailyServices.length"
+                  >
+                    Delete
+                  </v-btn>
                 </div>
               </v-card-text>
             </v-card>
@@ -490,10 +546,16 @@ const goToNextMonth = () => {
             </v-card-title>
 
             <v-card-text class="pa-4">
-              <v-text-field v-model="newService.title" label="Service Title" />
+              <v-text-field v-model="newService.title" label="Service Title" required />
               <v-textarea v-model="newService.description" label="Description" rows="2" />
               <v-text-field v-model="newService.doctor" label="Doctor" />
-              <v-select v-model="newService.barangay" :items="barangayOptions" label="Barangay" />
+              <v-select
+                v-model="newService.barangay"
+                :items="barangayOptions"
+                label="Barangay"
+                required
+                :rules="[(v) => !!v || 'Barangay is required']"
+              />
 
               <!-- Add date picker -->
               <v-text-field
@@ -501,14 +563,25 @@ const goToNextMonth = () => {
                 label="Date"
                 type="date"
                 :min="new Date().toISOString().split('T')[0]"
+                required
               />
 
               <v-row>
                 <v-col cols="6">
-                  <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
+                  <v-text-field
+                    v-model="newService.startTime"
+                    label="Start Time"
+                    type="time"
+                    required
+                  />
                 </v-col>
                 <v-col cols="6">
-                  <v-text-field v-model="newService.endTime" label="End Time" type="time" />
+                  <v-text-field
+                    v-model="newService.endTime"
+                    label="End Time"
+                    type="time"
+                    required
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
