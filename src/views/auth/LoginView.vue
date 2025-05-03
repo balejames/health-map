@@ -66,14 +66,14 @@ const onFormSubmit = () => {
       <v-row class="fill-height pa-4" align="center" justify="center" style="gap: 2rem">
         <!-- 👇 Mobile Logo Above Form -->
         <v-col cols="12" class="d-md-none text-center mb-4">
-          <img src="/images/LOGO PIXIE.jpg" class="mobile-logo" alt="Health Map Logo" />
+          <img src="/images/LoginIcon.png" class="mobile-logo" alt="Health Map Logo" />
         </v-col>
 
         <!-- 👇 Desktop Logo Left Side -->
         <v-col cols="12" md="6" class="text-section d-none d-md-flex align-center justify-center">
           <img
             ref="logoRef"
-            src="/images/LOGO PIXIE.jpg"
+            src="/images/LoginIcon.png"
             class="animated-logo"
             alt="Health Map Logo"
           />

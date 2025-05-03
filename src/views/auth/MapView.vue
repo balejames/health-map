@@ -157,12 +157,13 @@ const resetView = () => {
       <v-toolbar-title
         class="white--text"
         @click="router.push('/dashboard')"
-        style="padding-left: 0; margin-left: 10px; color: white; cursor: pointer;">
+        style="padding-left: 0; margin-left: 10px; color: white; cursor: pointer"
+      >
         Health Map
       </v-toolbar-title>
 
-      <v-btn text style="color: white;" @click="router.push('/dashboard')">Dashboard</v-btn>
-      <v-btn text style="color: white;" @click="router.push('/map')">Map View</v-btn>
+      <v-btn text style="color: white" @click="router.push('/dashboard')">Dashboard</v-btn>
+      <v-btn text style="color: white" @click="router.push('/map')">Map View</v-btn>
 
       <v-spacer />
 
@@ -206,7 +207,9 @@ const resetView = () => {
         <div class="map-controls">
           <v-btn @click="zoomIn" class="map-btn zoom-in"><v-icon>mdi-plus</v-icon></v-btn>
           <v-btn @click="zoomOut" class="map-btn zoom-out"><v-icon>mdi-minus</v-icon></v-btn>
-          <v-btn @click="resetView" class="map-btn reset-view"><v-icon>mdi-map-marker-radius</v-icon></v-btn>
+          <v-btn @click="resetView" class="map-btn reset-view"
+            ><v-icon>mdi-map-marker-radius</v-icon></v-btn
+          >
         </div>
       </v-container>
     </v-main>
