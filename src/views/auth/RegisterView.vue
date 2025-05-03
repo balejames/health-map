@@ -138,6 +138,7 @@ const onFormSubmit = () => {
                   rounded
                   type="email"
                   variant="outlined"
+                  autocomplete="email"
                   :rules="[requiredValidator, emailValidator]"
                 />
 
@@ -172,6 +173,7 @@ const onFormSubmit = () => {
                   :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   variant="outlined"
+                  autocomplete="new-password"
                   :rules="[requiredValidator, passwordValidator]"
                 />
 
@@ -184,6 +186,7 @@ const onFormSubmit = () => {
                   :append-inner-icon="isPasswordConfirmVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordConfirmVisible = !isPasswordConfirmVisible"
                   variant="outlined"
+                  autocomplete="new-password"
                   :rules="[
                     requiredValidator,
                     confirmedValidator(formData.password_confirmation, formData.password),
