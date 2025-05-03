@@ -2,6 +2,7 @@
 import { formActionDefault, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 
 const drawer = ref(true)
 const router = useRouter()
@@ -220,8 +221,7 @@ const deleteSelectedServices = async () => {
   }
 }
 
-// Profile image logic (as before)
-const profileImage = ref('/images/TemporaryProfile.jpg')
+// Profile image logic (UPDATED)
 const fileInput = ref(null)
 const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
@@ -235,8 +235,8 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      profileImage.value = reader.result
-      localStorage.setItem('profileImage', profileImage.value)
+      // Use the shared update function
+      updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
   }
@@ -244,11 +244,9 @@ const onFileSelected = (e) => {
 
 // Load saved profile image on mount
 onMounted(() => {
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-  // Your existing fetchServices() call remains here
+  // No need to load profile from localStorage as the eventBus handles this
+
+  // Fetch services
   fetchServices()
 })
 

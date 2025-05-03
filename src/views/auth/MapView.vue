@@ -4,30 +4,29 @@ import { useRouter } from 'vue-router'
 
 import { supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
+import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 
 const router = useRouter()
-
 
 const logout = async () => {
   await supabase.auth.signOut()
   router.push({ name: 'login' })
 }
 
-const profileImage = ref('/images/TemporaryProfile.jpg')
+const fileInput = ref(null)
 const showChangePicture = ref(false)
-const profileFile = ref(null)
 
 const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
+  fileInput.value.click()
 }
 
 const onFileSelected = (e) => {
-  const file = e.target.files ? e.target.files[0] : profileFile.value
+  const file = e.target.files[0]
   if (file) {
     const reader = new FileReader()
-    reader.onload = (e) => {
-      profileImage.value = e.target.result
-      localStorage.setItem('profileImage', profileImage.value)
+    reader.onload = () => {
+      // Use the shared update function from eventBus
+      updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
   }
@@ -172,7 +171,7 @@ const resetView = () => {
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
             <v-avatar size="36">
-              <v-img :src="profileImage" />
+              <v-img :src="profileImage" alt="Profile Picture" />
             </v-avatar>
           </v-btn>
         </template>
@@ -181,13 +180,23 @@ const resetView = () => {
           <v-list>
             <v-list-item>
               <v-avatar size="64" class="mx-auto mb-2">
-                <v-img :src="profileImage" />
+                <v-img :src="profileImage" alt="Profile Picture" />
               </v-avatar>
             </v-list-item>
 
+            <!-- Trigger File Input -->
             <v-list-item link @click="toggleChangePicture">
               <v-list-item-title>Change Profile Picture</v-list-item-title>
             </v-list-item>
+
+            <!-- Hidden File Input -->
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              @change="onFileSelected"
+              style="display: none"
+            />
 
             <v-divider />
 
