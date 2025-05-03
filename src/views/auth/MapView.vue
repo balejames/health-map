@@ -214,14 +214,11 @@ const setupRealtimeSubscription = () => {
   // First, unsubscribe if there's an existing subscription
   const channel = supabase
     .channel('services-changes')
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'services' },
-      (payload) => {
-        console.log('Realtime update received:', payload)
-        // Always fetch all services when any change happens
-        fetchServices()
-      }
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update received:', payload)
+      // Always fetch all services when any change happens
+      fetchServices()
+    })
     .subscribe((status) => {
       console.log('Subscription status:', status)
     })
@@ -405,7 +402,6 @@ const navigateTo = (route) => {
         Health Map
       </v-toolbar-title>
 
-
       <!-- Mobile Profile Menu -->
       <v-menu v-model="isProfileMenuOpen" location="bottom end">
         <template #activator="{ props }">
@@ -459,7 +455,10 @@ const navigateTo = (route) => {
 
         <v-list-item-title class="px-4 py-2 text-subtitle-2">View services for:</v-list-item-title>
 
-        <v-list-item @click="goToToday" :active="selectedDate === new Date().toISOString().split('T')[0]">
+        <v-list-item
+          @click="goToToday"
+          :active="selectedDate === new Date().toISOString().split('T')[0]"
+        >
           <v-list-item-title>Today</v-list-item-title>
         </v-list-item>
 
@@ -498,7 +497,11 @@ const navigateTo = (route) => {
           <v-btn @click="zoomOut" class="map-btn zoom-out" :size="isMobile ? 'small' : 'default'">
             <v-icon>mdi-minus</v-icon>
           </v-btn>
-          <v-btn @click="resetView" class="map-btn reset-view" :size="isMobile ? 'small' : 'default'">
+          <v-btn
+            @click="resetView"
+            class="map-btn reset-view"
+            :size="isMobile ? 'small' : 'default'"
+          >
             <v-icon>mdi-map-marker-radius</v-icon>
           </v-btn>
         </div>
@@ -566,11 +569,11 @@ const navigateTo = (route) => {
 .map-container {
   width: 100%;
   height: 100vh;
-  z-index: 1;
-  transition: all 0.3s ease;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
   border-radius: 8px;
+  z-index: 1;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .map-controls {
@@ -594,12 +597,9 @@ const navigateTo = (route) => {
   border-radius: 50%;
   background-color: rgb(84, 187, 228);
   color: white;
-  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  margin-bottom: 5px;
 }
 
 .map-controls-mobile .map-btn {
@@ -612,62 +612,17 @@ const navigateTo = (route) => {
   background-color: #0288d1;
 }
 
-.v-avatar:hover {
-  transform: scale(1.1);
-  transition: transform 0.3s ease;
-}
-
-.v-btn:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-}
-
-.v-btn.text:hover {
-  color: #f44336;
-}
-
-.v-dialog .v-card {
-  border-radius: 12px;
-  background-color: #fff;
-}
-
-.date-filter {
-  display: flex;
-  align-items: center;
-}
-
-.date-label {
-  font-size: 14px;
-  color: white;
-  white-space: nowrap;
-}
-
-.v-btn--active {
-  background-color: rgba(255, 255, 255, 0.2);
-  font-weight: bold;
-}
-
-.service-title {
-  background-color: #9bd1f8;
-  font-weight: bold;
-  color: #ffffff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 20px;
-  padding: 16px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
-
-/* Map Legend */
 .map-legend {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 10px;
+  left: 10px;
   background-color: white;
+  padding: 10px 15px;
   border-radius: 8px;
-  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
   z-index: 10;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  max-width: 90vw;
 }
 
 .map-legend-mobile {
@@ -680,8 +635,7 @@ const navigateTo = (route) => {
 
 .legend-title {
   font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 5px;
 }
 
 .map-legend-mobile .legend-title {
@@ -692,8 +646,7 @@ const navigateTo = (route) => {
 .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 4px;
 }
 
 .map-legend-mobile .legend-item {
@@ -702,12 +655,11 @@ const navigateTo = (route) => {
 }
 
 .legend-marker {
-  width: 12px;
-  height: 12px;
-  background-color: #3388ff;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
+  background-color: #bbb;
   margin-right: 8px;
-  border: 1px solid #2277dd;
 }
 
 .map-legend-mobile .legend-marker {
@@ -719,14 +671,6 @@ const navigateTo = (route) => {
 .legend-marker.active {
   background-color: #f44336;
   border: 1px solid #d32f2f;
-}
-
-/* Date FAB for mobile */
-.date-fab {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  z-index: 10;
 }
 
 /* Custom marker styles - these will be applied globally but scoped to the markers */
