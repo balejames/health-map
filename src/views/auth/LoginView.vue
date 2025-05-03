@@ -25,20 +25,20 @@ const isAnimating = ref(true)
 
 // Animation function to be called on mount
 onMounted(() => {
-  startLogoAnimation();
+  startLogoAnimation()
 })
 
 const startLogoAnimation = () => {
   if (logoRef.value) {
     // Add the floating animation class to the logo
-    logoRef.value.classList.add('floating-animation');
+    logoRef.value.classList.add('floating-animation')
   }
 }
 
 const stopLogoAnimation = () => {
   if (isAnimating.value && logoRef.value) {
-    logoRef.value.classList.remove('floating-animation');
-    isAnimating.value = false;
+    logoRef.value.classList.remove('floating-animation')
+    isAnimating.value = false
   }
 }
 
@@ -77,7 +77,7 @@ const onSubmit = async () => {
 
 const onFormSubmit = () => {
   // Stop the animation when user clicks login
-  stopLogoAnimation();
+  stopLogoAnimation()
 
   refVForm.value?.validate().then(({ valid }) => {
     if (valid) onSubmit()
@@ -88,7 +88,6 @@ const onFormSubmit = () => {
   <div class="login-wrapper">
     <v-container fluid>
       <v-row class="fill-height pa-4" align="center" justify="center" style="gap: 2rem">
-
         <v-col cols="12" class="d-md-none text-center mb-4">
           <img src="/images/LoginIcon.png" class="mobile-logo" alt="Health Map Logo" />
         </v-col>
@@ -126,6 +125,7 @@ const onFormSubmit = () => {
                   type="email"
                   variant="outlined"
                   :rules="[requiredValidator, emailValidator]"
+                  autocomplete="email"
                 ></v-text-field>
 
                 <v-text-field
@@ -139,6 +139,7 @@ const onFormSubmit = () => {
                   :append-inner-icon="isPasswordVisible ? 'mdi-eye' : 'mdi-eye-off'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                   :rules="[requiredValidator]"
+                  autocomplete="current-password"
                 ></v-text-field>
 
                 <v-row dense>
@@ -152,6 +153,7 @@ const onFormSubmit = () => {
                       variant="outlined"
                       :rules="[requiredValidator]"
                       required
+                      autocomplete="address-level2"
                     ></v-select>
                   </v-col>
 
@@ -165,6 +167,7 @@ const onFormSubmit = () => {
                       required
                       variant="outlined"
                       :rules="[requiredValidator]"
+                      autocomplete="organization-title"
                     ></v-select>
                   </v-col>
                 </v-row>
