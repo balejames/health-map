@@ -141,28 +141,31 @@ const onFormSubmit = () => {
                   autocomplete="email"
                   :rules="[requiredValidator, emailValidator]"
                 />
-
-                <v-select
-                  v-model="formData.barangay"
-                  :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
-                  label="Barangay"
-                  prepend-inner-icon="mdi-map-marker"
-                  rounded
-                  required
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                />
-
-                <v-select
-                  v-model="formData.role"
-                  :items="['Employee', 'Resident']"
-                  label="Role"
-                  prepend-inner-icon="mdi-account-group"
-                  rounded
-                  required
-                  variant="outlined"
-                  :rules="[requiredValidator]"
-                />
+                <v-row dense>
+                  <v-col cols="12" sm="6">
+                    <v-select
+                      v-model="formData.barangay"
+                      :items="['Ampayon', 'Taligaman', 'Antongalon', 'Baan Km.3', 'Ambago']"
+                      label="Barangay"
+                      prepend-inner-icon="mdi-map-marker"
+                      rounded
+                      required
+                      variant="outlined"
+                      :rules="[requiredValidator]"
+                    />
+                  </v-col>
+                  <v-col cols="12" sm="6"
+                    ><v-select
+                      v-model="formData.role"
+                      :items="['Employee', 'Resident']"
+                      label="Role"
+                      prepend-inner-icon="mdi-account-group"
+                      rounded
+                      required
+                      variant="outlined"
+                      :rules="[requiredValidator]"
+                  /></v-col>
+                </v-row>
 
                 <v-text-field
                   v-model="formData.password"
