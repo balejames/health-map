@@ -476,7 +476,7 @@ const navigateTo = (route) => {
       <v-container fluid class="pa-0 fill-height">
         <div id="map" class="map-container" />
 
-        <!-- Map Legend - Responsive -->
+        <!-- Map Legend - Moved to Top Right -->
         <div class="map-legend" :class="{ 'map-legend-mobile': isMobile }">
           <div class="legend-title">Map Legend</div>
           <div class="legend-item">
