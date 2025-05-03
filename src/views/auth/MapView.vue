@@ -1,4 +1,3 @@
-// Fix for map view component (paste-2.txt)
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -204,14 +203,11 @@ const setupRealtimeSubscription = () => {
   // First, unsubscribe if there's an existing subscription
   const channel = supabase
     .channel('services-changes')
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'services' },
-      (payload) => {
-        console.log('Realtime update received:', payload)
-        // Always fetch all services when any change happens
-        fetchServices()
-      }
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update received:', payload)
+      // Always fetch all services when any change happens
+      fetchServices()
+    })
     .subscribe((status) => {
       console.log('Subscription status:', status)
     })
@@ -437,11 +433,11 @@ const goToNextWeek = () => {
 .map-container {
   width: 100%;
   height: 100vh;
-  z-index: 1;
-  transition: all 0.3s ease;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
   border-radius: 8px;
+  z-index: 1;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .map-controls {
@@ -460,137 +456,116 @@ const goToNextWeek = () => {
   border-radius: 50%;
   background-color: rgb(84, 187, 228);
   color: white;
-  font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  margin-bottom: 5px;
 }
 
 .map-btn:hover {
   background-color: #0288d1;
 }
 
-.v-avatar:hover {
-  transform: scale(1.1);
-  transition: transform 0.3s ease;
-}
-
-.v-btn:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-}
-
-.v-btn.text:hover {
-  color: #f44336;
-}
-
-.v-dialog .v-card {
-  border-radius: 12px;
-  background-color: #fff;
-}
-
-.date-filter {
-  display: flex;
-  align-items: center;
-}
-
-.date-label {
-  font-size: 14px;
-  color: white;
-  white-space: nowrap;
-}
-
-.v-btn--active {
-  background-color: rgba(255, 255, 255, 0.2);
-  font-weight: bold;
-}
-
-.service-title {
-  background-color: #9bd1f8;
-  font-weight: bold;
-  color: #ffffff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 20px;
-  padding: 16px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
-
-/* Map Legend */
 .map-legend {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 10px;
+  left: 10px;
   background-color: white;
+  padding: 10px 15px;
   border-radius: 8px;
-  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  font-size: 0.9rem;
   z-index: 10;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  max-width: 90vw;
 }
 
 .legend-title {
   font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 5px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 4px;
 }
 
 .legend-marker {
-  width: 12px;
-  height: 12px;
-  background-color: #3388ff;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
+  background-color: #bbb;
   margin-right: 8px;
-  border: 1px solid #2277dd;
 }
 
 .legend-marker.active {
   background-color: #f44336;
-  border: 1px solid #d32f2f;
 }
 
-/* Custom marker styles - these will be applied globally but scoped to the markers */
-:global(.custom-div-icon) {
-  background: transparent;
-  border: none;
+@media (max-width: 600px) {
+  .legend-title,
+  .legend-item span {
+    font-size: 12px;
+  }
+
+  .map-controls {
+    top: 70px;
+    left: 5px;
+  }
+
+  .map-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .map-legend {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .v-toolbar-title {
+    font-size: 16px !important;
+  }
+
+  .date-filter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    margin-right: 10px;
+  }
+
+  .date-label {
+    font-size: 12px;
+  }
 }
 
-:global(.marker-pin) {
-  width: 30px;
-  height: 30px;
-  border-radius: 50% 50% 50% 0;
-  background: #3388ff;
-  position: absolute;
-  transform: rotate(-45deg);
-  left: 50%;
-  top: 50%;
-  margin: -15px 0 0 -15px;
+@media (min-width: 601px) and (max-width: 960px) {
+  .map-controls {
+    top: 75px;
+    left: 8px;
+  }
+
+  .date-filter {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 }
 
-:global(.marker-pin.active) {
-  background: #f44336;
-}
+@media (min-width: 961px) {
+  .map-legend {
+    bottom: 20px;
+    left: 20px;
+  }
 
-:global(.marker-pin::after) {
-  content: '';
-  width: 20px;
-  height: 20px;
-  margin: 5px 0 0 5px;
-  background: #fff;
-  position: absolute;
-  border-radius: 50%;
-}
+  .map-controls {
+    top: 80px;
+    left: 20px;
+  }
 
-:global(.service-available) {
-  color: #f44336;
-  font-weight: bold;
+  .date-filter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
 }
 </style>
