@@ -1,10 +1,9 @@
 <script setup>
 import { formActionDefault, supabase } from '@/utils/supabase.js'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted} from 'vue'
 import { useRouter } from 'vue-router'
 import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 
-const drawer = ref(true)
 const router = useRouter()
 const formAction = ref({ ...formActionDefault })
 
@@ -278,7 +277,6 @@ const deleteSelectedServices = async () => {
 
 // Profile image logic
 const fileInput = ref(null)
-const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
 
 const toggleChangePicture = () => {
@@ -325,8 +323,10 @@ const checkScreen = () => {
 }
 
 // Set up Supabase subscription for real-time updates
+const channelRef = ref(null)
+
 const setupRealtimeSubscription = () => {
-  const channel = supabase
+  channelRef.value = supabase
     .channel('services-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
       console.log('Realtime update received in Dashboard:', payload)
