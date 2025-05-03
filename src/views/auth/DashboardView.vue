@@ -284,11 +284,16 @@ const goToNextMonth = () => {
         class="ml-4 mr-2"
       ></v-img>
 
-      <v-toolbar-title class="white-text">Dashboard</v-toolbar-title>
+      <v-toolbar-title
+        class="white--text"
+        @click="router.push('/dashboard')"
+        style="padding-left: 0; margin-left: 10px; color: white; cursor: pointer;">
+        Health Map
+      </v-toolbar-title>
 
       <!-- Navigation Buttons -->
-      <v-btn text @click="router.push('/dashboard')">Dashboard</v-btn>
-      <v-btn text @click="router.push('/map')">Map View</v-btn>
+      <v-btn text style="color: white;"  @click="router.push('/dashboard')">Dashboard</v-btn>
+      <v-btn text style="color: white;" @click="router.push('/map')">Map View</v-btn>
       <v-spacer></v-spacer>
 
       <!-- Profile Menu -->

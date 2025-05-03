@@ -1,28 +1,42 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useTheme } from 'vuetify'
 import { supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const theme = useTheme()
+
 const logout = async () => {
   await supabase.auth.signOut()
   router.push({ name: 'login' })
 }
 
-const drawer = ref(true)
-const isMapFullScreen = ref(false)
-const toggleDrawer = () => {
-  drawer.value = !drawer.value
-  isMapFullScreen.value = !drawer.value
+const isDarkMode = ref(false)
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  theme.global.name.value = isDarkMode.value ? 'dark' : 'light'
+  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
 }
 
+// Load saved theme on mount
+onMounted(() => {
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme === 'dark') {
+    isDarkMode.value = true
+    theme.global.name.value = 'dark'
+  }
+})
+
 const profileImage = ref('/images/TemporaryProfile.jpg')
-const profileFile = ref(null)
 const showChangePicture = ref(false)
+const profileFile = ref(null)
+
 const toggleChangePicture = () => {
   showChangePicture.value = !showChangePicture.value
 }
+
 const onFileSelected = (e) => {
   const file = e.target.files ? e.target.files[0] : profileFile.value
   if (file) {
@@ -35,7 +49,6 @@ const onFileSelected = (e) => {
   }
 }
 
-// Coordinates
 const barangayCoordinates = {
   Ambago: [8.9724, 125.4946],
   Ampayon: [8.9592, 125.615],
@@ -45,10 +58,9 @@ const barangayCoordinates = {
   Maon: [8.9316, 125.5447],
 }
 
-// Date & Service States
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const todaysServices = ref([])
-const servicesFromDB = ref([])
+
 const mapRef = ref(null)
 
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
@@ -60,7 +72,7 @@ const showServiceDetails = (barangay) => {
   const normalizedBarangay = normalize(barangay)
   const today = selectedDate.value
 
-  const filtered = servicesFromDB.value.filter(
+  const filtered = todaysServices.value.filter(
     (s) => s.date === today && normalize(s.barangay) === normalizedBarangay,
   )
 
@@ -80,7 +92,7 @@ const showServiceDetails = (barangay) => {
 const showBarangayMarkers = () => {
   const activeBarangays = new Set()
 
-  servicesFromDB.value.forEach((service) => {
+  todaysServices.value.forEach((service) => {
     if (service.barangay) {
       activeBarangays.add(normalize(service.barangay.trim()))
     }
@@ -112,17 +124,11 @@ const fetchServices = async () => {
     return
   }
 
-  servicesFromDB.value = data
   todaysServices.value = data.filter((svc) => svc.date === selectedDate.value)
   showBarangayMarkers()
 }
 
 onMounted(() => {
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
 
@@ -138,12 +144,23 @@ onMounted(() => {
 
   fetchServices()
 })
+
+const zoomIn = () => {
+  mapRef.value.zoomIn()
+}
+
+const zoomOut = () => {
+  mapRef.value.zoomOut()
+}
+
+const resetView = () => {
+  mapRef.value.setView([8.9475, 125.5406], 13)
+}
 </script>
 
 <template>
-  <v-app class="dashboard-bg">
-    <!-- Top Bar -->
-    <v-app-bar app color="#9bd1f8" dark elevate-on-scroll>
+  <v-app>
+    <v-app-bar app color="#9bd1f8" dark>
       <v-img
         src="/images/DASHBOARD-LOGO PIXIE .jpg"
         alt="Logo"
@@ -151,22 +168,26 @@ onMounted(() => {
         max-width="40"
         max-height="40"
         class="ml-4 mr-2"
-      ></v-img>
+      />
 
-      <v-toolbar-title class="white-text">Map View</v-toolbar-title>
+      <v-toolbar-title
+        class="white--text"
+        @click="router.push('/dashboard')"
+        style="padding-left: 0; margin-left: 10px; color: white; cursor: pointer;">
+        Health Map
+      </v-toolbar-title>
 
-      <!-- Navigation Buttons -->
-      <v-btn text @click="router.push('/dashboard')">Dashboard</v-btn>
-      <v-btn text @click="router.push('/map')">Map View</v-btn>
+      <v-btn text style="color: white;" @click="router.push('/dashboard')">Dashboard</v-btn>
+      <v-btn text style="color: white;" @click="router.push('/map')">Map View</v-btn>
 
-      <v-spacer></v-spacer>
+      <v-spacer />
 
-      <!-- Profile Menu -->
-      <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
+      <!-- Profile Dropdown -->
+      <v-menu location="bottom end" offset-y>
         <template #activator="{ props }">
           <v-btn icon v-bind="props">
-            <v-avatar size="32">
-              <v-img :src="profileImage" alt="Profile Picture" />
+            <v-avatar size="36">
+              <v-img :src="profileImage" />
             </v-avatar>
           </v-btn>
         </template>
@@ -175,7 +196,7 @@ onMounted(() => {
           <v-list>
             <v-list-item>
               <v-avatar size="64" class="mx-auto mb-2">
-                <v-img :src="profileImage" alt="Profile Picture" />
+                <v-img :src="profileImage" />
               </v-avatar>
             </v-list-item>
 
@@ -183,15 +204,7 @@ onMounted(() => {
               <v-list-item-title>Change Profile Picture</v-list-item-title>
             </v-list-item>
 
-            <input
-              ref="fileInput"
-              type="file"
-              accept="image/*"
-              @change="onFileSelected"
-              style="display: none"
-            />
-
-            <v-divider></v-divider>
+            <v-divider />
 
             <v-list-item link @click="logout">
               <v-list-item-title class="text-red">Logout</v-list-item-title>
@@ -203,7 +216,14 @@ onMounted(() => {
 
     <v-main>
       <v-container fluid class="pa-0 fill-height">
-        <div id="map" :class="['map-container', isMapFullScreen ? 'full-screen' : '']"></div>
+        <div id="map" class="map-container" />
+
+        <!-- Zoom Control Buttons -->
+        <div class="map-controls">
+          <v-btn @click="zoomIn" class="map-btn zoom-in"><v-icon>mdi-plus</v-icon></v-btn>
+          <v-btn @click="zoomOut" class="map-btn zoom-out"><v-icon>mdi-minus</v-icon></v-btn>
+          <v-btn @click="resetView" class="map-btn reset-view"><v-icon>mdi-map-marker-radius</v-icon></v-btn>
+        </div>
       </v-container>
     </v-main>
 
@@ -216,7 +236,7 @@ onMounted(() => {
           <p><strong>Details:</strong> {{ selectedService?.details }}</p>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="blue darken-1" text @click="() => (serviceDialog = false)">Close</v-btn>
+          <v-btn color="blue" text @click="() => (serviceDialog = false)">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -229,25 +249,41 @@ onMounted(() => {
   height: 100vh;
   z-index: 1;
   transition: all 0.3s ease;
-}
-.full-screen {
-  height: 100vh;
-  width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
-.v-avatar {
-  transition: transform 0.3s ease;
+.map-controls {
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 10;
+}
+
+.map-btn {
+  width: 20px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: rgb(84, 187, 228);
+  color: white;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.map-btn:hover {
+  background-color: #0288d1;
 }
 
 .v-avatar:hover {
   transform: scale(1.1);
-}
-
-.v-navigation-drawer {
-  background: linear-gradient(135deg, #9bd1f8, #bddde4);
+  transition: transform 0.3s ease;
 }
 
 .v-btn:hover {
@@ -259,39 +295,8 @@ onMounted(() => {
   color: #f44336;
 }
 
-#map {
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-
 .v-dialog .v-card {
   border-radius: 12px;
-  padding: 16px;
   background-color: #fff;
-}
-
-.v-card-title {
-  font-weight: 600;
-  font-size: 20px;
-  color: #333;
-}
-
-.v-card-subtitle {
-  color: #555;
-}
-
-.v-file-input {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.v-file-input:focus {
-  opacity: 1;
-}
-
-.v-app-bar {
-  background: transparent;
-  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
 }
 </style>
