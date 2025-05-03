@@ -1,4 +1,3 @@
-// Fix for dashboard component (paste.txt)
 <script setup>
 import { formActionDefault, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted, watch } from 'vue'
@@ -313,6 +312,14 @@ const goToNextMonth = () => {
   }
 }
 
+// Mobile detection
+const isMobile = ref(false)
+
+// Function to check screen size
+const checkScreen = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
 // Set up Supabase subscription for real-time updates
 const setupRealtimeSubscription = () => {
   const channel = supabase
@@ -338,6 +345,12 @@ onMounted(() => {
   const day = String(today.getDate()).padStart(2, '0')
   selectedDate.value = `${year}-${month}-${day}`
 
+  // Check screen size initially
+  checkScreen()
+
+  // Add resize event listener
+  window.addEventListener('resize', checkScreen)
+
   // Fetch services
   fetchServices()
 
@@ -356,26 +369,47 @@ onMounted(() => {
         contain
         max-width="40"
         max-height="40"
-        class="ml-4 mr-2"
+        class="ml-2 mr-2"
       ></v-img>
 
       <v-toolbar-title
-        class="white--text"
+        class="white--text truncate-title"
         @click="router.push('/dashboard')"
-        style="padding-left: 0; margin-left: 10px; color: white; cursor: pointer"
+        style="color: white; cursor: pointer"
       >
         Health Map
       </v-toolbar-title>
 
-      <!-- Navigation Buttons -->
-      <router-link to="/dashboard">
-        <v-btn text style="color: white"> Dashboard </v-btn>
-      </router-link>
+      <!-- Navigation Buttons - Hide on mobile -->
+      <div class="d-none d-sm-flex">
+        <router-link to="/dashboard">
+          <v-btn text style="color: white"> Dashboard </v-btn>
+        </router-link>
 
-      <router-link to="/map">
-        <v-btn text style="color: white"> Map View </v-btn>
-      </router-link>
+        <router-link to="/map">
+          <v-btn text style="color: white"> Map View </v-btn>
+        </router-link>
+      </div>
+
       <v-spacer></v-spacer>
+
+      <!-- Mobile Navigation Menu -->
+      <v-menu v-if="isMobile" location="bottom end" offset-y>
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props">
+            <v-icon>mdi-menu</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item to="/dashboard">
+            <v-list-item-title>Dashboard</v-list-item-title>
+          </v-list-item>
+          <v-list-item to="/map">
+            <v-list-item-title>Map View</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
       <!-- Profile Menu -->
       <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
@@ -388,7 +422,7 @@ onMounted(() => {
           </v-btn>
         </template>
 
-        <v-card class="w-64 pa-2">
+        <v-card class="pa-2" :width="isMobile ? '200px' : '256px'">
           <v-list>
             <!-- Profile Picture -->
             <v-list-item>
@@ -424,67 +458,20 @@ onMounted(() => {
 
     <!-- Main Content -->
     <v-main>
-      <v-container fluid>
-        <!-- Carousel -->
-        <v-carousel>
+      <v-container fluid class="px-2 px-sm-4">
+        <!-- Carousel with responsive height -->
+        <v-carousel
+          :height="isMobile ? 200 : 300"
+          hide-delimiter-background
+          show-arrows="hover"
+        >
           <v-carousel-item src="/images/CAROUSEL1.png" cover></v-carousel-item>
           <v-carousel-item src="/images/CAROUSEL2.png" cover></v-carousel-item>
         </v-carousel>
 
         <v-row>
-          <!-- Service Today Column -->
-          <v-col cols="12" md="6" class="pt-6">
-            <!-- Services Card -->
-            <v-card class="mb-4">
-              <v-card-title class="service-title">
-                {{ selectedDate === new Date().toISOString().split('T')[0] ? 'Service Today' : 'Services for ' + selectedDate }}
-                <v-spacer />
-              </v-card-title>
-
-              <v-divider></v-divider>
-
-              <v-card-text>
-                <v-list v-if="dailyServices.length" dense>
-                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
-                    <v-card class="pa-4" color="#e6f2fc" flat rounded>
-                      <div>
-                        <div class="text-primary font-weight-bold text-h6">{{ service.title }}</div>
-                        <div class="mb-2">{{ service.description }}</div>
-
-                        <div class="d-flex align-center mb-1">
-                          <v-icon small class="mr-2">mdi-account</v-icon>
-                          <span>{{ service.doctor }}</span>
-                        </div>
-
-                        <div class="d-flex align-center mb-1">
-                          <v-icon small class="mr-2">mdi-map-marker</v-icon>
-                          <span>{{ service.barangay }}</span>
-                        </div>
-
-                        <div class="d-flex align-center">
-                          <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-                          <span>
-                            {{ formatTime(service.start_date_time) }} -
-                            {{ formatTime(service.end_date_time) }}
-                          </span>
-                        </div>
-                      </div>
-                    </v-card>
-                  </v-list-item>
-                </v-list>
-
-                <div v-else>No service for this day.</div>
-
-                <div class="d-flex mt-4" v-if="selectedDate">
-                  <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog"> Add </v-btn>
-                  <v-btn color="error" small @click="openDeleteServiceDialog" :disabled="!dailyServices.length"> Delete </v-btn>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <!-- Calendar Column -->
-          <v-col cols="12" md="6" class="pt-6">
+          <!-- Calendar Column - Shown first on mobile -->
+          <v-col cols="12" md="6" :order="isMobile ? '1' : '2'" class="pt-3 pt-md-6">
             <div class="calendar-wrapper">
               <div class="calendar-header">
                 <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
@@ -516,12 +503,63 @@ onMounted(() => {
               </div>
             </div>
           </v-col>
+
+          <!-- Service Today Column -->
+          <v-col cols="12" md="6" :order="isMobile ? '2' : '1'" class="pt-3 pt-md-6">
+            <!-- Services Card -->
+            <v-card class="mb-4">
+              <v-card-title class="service-title">
+                {{ selectedDate === new Date().toISOString().split('T')[0] ? 'Service Today' : 'Services for ' + selectedDate }}
+                <v-spacer />
+              </v-card-title>
+
+              <v-divider></v-divider>
+
+              <v-card-text>
+                <v-list v-if="dailyServices.length" dense>
+                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
+                    <v-card class="pa-3 pa-md-4" color="#e6f2fc" flat rounded>
+                      <div>
+                        <div class="text-primary font-weight-bold text-body-1 text-md-h6">{{ service.title }}</div>
+                        <div class="mb-2 text-caption text-md-body-2">{{ service.description }}</div>
+
+                        <div class="d-flex align-center mb-1 text-caption text-md-body-2">
+                          <v-icon size="small" class="mr-2">mdi-account</v-icon>
+                          <span>{{ service.doctor }}</span>
+                        </div>
+
+                        <div class="d-flex align-center mb-1 text-caption text-md-body-2">
+                          <v-icon size="small" class="mr-2">mdi-map-marker</v-icon>
+                          <span>{{ service.barangay }}</span>
+                        </div>
+
+                        <div class="d-flex align-center text-caption text-md-body-2">
+                          <v-icon size="small" class="mr-2">mdi-clock-time-four</v-icon>
+                          <span>
+                            {{ formatTime(service.start_date_time) }} -
+                            {{ formatTime(service.end_date_time) }}
+                          </span>
+                        </div>
+                      </div>
+                    </v-card>
+                  </v-list-item>
+                </v-list>
+
+                <div v-else class="text-center py-4">No service for this day.</div>
+
+                <div class="d-flex justify-center mt-4" v-if="selectedDate">
+                  <v-btn color="#5da8ca" :size="isMobile ? 'small' : 'default'" class="mr-2" @click="openServiceDialog"> Add </v-btn>
+                  <v-btn color="error" :size="isMobile ? 'small' : 'default'" @click="openDeleteServiceDialog" :disabled="!dailyServices.length"> Delete </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
         </v-row>
 
         <!-- Delete Service Dialog -->
-        <v-dialog v-model="deleteDialog" max-width="500px">
+        <v-dialog v-model="deleteDialog" :max-width="isMobile ? '95%' : '500px'">
           <v-card>
-            <v-card-title>Select Service(s) to Delete</v-card-title>
+            <v-card-title class="text-h6">Select Service(s) to Delete</v-card-title>
             <v-card-text>
               <v-list dense>
                 <v-list-item
@@ -555,22 +593,23 @@ onMounted(() => {
         </v-dialog>
 
         <!-- Add Service Dialog -->
-        <v-dialog v-model="dialog" max-width="500">
-          <v-card class="pa-4 pa-sm-6">
+        <v-dialog v-model="dialog" :max-width="isMobile ? '95%' : '500px'">
+          <v-card class="pa-3 pa-sm-6">
             <v-card-title class="service-title">
               Add Service
               <v-spacer />
             </v-card-title>
 
-            <v-card-text class="pa-4">
-              <v-text-field v-model="newService.title" label="Service Title" required />
-              <v-textarea v-model="newService.description" label="Description" rows="2" />
-              <v-text-field v-model="newService.doctor" label="Doctor" />
+            <v-card-text class="pa-3 pa-md-4">
+              <v-text-field v-model="newService.title" label="Service Title" required dense />
+              <v-textarea v-model="newService.description" label="Description" rows="2" dense />
+              <v-text-field v-model="newService.doctor" label="Doctor" dense />
               <v-select
                 v-model="newService.barangay"
                 :items="barangayOptions"
                 label="Barangay"
                 required
+                dense
                 :rules="[v => !!v || 'Barangay is required']"
               />
 
@@ -581,29 +620,32 @@ onMounted(() => {
                 type="date"
                 :min="new Date().toISOString().split('T')[0]"
                 required
+                dense
               />
 
               <v-row>
-                <v-col cols="6">
+                <v-col cols="12" sm="6">
                   <v-text-field
                     v-model="newService.startTime"
                     label="Start Time"
                     type="time"
                     required
+                    dense
                   />
                 </v-col>
-                <v-col cols="6">
+                <v-col cols="12" sm="6">
                   <v-text-field
                     v-model="newService.endTime"
                     label="End Time"
                     type="time"
                     required
+                    dense
                   />
                 </v-col>
               </v-row>
             </v-card-text>
 
-            <v-card-actions class="pa-4">
+            <v-card-actions class="pa-3 pa-md-4">
               <v-spacer />
               <v-btn text @click="dialog = false">Cancel</v-btn>
               <v-btn color="primary" @click="addService">Save Service</v-btn>
@@ -624,14 +666,15 @@ onMounted(() => {
   background-repeat: no-repeat;
   min-height: 100vh;
 }
+
 .calendar-wrapper {
   background-color: #e0fff4;
   border-radius: 12px;
-  padding: 20px;
+  padding: 12px;
 }
 
 .calendar-header {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   text-align: center;
   color: white;
@@ -648,35 +691,61 @@ onMounted(() => {
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 6px;
   text-align: center;
+}
+
+.truncate-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
 }
 
 @media (max-width: 600px) {
   .calendar-day {
-    padding: 6px;
+    padding: 5px;
     font-size: 12px;
+  }
+
+  .calendar-header span {
+    font-size: 14px;
+  }
+
+  .calendar-weekdays,
+  .calendar-days {
+    gap: 4px;
+  }
+
+  .weekday {
+    font-size: 12px;
+  }
+
+  .calendar-wrapper {
+    padding: 8px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 960px) {
+  .calendar-day {
+    padding: 8px;
+    font-size: 14px;
   }
 
   .calendar-header span {
     font-size: 16px;
   }
-
-  .calendar-weekdays,
-  .calendar-days {
-    gap: 6px;
-  }
 }
 
 .toolbar-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   color: white;
 }
 
 .calendar-day {
   background-color: white;
-  padding: 10px;
+  padding: 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -696,11 +765,11 @@ onMounted(() => {
 
 .service-dot {
   position: absolute;
-  bottom: 5px;
+  bottom: 3px;
   left: 50%;
   transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   background-color: rgb(84, 101, 255);
   border-radius: 50%;
 }
@@ -710,7 +779,7 @@ onMounted(() => {
 }
 
 .v-btn {
-  margin-block: 12px;
+  margin-block: 8px;
 }
 
 .service-title {
@@ -718,8 +787,8 @@ onMounted(() => {
   font-weight: bold;
   color: #ffffff;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 20px;
-  padding: 16px;
+  font-size: 18px;
+  padding: 12px;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
@@ -747,13 +816,12 @@ onMounted(() => {
 
 .v-dialog .v-card {
   border-radius: 12px;
-  padding: 16px;
   background-color: #fff;
 }
 
 .v-card-title {
   font-weight: 600;
-  font-size: 20px;
+  font-size: 18px;
   color: #333;
 }
 
@@ -772,6 +840,21 @@ onMounted(() => {
 
 .v-app-bar {
   background: transparent;
-  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+}
+
+/* Adjust spacing for mobile */
+@media (max-width: 600px) {
+  .v-btn {
+    margin-block: 4px;
+  }
+
+  .service-title {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .v-card-title {
+    font-size: 16px;
+  }
 }
 </style>

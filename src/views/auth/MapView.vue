@@ -1,4 +1,3 @@
-// Fix for map view component (paste-2.txt)
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -17,6 +16,17 @@ const logout = async () => {
 const fileInput = ref(null)
 const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
+const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
+const mobileDrawerOpen = ref(false) // For mobile navigation drawer
+
+// Watch for window resize to update mobile state
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+const toggleMobileDrawer = () => {
+  mobileDrawerOpen.value = !mobileDrawerOpen.value
+}
 
 const toggleChangePicture = () => {
   fileInput.value.click()
@@ -236,6 +246,10 @@ onMounted(() => {
   fetchServices()
   setupRealtimeSubscription()
 
+  // Add window resize listener
+  window.addEventListener('resize', handleResize)
+  handleResize() // Initialize on mount
+
   // Set up a polling mechanism as backup in case realtime doesn't catch all changes
   const pollingInterval = setInterval(() => {
     fetchServices()
@@ -244,6 +258,7 @@ onMounted(() => {
   // Clean up on component unmount
   return () => {
     clearInterval(pollingInterval)
+    window.removeEventListener('resize', handleResize)
   }
 })
 
@@ -262,24 +277,33 @@ const resetView = () => {
 // Change selected date
 const goToToday = () => {
   selectedDate.value = new Date().toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToTomorrow = () => {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   selectedDate.value = tomorrow.toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToNextWeek = () => {
   const nextWeek = new Date()
   nextWeek.setDate(nextWeek.getDate() + 7)
   selectedDate.value = nextWeek.toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
+}
+
+const navigateTo = (route) => {
+  router.push(route)
+  if (isMobile.value) mobileDrawerOpen.value = false
 }
 </script>
 
 <template>
   <v-app>
-    <v-app-bar app color="#9bd1f8" dark>
+    <!-- Desktop App Bar -->
+    <v-app-bar app color="#9bd1f8" dark v-if="!isMobile">
       <v-img
         src="/images/DASHBOARD-LOGO PIXIE .jpg"
         alt="Logo"
@@ -360,12 +384,101 @@ const goToNextWeek = () => {
       </v-menu>
     </v-app-bar>
 
+    <!-- Mobile App Bar -->
+    <v-app-bar app color="#9bd1f8" dark v-if="isMobile">
+      <v-app-bar-nav-icon @click="toggleMobileDrawer" color="white"></v-app-bar-nav-icon>
+
+      <v-img
+        src="/images/DASHBOARD-LOGO PIXIE .jpg"
+        alt="Logo"
+        contain
+        max-width="32"
+        max-height="32"
+        class="mr-2"
+      />
+
+      <v-toolbar-title
+        class="white--text truncate-title"
+        @click="router.push('/dashboard')"
+        style="color: white; cursor: pointer"
+      >
+        Health Map
+      </v-toolbar-title>
+
+
+      <!-- Mobile Profile Menu -->
+      <v-menu v-model="isProfileMenuOpen" location="bottom end">
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props" size="small">
+            <v-avatar size="32">
+              <v-img :src="profileImage" alt="Profile Picture" />
+            </v-avatar>
+          </v-btn>
+        </template>
+
+        <v-card class="pa-2">
+          <v-list>
+            <v-list-item>
+              <v-avatar size="48" class="mx-auto mb-2">
+                <v-img :src="profileImage" alt="Profile Picture" />
+              </v-avatar>
+            </v-list-item>
+
+            <v-list-item link @click="toggleChangePicture">
+              <v-list-item-title>Change Profile Picture</v-list-item-title>
+            </v-list-item>
+
+            <v-divider />
+
+            <v-list-item link @click="logout">
+              <v-list-item-title class="text-red">Logout</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </v-app-bar>
+
+    <!-- Mobile Navigation Drawer -->
+    <v-navigation-drawer v-model="mobileDrawerOpen" temporary v-if="isMobile">
+      <v-list>
+        <v-list-item>
+          <v-list-item-title class="text-h6">Health Map</v-list-item-title>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list-item @click="navigateTo('/dashboard')">
+          <v-list-item-title>Dashboard</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="navigateTo('/map')">
+          <v-list-item-title>Map View</v-list-item-title>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list-item-title class="px-4 py-2 text-subtitle-2">View services for:</v-list-item-title>
+
+        <v-list-item @click="goToToday" :active="selectedDate === new Date().toISOString().split('T')[0]">
+          <v-list-item-title>Today</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="goToTomorrow">
+          <v-list-item-title>Tomorrow</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="goToNextWeek">
+          <v-list-item-title>Next Week</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
     <v-main>
       <v-container fluid class="pa-0 fill-height">
         <div id="map" class="map-container" />
 
-        <!-- Map Legend -->
-        <div class="map-legend">
+        <!-- Map Legend - Responsive -->
+        <div class="map-legend" :class="{ 'map-legend-mobile': isMobile }">
           <div class="legend-title">Map Legend</div>
           <div class="legend-item">
             <div class="legend-marker active"></div>
@@ -377,19 +490,35 @@ const goToNextWeek = () => {
           </div>
         </div>
 
-        <!-- Zoom Control Buttons -->
-        <div class="map-controls">
-          <v-btn @click="zoomIn" class="map-btn zoom-in"><v-icon>mdi-plus</v-icon></v-btn>
-          <v-btn @click="zoomOut" class="map-btn zoom-out"><v-icon>mdi-minus</v-icon></v-btn>
-          <v-btn @click="resetView" class="map-btn reset-view">
+        <!-- Zoom Control Buttons - Responsive -->
+        <div class="map-controls" :class="{ 'map-controls-mobile': isMobile }">
+          <v-btn @click="zoomIn" class="map-btn zoom-in" :size="isMobile ? 'small' : 'default'">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+          <v-btn @click="zoomOut" class="map-btn zoom-out" :size="isMobile ? 'small' : 'default'">
+            <v-icon>mdi-minus</v-icon>
+          </v-btn>
+          <v-btn @click="resetView" class="map-btn reset-view" :size="isMobile ? 'small' : 'default'">
             <v-icon>mdi-map-marker-radius</v-icon>
           </v-btn>
         </div>
+
+        <!-- Mobile Date Selector Fab -->
+        <v-btn
+          v-if="isMobile"
+          class="date-fab"
+          color="#9bd1f8"
+          size="large"
+          icon
+          @click="toggleMobileDrawer"
+        >
+          <v-icon>mdi-calendar</v-icon>
+        </v-btn>
       </v-container>
     </v-main>
 
-    <!-- Service Details Dialog -->
-    <v-dialog v-model="serviceDialog" max-width="600px">
+    <!-- Service Details Dialog - Responsive -->
+    <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
       <v-card>
         <v-card-title class="service-title">
           <span v-if="selectedService?.totalServices === 0">No Services</span>
@@ -418,7 +547,7 @@ const goToNextWeek = () => {
           </v-card>
 
           <div v-if="selectedService?.totalServices > 1" class="text-center">
-            <v-btn color="primary" @click="router.push('/dashboard')">
+            <v-btn color="primary" @click="navigateTo('/dashboard')">
               View All Services on Dashboard
             </v-btn>
           </div>
@@ -454,6 +583,11 @@ const goToNextWeek = () => {
   z-index: 10;
 }
 
+.map-controls-mobile {
+  top: 70px;
+  left: 5px;
+}
+
 .map-btn {
   width: 40px;
   height: 40px;
@@ -466,6 +600,12 @@ const goToNextWeek = () => {
   justify-content: center;
   cursor: pointer;
   margin-bottom: 5px;
+}
+
+.map-controls-mobile .map-btn {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 3px;
 }
 
 .map-btn:hover {
@@ -530,10 +670,23 @@ const goToNextWeek = () => {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+.map-legend-mobile {
+  bottom: 10px;
+  right: 10px;
+  padding: 8px;
+  max-width: 180px;
+  font-size: 12px;
+}
+
 .legend-title {
   font-weight: bold;
   margin-bottom: 8px;
   font-size: 14px;
+}
+
+.map-legend-mobile .legend-title {
+  font-size: 12px;
+  margin-bottom: 5px;
 }
 
 .legend-item {
@@ -541,6 +694,11 @@ const goToNextWeek = () => {
   align-items: center;
   margin-bottom: 6px;
   font-size: 12px;
+}
+
+.map-legend-mobile .legend-item {
+  font-size: 10px;
+  margin-bottom: 4px;
 }
 
 .legend-marker {
@@ -552,9 +710,23 @@ const goToNextWeek = () => {
   border: 1px solid #2277dd;
 }
 
+.map-legend-mobile .legend-marker {
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+
 .legend-marker.active {
   background-color: #f44336;
   border: 1px solid #d32f2f;
+}
+
+/* Date FAB for mobile */
+.date-fab {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
 }
 
 /* Custom marker styles - these will be applied globally but scoped to the markers */
@@ -592,5 +764,40 @@ const goToNextWeek = () => {
 :global(.service-available) {
   color: #f44336;
   font-weight: bold;
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 600px) {
+  .map-container {
+    height: calc(100vh - 56px);
+    border-radius: 0;
+    border: none;
+  }
+
+  .service-title {
+    font-size: 16px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-controls-mobile .map-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .map-legend-mobile {
+    max-width: 150px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .map-container {
+    height: calc(100vh - 48px);
+  }
+
+  .map-controls-mobile {
+    top: 60px;
+  }
 }
 </style>
