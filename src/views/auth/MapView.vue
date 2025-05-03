@@ -16,6 +16,17 @@ const logout = async () => {
 const fileInput = ref(null)
 const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
+const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
+const mobileDrawerOpen = ref(false) // For mobile navigation drawer
+
+// Watch for window resize to update mobile state
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+const toggleMobileDrawer = () => {
+  mobileDrawerOpen.value = !mobileDrawerOpen.value
+}
 
 const toggleChangePicture = () => {
   fileInput.value.click()
@@ -232,6 +243,10 @@ onMounted(() => {
   fetchServices()
   setupRealtimeSubscription()
 
+  // Add window resize listener
+  window.addEventListener('resize', handleResize)
+  handleResize() // Initialize on mount
+
   // Set up a polling mechanism as backup in case realtime doesn't catch all changes
   const pollingInterval = setInterval(() => {
     fetchServices()
@@ -240,6 +255,7 @@ onMounted(() => {
   // Clean up on component unmount
   return () => {
     clearInterval(pollingInterval)
+    window.removeEventListener('resize', handleResize)
   }
 })
 
@@ -258,24 +274,33 @@ const resetView = () => {
 // Change selected date
 const goToToday = () => {
   selectedDate.value = new Date().toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToTomorrow = () => {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   selectedDate.value = tomorrow.toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToNextWeek = () => {
   const nextWeek = new Date()
   nextWeek.setDate(nextWeek.getDate() + 7)
   selectedDate.value = nextWeek.toISOString().split('T')[0]
+  if (isMobile.value) mobileDrawerOpen.value = false
+}
+
+const navigateTo = (route) => {
+  router.push(route)
+  if (isMobile.value) mobileDrawerOpen.value = false
 }
 </script>
 
 <template>
   <v-app>
-    <v-app-bar app color="#9bd1f8" dark>
+    <!-- Desktop App Bar -->
+    <v-app-bar app color="#9bd1f8" dark v-if="!isMobile">
       <v-img
         src="/images/DASHBOARD-LOGO PIXIE .jpg"
         alt="Logo"
@@ -356,12 +381,103 @@ const goToNextWeek = () => {
       </v-menu>
     </v-app-bar>
 
+    <!-- Mobile App Bar -->
+    <v-app-bar app color="#9bd1f8" dark v-if="isMobile">
+      <v-app-bar-nav-icon @click="toggleMobileDrawer" color="white"></v-app-bar-nav-icon>
+
+      <v-img
+        src="/images/DASHBOARD-LOGO PIXIE .jpg"
+        alt="Logo"
+        contain
+        max-width="32"
+        max-height="32"
+        class="mr-2"
+      />
+
+      <v-toolbar-title
+        class="white--text truncate-title"
+        @click="router.push('/dashboard')"
+        style="color: white; cursor: pointer"
+      >
+        Health Map
+      </v-toolbar-title>
+
+      <!-- Mobile Profile Menu -->
+      <v-menu v-model="isProfileMenuOpen" location="bottom end">
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props" size="small">
+            <v-avatar size="32">
+              <v-img :src="profileImage" alt="Profile Picture" />
+            </v-avatar>
+          </v-btn>
+        </template>
+
+        <v-card class="pa-2">
+          <v-list>
+            <v-list-item>
+              <v-avatar size="48" class="mx-auto mb-2">
+                <v-img :src="profileImage" alt="Profile Picture" />
+              </v-avatar>
+            </v-list-item>
+
+            <v-list-item link @click="toggleChangePicture">
+              <v-list-item-title>Change Profile Picture</v-list-item-title>
+            </v-list-item>
+
+            <v-divider />
+
+            <v-list-item link @click="logout">
+              <v-list-item-title class="text-red">Logout</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-card>
+      </v-menu>
+    </v-app-bar>
+
+    <!-- Mobile Navigation Drawer -->
+    <v-navigation-drawer v-model="mobileDrawerOpen" temporary v-if="isMobile">
+      <v-list>
+        <v-list-item>
+          <v-list-item-title class="text-h6">Health Map</v-list-item-title>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list-item @click="navigateTo('/dashboard')">
+          <v-list-item-title>Dashboard</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="navigateTo('/map')">
+          <v-list-item-title>Map View</v-list-item-title>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list-item-title class="px-4 py-2 text-subtitle-2">View services for:</v-list-item-title>
+
+        <v-list-item
+          @click="goToToday"
+          :active="selectedDate === new Date().toISOString().split('T')[0]"
+        >
+          <v-list-item-title>Today</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="goToTomorrow">
+          <v-list-item-title>Tomorrow</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="goToNextWeek">
+          <v-list-item-title>Next Week</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
     <v-main>
       <v-container fluid class="pa-0 fill-height">
         <div id="map" class="map-container" />
 
-        <!-- Map Legend -->
-        <div class="map-legend">
+        <!-- Map Legend - Responsive -->
+        <div class="map-legend" :class="{ 'map-legend-mobile': isMobile }">
           <div class="legend-title">Map Legend</div>
           <div class="legend-item">
             <div class="legend-marker active"></div>
@@ -373,19 +489,39 @@ const goToNextWeek = () => {
           </div>
         </div>
 
-        <!-- Zoom Control Buttons -->
-        <div class="map-controls">
-          <v-btn @click="zoomIn" class="map-btn zoom-in"><v-icon>mdi-plus</v-icon></v-btn>
-          <v-btn @click="zoomOut" class="map-btn zoom-out"><v-icon>mdi-minus</v-icon></v-btn>
-          <v-btn @click="resetView" class="map-btn reset-view">
+        <!-- Zoom Control Buttons - Responsive -->
+        <div class="map-controls" :class="{ 'map-controls-mobile': isMobile }">
+          <v-btn @click="zoomIn" class="map-btn zoom-in" :size="isMobile ? 'small' : 'default'">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+          <v-btn @click="zoomOut" class="map-btn zoom-out" :size="isMobile ? 'small' : 'default'">
+            <v-icon>mdi-minus</v-icon>
+          </v-btn>
+          <v-btn
+            @click="resetView"
+            class="map-btn reset-view"
+            :size="isMobile ? 'small' : 'default'"
+          >
             <v-icon>mdi-map-marker-radius</v-icon>
           </v-btn>
         </div>
+
+        <!-- Mobile Date Selector Fab -->
+        <v-btn
+          v-if="isMobile"
+          class="date-fab"
+          color="#9bd1f8"
+          size="large"
+          icon
+          @click="toggleMobileDrawer"
+        >
+          <v-icon>mdi-calendar</v-icon>
+        </v-btn>
       </v-container>
     </v-main>
 
-    <!-- Service Details Dialog -->
-    <v-dialog v-model="serviceDialog" max-width="600px">
+    <!-- Service Details Dialog - Responsive -->
+    <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
       <v-card>
         <v-card-title class="service-title">
           <span v-if="selectedService?.totalServices === 0">No Services</span>
@@ -414,7 +550,7 @@ const goToNextWeek = () => {
           </v-card>
 
           <div v-if="selectedService?.totalServices > 1" class="text-center">
-            <v-btn color="primary" @click="router.push('/dashboard')">
+            <v-btn color="primary" @click="navigateTo('/dashboard')">
               View All Services on Dashboard
             </v-btn>
           </div>
@@ -450,6 +586,11 @@ const goToNextWeek = () => {
   z-index: 10;
 }
 
+.map-controls-mobile {
+  top: 70px;
+  left: 5px;
+}
+
 .map-btn {
   width: 40px;
   height: 40px;
@@ -459,6 +600,12 @@ const goToNextWeek = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.map-controls-mobile .map-btn {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 3px;
 }
 
 .map-btn:hover {
@@ -478,14 +625,32 @@ const goToNextWeek = () => {
   max-width: 90vw;
 }
 
+.map-legend-mobile {
+  bottom: 10px;
+  right: 10px;
+  padding: 8px;
+  max-width: 180px;
+  font-size: 12px;
+}
+
 .legend-title {
   font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.map-legend-mobile .legend-title {
+  font-size: 12px;
   margin-bottom: 5px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
+  margin-bottom: 4px;
+}
+
+.map-legend-mobile .legend-item {
+  font-size: 10px;
   margin-bottom: 4px;
 }
 
@@ -497,75 +662,86 @@ const goToNextWeek = () => {
   margin-right: 8px;
 }
 
+.map-legend-mobile .legend-marker {
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+}
+
 .legend-marker.active {
   background-color: #f44336;
+  border: 1px solid #d32f2f;
 }
 
+/* Custom marker styles - these will be applied globally but scoped to the markers */
+:global(.custom-div-icon) {
+  background: transparent;
+  border: none;
+}
+
+:global(.marker-pin) {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  background: #3388ff;
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 50%;
+  top: 50%;
+  margin: -15px 0 0 -15px;
+}
+
+:global(.marker-pin.active) {
+  background: #f44336;
+}
+
+:global(.marker-pin::after) {
+  content: '';
+  width: 20px;
+  height: 20px;
+  margin: 5px 0 0 5px;
+  background: #fff;
+  position: absolute;
+  border-radius: 50%;
+}
+
+:global(.service-available) {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Responsive adjustments for different screen sizes */
 @media (max-width: 600px) {
-  .legend-title,
-  .legend-item span {
-    font-size: 12px;
+  .map-container {
+    height: calc(100vh - 56px);
+    border-radius: 0;
+    border: none;
   }
 
-  .map-controls {
-    top: 70px;
-    left: 5px;
-  }
-
-  .map-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-  }
-
-  .map-legend {
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-
-  .v-toolbar-title {
-    font-size: 16px !important;
-  }
-
-  .date-filter {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-    margin-right: 10px;
-  }
-
-  .date-label {
-    font-size: 12px;
+  .service-title {
+    font-size: 16px;
+    padding: 12px;
   }
 }
 
-@media (min-width: 601px) and (max-width: 960px) {
-  .map-controls {
-    top: 75px;
-    left: 8px;
+@media (max-width: 480px) {
+  .map-controls-mobile .map-btn {
+    width: 28px;
+    height: 28px;
   }
 
-  .date-filter {
-    flex-wrap: wrap;
-    gap: 6px;
+  .map-legend-mobile {
+    max-width: 150px;
   }
 }
 
-@media (min-width: 961px) {
-  .map-legend {
-    bottom: 20px;
-    left: 20px;
+@media (max-height: 500px) and (orientation: landscape) {
+  .map-container {
+    height: calc(100vh - 48px);
   }
 
-  .map-controls {
-    top: 80px;
-    left: 20px;
-  }
-
-  .date-filter {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+  .map-controls-mobile {
+    top: 60px;
   }
 }
 </style>
