@@ -1,33 +1,17 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useTheme } from 'vuetify'
+
 import { supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
 
 const router = useRouter()
-const theme = useTheme()
+
 
 const logout = async () => {
   await supabase.auth.signOut()
   router.push({ name: 'login' })
 }
-
-const isDarkMode = ref(false)
-const toggleTheme = () => {
-  isDarkMode.value = !isDarkMode.value
-  theme.global.name.value = isDarkMode.value ? 'dark' : 'light'
-  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
-}
-
-// Load saved theme on mount
-onMounted(() => {
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme === 'dark') {
-    isDarkMode.value = true
-    theme.global.name.value = 'dark'
-  }
-})
 
 const profileImage = ref('/images/TemporaryProfile.jpg')
 const showChangePicture = ref(false)
