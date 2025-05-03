@@ -1,9 +1,9 @@
 <script setup>
 import { formActionDefault, supabase } from '@/utils/supabase.js'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted} from 'vue'
 import { useRouter } from 'vue-router'
+import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 
-const drawer = ref(true)
 const router = useRouter()
 const formAction = ref({ ...formActionDefault })
 
@@ -35,6 +35,7 @@ const newService = ref({
   doctor: '',
   startTime: '',
   endTime: '',
+  date: '', // Add date field to the form
 })
 const services = ref({}) // Grouped services by date
 const dailyServices = ref([]) // Services for the selected date
@@ -72,14 +73,28 @@ const blankDays = computed(() => {
   return Array.from({ length: firstDay }, (_, i) => i)
 })
 
+// FIXED: Updated getDate function to properly format date without timezone issues
 const getDate = (day) => {
+  // Create date object using local timezone
   const date = new Date(currentYear.value, currentMonth.value, day)
-  return date.toISOString().split('T')[0]
+
+  // Format to YYYY-MM-DD ensuring we don't lose a day due to timezone conversion
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const dayStr = String(day).padStart(2, '0')
+
+  // Return in YYYY-MM-DD format
+  return `${year}-${month}-${dayStr}`
 }
 
+// FIXED: Updated isToday function to use the same date formatting approach
 const isToday = (dateString) => {
-  const todayDate = new Date()
-  const todayFormatted = todayDate.toISOString().split('T')[0]
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  const todayFormatted = `${year}-${month}-${day}`
+
   return dateString === todayFormatted
 }
 
@@ -114,51 +129,90 @@ const formatTime = (timeInput) => {
 
 // Open Add Service Dialog
 const openServiceDialog = () => {
+  // Initialize form with selected date
+  newService.value.date = selectedDate.value
   dialog.value = true
 }
 
 // Add Service to Supabase
 const addService = async () => {
   try {
+    // Use the form's date field instead of selectedDate
+    const serviceDate = newService.value.date || selectedDate.value
+
     // Create ISO format timestamp strings that include timezone info
-    const startDateTime = new Date(`${selectedDate.value}T${newService.value.startTime}:00`)
-    const endDateTime = new Date(`${selectedDate.value}T${newService.value.endTime}:00`)
+    const startDateTime = new Date(`${serviceDate}T${newService.value.startTime}:00`)
+    const endDateTime = new Date(`${serviceDate}T${newService.value.endTime}:00`)
 
     // Format for timestamptz in Supabase
     const startTimestamptz = startDateTime.toISOString()
     const endTimestamptz = endDateTime.toISOString()
 
-    const { data, error } = await supabase.from('services').insert([
-      {
-        title: newService.value.title,
-        description: newService.value.description,
-        doctor: newService.value.doctor,
-        barangay: newService.value.barangay,
-        start_date_time: startTimestamptz,
-        end_date_time: endTimestamptz,
-        date: selectedDate.value,
-      },
-    ])
-
-    if (error) {
-      console.error('Failed to add service:', error.message)
+    // Form validation
+    if (
+      !newService.value.title ||
+      !newService.value.barangay ||
+      !serviceDate ||
+      !newService.value.startTime ||
+      !newService.value.endTime
+    ) {
+      alert('Please fill in all required fields (title, barangay, date, start and end time)')
       return
     }
 
-    console.log('Service added:', data)
+    // Create new service object
+    const newServiceData = {
+      title: newService.value.title,
+      description: newService.value.description,
+      doctor: newService.value.doctor,
+      barangay: newService.value.barangay,
+      start_date_time: startTimestamptz,
+      end_date_time: endTimestamptz,
+      date: serviceDate,
+    }
+
+    // Insert to database
+    const { data, error } = await supabase.from('services').insert([newServiceData])
+
+    if (error) {
+      console.error('Failed to add service:', error.message)
+      alert('Failed to add service: ' + error.message)
+      return
+    }
+
+    console.log('Service added successfully:', data)
+
+    // Update the local services state to include the new service
+    if (!services.value[serviceDate]) {
+      services.value[serviceDate] = []
+    }
+
+    // For immediate UI update without waiting for database refresh
+    services.value[serviceDate].push({
+      ...newServiceData,
+      id: data?.[0]?.id || Date.now(), // Use returned ID or fallback to timestamp
+    })
+
+    // If we're viewing the date that just had a service added, update daily services
+    if (selectedDate.value === serviceDate) {
+      getServicesForDate()
+    }
+
     dialog.value = false
-    await fetchServices()
+    await fetchServices() // Refresh all services
     resetServiceForm()
   } catch (e) {
     console.error('Unexpected error while adding service:', e)
+    alert('Unexpected error while adding service')
   }
 }
+
 // Fetch Services from Supabase
 const fetchServices = async () => {
   const { data, error } = await supabase.from('services').select('*')
 
   if (error) {
-    console.error('Error fetching services:', error.message)
+    console.error('Error fetching services:', error)
     return
   }
 
@@ -182,6 +236,7 @@ const resetServiceForm = () => {
   newService.value.barangay = ''
   newService.value.startTime = ''
   newService.value.endTime = ''
+  newService.value.date = ''
 }
 
 const deleteDialog = ref(false)
@@ -220,10 +275,8 @@ const deleteSelectedServices = async () => {
   }
 }
 
-// Profile image logic (as before)
-const profileImage = ref('/images/TemporaryProfile.jpg')
+// Profile image logic
 const fileInput = ref(null)
-const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
 
 const toggleChangePicture = () => {
@@ -235,22 +288,12 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      profileImage.value = reader.result
-      localStorage.setItem('profileImage', profileImage.value)
+      // Use the shared update function
+      updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
   }
 }
-
-// Load saved profile image on mount
-onMounted(() => {
-  const storedImage = localStorage.getItem('profileImage')
-  if (storedImage) {
-    profileImage.value = storedImage
-  }
-  // Your existing fetchServices() call remains here
-  fetchServices()
-})
 
 // Calendar Navigation
 const goToPrevMonth = () => {
@@ -270,7 +313,53 @@ const goToNextMonth = () => {
     currentMonth.value += 1
   }
 }
+
+// Mobile detection
+const isMobile = ref(false)
+
+// Function to check screen size
+const checkScreen = () => {
+  isMobile.value = window.innerWidth < 768
+}
+
+// Set up Supabase subscription for real-time updates
+const channelRef = ref(null)
+
+const setupRealtimeSubscription = () => {
+  channelRef.value = supabase
+    .channel('services-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update received in Dashboard:', payload)
+      fetchServices() // Refresh services when there's a change
+    })
+    .subscribe((status) => {
+      console.log('Dashboard subscription status:', status)
+    })
+}
+
+// On component mount - FIXED: Updated to use consistent date formatting
+onMounted(() => {
+  // Set default selected date to today using consistent date format
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  selectedDate.value = `${year}-${month}-${day}`
+
+  // Check screen size initially
+  checkScreen()
+
+  // Add resize event listener
+  window.addEventListener('resize', checkScreen)
+
+  // Fetch services
+  fetchServices()
+
+  // Set up realtime updates
+  setupRealtimeSubscription()
+})
 </script>
+
 <template>
   <v-app class="dashboard-bg">
     <!-- Top Bar -->
@@ -281,15 +370,41 @@ const goToNextMonth = () => {
         contain
         max-width="40"
         max-height="40"
-        class="ml-4 mr-2"
+        class="ml-2 mr-2"
       ></v-img>
 
-      <v-toolbar-title class="white-text">Dashboard</v-toolbar-title>
+      <h2 class="white--text truncate-title" style="color: white; cursor: pointer">Health Map</h2>
 
-      <!-- Navigation Buttons -->
-      <v-btn text @click="router.push('/dashboard')">Dashboard</v-btn>
-      <v-btn text @click="router.push('/map')">Map View</v-btn>
+      <!-- Navigation Buttons - Hide on mobile -->
+      <div class="d-none d-sm-flex">
+        <router-link to="/dashboard">
+          <v-btn text style="color: white"> Dashboard </v-btn>
+        </router-link>
+
+        <router-link to="/map">
+          <v-btn text style="color: white"> Map View </v-btn>
+        </router-link>
+      </div>
+
       <v-spacer></v-spacer>
+
+      <!-- Mobile Navigation Menu -->
+      <v-menu v-if="isMobile" location="bottom end" offset-y>
+        <template #activator="{ props }">
+          <v-btn icon v-bind="props">
+            <v-icon>mdi-menu</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item to="/dashboard">
+            <v-list-item-title>Dashboard</v-list-item-title>
+          </v-list-item>
+          <v-list-item to="/map">
+            <v-list-item-title>Map View</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
 
       <!-- Profile Menu -->
       <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
@@ -302,7 +417,7 @@ const goToNextMonth = () => {
           </v-btn>
         </template>
 
-        <v-card class="w-64 pa-2">
+        <v-card class="pa-2" :width="isMobile ? '200px' : '256px'">
           <v-list>
             <!-- Profile Picture -->
             <v-list-item>
@@ -338,67 +453,16 @@ const goToNextMonth = () => {
 
     <!-- Main Content -->
     <v-main>
-      <v-container fluid>
-        <!-- Carousel -->
-        <v-carousel>
-          <v-carousel-item src="/images/CAROUSELWELCOME.png" cover></v-carousel-item>
-          <v-carousel-item src="/images/CAROUSELWELCOME2.png" cover></v-carousel-item>
+      <v-container fluid class="px-2 px-sm-4">
+        <!-- Carousel with responsive height -->
+        <v-carousel :height="isMobile ? 200 : 300" hide-delimiter-background show-arrows="hover">
+          <v-carousel-item src="/images/CAROUSEL1.png" cover></v-carousel-item>
+          <v-carousel-item src="/images/CAROUSEL2.png" cover></v-carousel-item>
         </v-carousel>
 
         <v-row>
-          <!-- Service Today Column -->
-          <v-col cols="12" md="6" class="pt-6">
-            <!-- Services Card -->
-            <v-card class="mb-4">
-              <v-card-title class="service-title">
-                Service Today
-                <v-spacer />
-              </v-card-title>
-
-              <v-divider></v-divider>
-
-              <v-card-text>
-                <v-list v-if="dailyServices.length" dense>
-                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
-                    <v-card class="pa-4" color="#e6f2fc" flat rounded>
-                      <div>
-                        <div class="text-primary font-weight-bold text-h6">{{ service.title }}</div>
-                        <div class="mb-2">{{ service.description }}</div>
-
-                        <div class="d-flex align-center mb-1">
-                          <v-icon small class="mr-2">mdi-account</v-icon>
-                          <span>{{ service.doctor }}</span>
-                        </div>
-
-                        <div class="d-flex align-center mb-1">
-                          <v-icon small class="mr-2">mdi-map-marker</v-icon>
-                          <span>{{ service.barangay }}</span>
-                        </div>
-
-                        <div class="d-flex align-center">
-                          <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-                          <span>
-                            {{ formatTime(service.start_date_time) }} -
-                            {{ formatTime(service.end_date_time) }}
-                          </span>
-                        </div>
-                      </div>
-                    </v-card>
-                  </v-list-item>
-                </v-list>
-
-                <div v-else>No service for this day.</div>
-
-                <div class="d-flex mt-4" v-if="selectedDate">
-                  <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog"> Add </v-btn>
-                  <v-btn color="error" small @click="openDeleteServiceDialog"> Delete </v-btn>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <!-- Calendar Column -->
-          <v-col cols="12" md="6" class="pt-6">
+          <!-- Calendar Column - Shown first on mobile -->
+          <v-col cols="12" md="6" :order="isMobile ? '1' : '2'" class="pt-3 pt-md-6">
             <div class="calendar-wrapper">
               <div class="calendar-header">
                 <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
@@ -430,12 +494,85 @@ const goToNextMonth = () => {
               </div>
             </div>
           </v-col>
+
+          <!-- Service Today Column -->
+          <v-col cols="12" md="6" :order="isMobile ? '2' : '1'" class="pt-3 pt-md-6">
+            <!-- Services Card -->
+            <v-card class="mb-4">
+              <v-card-title class="service-title">
+                {{
+                  selectedDate === new Date().toISOString().split('T')[0]
+                    ? 'Service Today'
+                    : 'Services for ' + selectedDate
+                }}
+                <v-spacer />
+              </v-card-title>
+
+              <v-divider></v-divider>
+
+              <v-card-text>
+                <v-list v-if="dailyServices.length" dense>
+                  <v-list-item v-for="(service, index) in dailyServices" :key="index">
+                    <v-card class="pa-3 pa-md-4" color="#e6f2fc" flat rounded>
+                      <div>
+                        <div class="text-primary font-weight-bold text-body-1 text-md-h6">
+                          {{ service.title }}
+                        </div>
+                        <div class="mb-2 text-caption text-md-body-2">
+                          {{ service.description }}
+                        </div>
+
+                        <div class="d-flex align-center mb-1 text-caption text-md-body-2">
+                          <v-icon size="small" class="mr-2">mdi-account</v-icon>
+                          <span>{{ service.doctor }}</span>
+                        </div>
+
+                        <div class="d-flex align-center mb-1 text-caption text-md-body-2">
+                          <v-icon size="small" class="mr-2">mdi-map-marker</v-icon>
+                          <span>{{ service.barangay }}</span>
+                        </div>
+
+                        <div class="d-flex align-center text-caption text-md-body-2">
+                          <v-icon size="small" class="mr-2">mdi-clock-time-four</v-icon>
+                          <span>
+                            {{ formatTime(service.start_date_time) }} -
+                            {{ formatTime(service.end_date_time) }}
+                          </span>
+                        </div>
+                      </div>
+                    </v-card>
+                  </v-list-item>
+                </v-list>
+
+                <div v-else class="text-center py-4">No service for this day.</div>
+
+                <div class="d-flex justify-center mt-4" v-if="selectedDate">
+                  <v-btn
+                    color="#5da8ca"
+                    :size="isMobile ? 'small' : 'default'"
+                    class="mr-2"
+                    @click="openServiceDialog"
+                  >
+                    Add
+                  </v-btn>
+                  <v-btn
+                    color="error"
+                    :size="isMobile ? 'small' : 'default'"
+                    @click="openDeleteServiceDialog"
+                    :disabled="!dailyServices.length"
+                  >
+                    Delete
+                  </v-btn>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
         </v-row>
 
         <!-- Delete Service Dialog -->
-        <v-dialog v-model="deleteDialog" max-width="500px">
+        <v-dialog v-model="deleteDialog" :max-width="isMobile ? '95%' : '500px'">
           <v-card>
-            <v-card-title>Select Service(s) to Delete</v-card-title>
+            <v-card-title class="text-h6">Select Service(s) to Delete</v-card-title>
             <v-card-text>
               <v-list dense>
                 <v-list-item
@@ -469,29 +606,59 @@ const goToNextMonth = () => {
         </v-dialog>
 
         <!-- Add Service Dialog -->
-        <v-dialog v-model="dialog" max-width="500">
-          <v-card class="pa-4 pa-sm-6">
+        <v-dialog v-model="dialog" :max-width="isMobile ? '95%' : '500px'">
+          <v-card class="pa-3 pa-sm-6">
             <v-card-title class="service-title">
               Add Service
               <v-spacer />
             </v-card-title>
 
-            <v-card-text class="pa-4">
-              <v-text-field v-model="newService.title" label="Service Title" />
-              <v-textarea v-model="newService.description" label="Description" rows="2" />
-              <v-text-field v-model="newService.doctor" label="Doctor" />
-              <v-select v-model="newService.barangay" :items="barangayOptions" label="Barangay" />
+            <v-card-text class="pa-3 pa-md-4">
+              <v-text-field v-model="newService.title" label="Service Title" required dense />
+              <v-textarea v-model="newService.description" label="Description" rows="2" dense />
+              <v-text-field v-model="newService.doctor" label="Doctor" dense />
+              <v-select
+                v-model="newService.barangay"
+                :items="barangayOptions"
+                label="Barangay"
+                required
+                dense
+                :rules="[(v) => !!v || 'Barangay is required']"
+              />
+
+              <!-- Add date picker -->
+              <v-text-field
+                v-model="newService.date"
+                label="Date"
+                type="date"
+                :min="new Date().toISOString().split('T')[0]"
+                required
+                dense
+              />
+
               <v-row>
-                <v-col cols="6">
-                  <v-text-field v-model="newService.startTime" label="Start Time" type="time" />
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    v-model="newService.startTime"
+                    label="Start Time"
+                    type="time"
+                    required
+                    dense
+                  />
                 </v-col>
-                <v-col cols="6">
-                  <v-text-field v-model="newService.endTime" label="End Time" type="time" />
+                <v-col cols="12" sm="6">
+                  <v-text-field
+                    v-model="newService.endTime"
+                    label="End Time"
+                    type="time"
+                    required
+                    dense
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
 
-            <v-card-actions class="pa-4">
+            <v-card-actions class="pa-3 pa-md-4">
               <v-spacer />
               <v-btn text @click="dialog = false">Cancel</v-btn>
               <v-btn color="primary" @click="addService">Save Service</v-btn>
@@ -512,14 +679,15 @@ const goToNextMonth = () => {
   background-repeat: no-repeat;
   min-height: 100vh;
 }
+
 .calendar-wrapper {
   background-color: #e0fff4;
   border-radius: 12px;
-  padding: 20px;
+  padding: 12px;
 }
 
 .calendar-header {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   text-align: center;
   color: white;
@@ -536,35 +704,61 @@ const goToNextMonth = () => {
 .calendar-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 6px;
   text-align: center;
+}
+
+.truncate-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
 }
 
 @media (max-width: 600px) {
   .calendar-day {
-    padding: 6px;
+    padding: 5px;
     font-size: 12px;
+  }
+
+  .calendar-header span {
+    font-size: 14px;
+  }
+
+  .calendar-weekdays,
+  .calendar-days {
+    gap: 4px;
+  }
+
+  .weekday {
+    font-size: 12px;
+  }
+
+  .calendar-wrapper {
+    padding: 8px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 960px) {
+  .calendar-day {
+    padding: 8px;
+    font-size: 14px;
   }
 
   .calendar-header span {
     font-size: 16px;
   }
-
-  .calendar-weekdays,
-  .calendar-days {
-    gap: 6px;
-  }
 }
 
 .toolbar-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   color: white;
 }
 
 .calendar-day {
   background-color: white;
-  padding: 10px;
+  padding: 8px;
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -584,11 +778,11 @@ const goToNextMonth = () => {
 
 .service-dot {
   position: absolute;
-  bottom: 5px;
+  bottom: 3px;
   left: 50%;
   transform: translateX(-50%);
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   background-color: rgb(84, 101, 255);
   border-radius: 50%;
 }
@@ -598,7 +792,7 @@ const goToNextMonth = () => {
 }
 
 .v-btn {
-  margin-block: 12px;
+  margin-block: 8px;
 }
 
 .service-title {
@@ -606,8 +800,8 @@ const goToNextMonth = () => {
   font-weight: bold;
   color: #ffffff;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 20px;
-  padding: 16px;
+  font-size: 18px;
+  padding: 12px;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
 }
@@ -635,13 +829,12 @@ const goToNextMonth = () => {
 
 .v-dialog .v-card {
   border-radius: 12px;
-  padding: 16px;
   background-color: #fff;
 }
 
 .v-card-title {
   font-weight: 600;
-  font-size: 20px;
+  font-size: 18px;
   color: #333;
 }
 
@@ -660,6 +853,21 @@ const goToNextMonth = () => {
 
 .v-app-bar {
   background: transparent;
-  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+}
+
+/* Adjust spacing for mobile */
+@media (max-width: 600px) {
+  .v-btn {
+    margin-block: 4px;
+  }
+
+  .service-title {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .v-card-title {
+    font-size: 16px;
+  }
 }
 </style>

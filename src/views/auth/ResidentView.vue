@@ -17,6 +17,12 @@ const selectedBarangay = ref(null)
 const loading = ref(true)
 const showServiceCard = ref(false)
 const selectedBarangayServices = ref([])
+const showAllServices = ref(false)
+const serviceFilter = ref({
+  barangay: '',
+  date: new Date().toISOString().split('T')[0],
+  doctor: '',
+})
 
 // Barangay coordinates
 const barangayCoordinates = {
@@ -44,6 +50,61 @@ const servicesPerBarangay = computed(() => {
   return counts
 })
 
+// Filtered services
+const filteredServices = computed(() => {
+  return services.value.filter((service) => {
+    // Filter by barangay if specified
+    if (serviceFilter.value.barangay && service.barangay !== serviceFilter.value.barangay) {
+      return false
+    }
+
+    // Filter by date if specified
+    if (serviceFilter.value.date) {
+      const serviceDate = new Date(service.service_date).toISOString().split('T')[0]
+      const filterDate = new Date(serviceFilter.value.date).toISOString().split('T')[0]
+      if (serviceDate !== filterDate) {
+        return false
+      }
+    }
+
+    // Filter by doctor if specified
+    if (
+      serviceFilter.value.doctor &&
+      !service.provider_name?.toLowerCase().includes(serviceFilter.value.doctor.toLowerCase())
+    ) {
+      return false
+    }
+
+    return true
+  })
+})
+
+// Unique barangay and doctor lists for filters
+const uniqueBarangays = computed(() => {
+  const barangays = new Set()
+  services.value.forEach((service) => {
+    if (service.barangay) barangays.add(service.barangay)
+  })
+  return Array.from(barangays).sort()
+})
+
+const uniqueDoctors = computed(() => {
+  const doctors = new Set()
+  services.value.forEach((service) => {
+    if (service.provider_name) doctors.add(service.provider_name)
+  })
+  return Array.from(doctors).sort()
+})
+
+// Reset filters
+const resetFilters = () => {
+  serviceFilter.value = {
+    barangay: '',
+    date: new Date().toISOString().split('T')[0],
+    doctor: '',
+  }
+}
+
 // Logout Logic
 const logout = async () => {
   formAction.value = { ...formActionDefault, formProcess: true }
@@ -55,7 +116,7 @@ const logout = async () => {
     console.error('Error logging out:', error)
   } finally {
     formAction.value.formProcess = false
-    router.replace('/')
+    await router.replace('/login')
   }
 }
 
@@ -128,6 +189,10 @@ const showBarangayServices = (barangay) => {
 
 const closeServiceCard = () => {
   showServiceCard.value = false
+}
+
+const toggleAllServices = () => {
+  showAllServices.value = !showAllServices.value
 }
 
 // Event handling
@@ -242,6 +307,11 @@ onMounted(async () => {
       <v-toolbar-title>Resident Map</v-toolbar-title>
       <v-spacer></v-spacer>
 
+      <!-- Services Button -->
+      <v-btn icon @click="toggleAllServices">
+        <v-icon>mdi-medical-bag</v-icon>
+      </v-btn>
+
       <!-- Profile Menu -->
       <v-menu v-model="isProfileMenuOpen" location="bottom end" offset-y>
         <template #activator="{ props }">
@@ -333,6 +403,133 @@ onMounted(async () => {
           </v-tooltip>
         </div>
 
+        <!-- All Services Panel -->
+        <v-navigation-drawer
+          v-model="showAllServices"
+          temporary
+          right
+          width="400"
+          class="services-drawer"
+        >
+          <v-card flat class="h-full">
+            <v-card-title
+              class="d-flex justify-space-between align-center"
+              :style="{ backgroundColor: '#e3f2fd' }"
+            >
+              <span>Health Services</span>
+              <v-btn icon @click="toggleAllServices">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-card-title>
+
+            <v-card-text class="pt-4">
+              <!-- Filters -->
+              <v-row>
+                <v-col cols="12">
+                  <v-select
+                    v-model="serviceFilter.barangay"
+                    :items="uniqueBarangays"
+                    label="Filter by Barangay"
+                    clearable
+                    variant="outlined"
+                    density="compact"
+                  ></v-select>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="serviceFilter.doctor"
+                    label="Filter by Doctor"
+                    clearable
+                    variant="outlined"
+                    density="compact"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="serviceFilter.date"
+                    label="Filter by Date"
+                    type="date"
+                    variant="outlined"
+                    density="compact"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" class="d-flex justify-end">
+                  <v-btn :color="themeColor" @click="resetFilters" size="small"
+                    >Reset Filters</v-btn
+                  >
+                </v-col>
+              </v-row>
+
+              <v-divider class="my-4"></v-divider>
+
+              <!-- Services List -->
+              <div v-if="loading" class="d-flex justify-center my-4">
+                <v-progress-circular indeterminate :color="themeColor"></v-progress-circular>
+              </div>
+
+              <div v-else-if="filteredServices.length === 0" class="text-center py-4">
+                <v-icon size="64" color="grey lighten-2">mdi-alert-circle-outline</v-icon>
+                <p class="mt-2">No services available with current filters.</p>
+              </div>
+
+              <div v-else class="services-list">
+                <v-card
+                  v-for="service in filteredServices"
+                  :key="service.id"
+                  class="mb-4 service-card"
+                  elevation="2"
+                >
+                  <v-card-title class="text-h6" :style="{ backgroundColor: '#e3f2fd' }">
+                    {{ service.service_name }}
+                  </v-card-title>
+
+                  <v-card-text>
+                    <p class="mb-2">
+                      <v-icon size="small" :color="themeColor" class="me-2">mdi-map-marker</v-icon>
+                      <strong>Barangay:</strong> {{ service.barangay }}
+                    </p>
+
+                    <p class="mb-2">
+                      <v-icon size="small" :color="themeColor" class="me-2"
+                        >mdi-account-outline</v-icon
+                      >
+                      <strong>Doctor:</strong> {{ service.provider_name || 'Not specified' }}
+                    </p>
+
+                    <p class="mb-2">
+                      <v-icon size="small" :color="themeColor" class="me-2">mdi-calendar</v-icon>
+                      <strong>Date:</strong> {{ formatDate(service.service_date) }}
+                    </p>
+
+                    <p class="mb-2">
+                      <v-icon size="small" :color="themeColor" class="me-2"
+                        >mdi-clock-outline</v-icon
+                      >
+                      <strong>Time:</strong> {{ service.start_time || '—' }} -
+                      {{ service.end_time || '—' }}
+                    </p>
+
+                    <p v-if="service.description" class="mt-3">
+                      <v-icon size="small" :color="themeColor" class="me-2"
+                        >mdi-information-outline</v-icon
+                      >
+                      <strong>Description:</strong>
+                    </p>
+                    <p class="ps-8 mt-1">{{ service.description || 'No description available' }}</p>
+                  </v-card-text>
+
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn variant="text" :color="themeColor" size="small">
+                      MORE INFORMATION
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-navigation-drawer>
+
         <!-- Services Card -->
         <div class="service-dialog-overlay" v-if="showServiceCard" @click.self="closeServiceCard">
           <v-card class="service-dialog" max-width="400">
@@ -381,6 +578,11 @@ onMounted(async () => {
                         >mdi-account-outline</v-icon
                       >
                       <strong>Doctor:</strong> {{ service.provider_name || 'Not specified' }}
+                    </p>
+
+                    <p class="mb-2">
+                      <v-icon size="small" :color="themeColor" class="me-2">mdi-calendar</v-icon>
+                      <strong>Date:</strong> {{ formatDate(service.service_date) }}
                     </p>
 
                     <p class="mb-2">
@@ -464,5 +666,15 @@ onMounted(async () => {
 .service-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.services-drawer {
+  z-index: 1002;
+}
+
+.services-list {
+  max-height: 65vh;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 </style>
