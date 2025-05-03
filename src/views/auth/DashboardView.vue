@@ -9,6 +9,7 @@ import { VCarousel, VCarouselItem } from 'vuetify/components'
 const drawer = ref(true)
 const router = useRouter()
 const formAction = ref({ ...formActionDefault })
+const mobileMenuOpen = ref(false) // For mobile navigation
 
 
 // Logout Logic
@@ -356,6 +357,9 @@ onMounted(() => {
   <v-app class="dashboard-bg">
     <!-- Top Bar -->
     <v-app-bar app color="#9bd1f8" dark elevate-on-scroll>
+      <!-- Mobile Menu Button -->
+      <v-app-bar-nav-icon class="show-on-small" @click="mobileMenuOpen = !mobileMenuOpen"></v-app-bar-nav-icon>
+
       <v-img
         src="/images/DASHBOARD-LOGO PIXIE .jpg"
         alt="Logo"
@@ -376,8 +380,8 @@ onMounted(() => {
 
 
       <!-- Navigation Buttons -->
-      <v-btn text style="color: white" @click="router.push('/dashboard')">Dashboard</v-btn>
-      <v-btn text style="color: white" @click="router.push('/map')">Map View</v-btn>
+      <v-btn text style="color: white" @click="router.push('/dashboard')" class="hide-on-small">Dashboard</v-btn>
+      <v-btn text style="color: white" @click="router.push('/map')" class="hide-on-small">Map View</v-btn>
       <v-spacer></v-spacer>
 
 
@@ -434,19 +438,19 @@ onMounted(() => {
 
     <!-- Main Content -->
     <v-main>
-      <v-container fluid>
+      <v-container fluid class="mobile-container">
         <!-- Carousel -->
-        <v-carousel hide-delimiters height="300px">
+        <v-carousel hide-delimiters height="300px" class="responsive-carousel">
           <v-carousel-item src="/images/CAROUSEL1.png" cover></v-carousel-item>
           <v-carousel-item src="/images/CAROUSEL2.png" cover></v-carousel-item>
         </v-carousel>
 
-        <v-row>
+        <v-row class="flex-column-mobile">
           <!-- Service Today Column -->
           <v-col cols="12" md="6" class="pt-6">
             <!-- Services Card -->
-            <v-card class="mb-4">
-              <v-card-title class="service-title">
+            <v-card class="mb-4 mobile-card">
+              <v-card-title class="service-title mobile-title">
                 {{ selectedDate === new Date().toISOString().split('T')[0] ? 'Service Today' : 'Services for ' + selectedDate }}
                 <v-spacer />
               </v-card-title>
@@ -458,27 +462,27 @@ onMounted(() => {
               <v-card-text>
                 <v-list v-if="dailyServices.length" dense>
                   <v-list-item v-for="(service, index) in dailyServices" :key="index">
-                    <v-card class="pa-4" color="#e6f2fc" flat rounded>
+                    <v-card class="pa-4 mobile-service-card" color="#e6f2fc" flat rounded>
                       <div>
-                        <div class="text-primary font-weight-bold text-h6">{{ service.title }}</div>
-                        <div class="mb-2">{{ service.description }}</div>
+                        <div class="text-primary font-weight-bold text-h6 mobile-text">{{ service.title }}</div>
+                        <div class="mb-2 mobile-desc">{{ service.description }}</div>
 
 
                         <div class="d-flex align-center mb-1">
                           <v-icon small class="mr-2">mdi-account</v-icon>
-                          <span>{{ service.doctor }}</span>
+                          <span class="mobile-info">{{ service.doctor }}</span>
                         </div>
 
 
                         <div class="d-flex align-center mb-1">
                           <v-icon small class="mr-2">mdi-map-marker</v-icon>
-                          <span>{{ service.barangay }}</span>
+                          <span class="mobile-info">{{ service.barangay }}</span>
                         </div>
 
 
                         <div class="d-flex align-center">
                           <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-                          <span>
+                          <span class="mobile-info">
                             {{ formatTime(service.start_date_time) }} -
                             {{ formatTime(service.end_date_time) }}
                           </span>
@@ -492,9 +496,9 @@ onMounted(() => {
                 <div v-else>No service for this day.</div>
 
 
-                <div class="d-flex mt-4" v-if="selectedDate">
-                  <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog"> Add </v-btn>
-                  <v-btn color="error" small @click="openDeleteServiceDialog" :disabled="!dailyServices.length"> Delete </v-btn>
+                <div class="d-flex mt-4 mobile-buttons" v-if="selectedDate">
+                  <v-btn color="#5da8ca" small class="mr-2 mobile-btn" @click="openServiceDialog"> Add </v-btn>
+                  <v-btn color="error" small class="mobile-btn" @click="openDeleteServiceDialog" :disabled="!dailyServices.length"> Delete </v-btn>
                 </div>
               </v-card-text>
             </v-card>
@@ -503,20 +507,20 @@ onMounted(() => {
 
           <!-- Calendar Column -->
           <v-col cols="12" md="6" class="pt-6">
-            <div class="calendar-wrapper">
-              <div class="calendar-header">
+            <div class="calendar-wrapper mobile-calendar">
+              <div class="calendar-header mobile-calendar-header">
                 <v-btn icon @click="goToPrevMonth"><v-icon>mdi-chevron-left</v-icon></v-btn>
-                <span>{{ monthYearLabel }}</span>
+                <span class="mobile-month">{{ monthYearLabel }}</span>
                 <v-btn icon @click="goToNextMonth"><v-icon>mdi-chevron-right</v-icon></v-btn>
               </div>
 
 
-              <div class="calendar-weekdays">
+              <div class="calendar-weekdays mobile-weekdays">
                 <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
               </div>
 
 
-              <div class="calendar-days">
+              <div class="calendar-days mobile-days">
                 <div
                   v-for="blank in blankDays"
                   :key="'b-' + blank"
@@ -527,7 +531,7 @@ onMounted(() => {
                 <div
                   v-for="day in daysInMonth"
                   :key="day"
-                  class="calendar-day"
+                  class="calendar-day mobile-day"
                   @click="onDateClick(getDate(day))"
                   :class="{ selected: selectedDate === getDate(day), today: isToday(getDate(day)) }"
                 >
@@ -541,7 +545,7 @@ onMounted(() => {
 
 
         <!-- Delete Service Dialog -->
-        <v-dialog v-model="deleteDialog" max-width="500px">
+        <v-dialog v-model="deleteDialog" max-width="500px" class="mobile-dialog">
           <v-card>
             <v-card-title>Select Service(s) to Delete</v-card-title>
             <v-card-text>
@@ -580,7 +584,7 @@ onMounted(() => {
 
 
         <!-- Add Service Dialog -->
-        <v-dialog v-model="dialog" max-width="500">
+        <v-dialog v-model="dialog" max-width="500" class="mobile-dialog">
           <v-card class="pa-4 pa-sm-6">
             <v-card-title class="service-title">
               Add Service
@@ -611,8 +615,8 @@ onMounted(() => {
               />
 
 
-              <v-row>
-                <v-col cols="6">
+              <v-row class="mobile-time-inputs">
+                <v-col cols="12" sm="6">
                   <v-text-field
                     v-model="newService.startTime"
                     label="Start Time"
@@ -620,7 +624,7 @@ onMounted(() => {
                     required
                   />
                 </v-col>
-                <v-col cols="6">
+                <v-col cols="12" sm="6">
                   <v-text-field
                     v-model="newService.endTime"
                     label="End Time"
@@ -641,6 +645,30 @@ onMounted(() => {
         </v-dialog>
       </v-container>
     </v-main>
+    <!-- Mobile Navigation Menu -->
+    <v-navigation-drawer v-model="mobileMenuOpen" temporary>
+      <v-list>
+        <v-list-item>
+          <v-list-item-title class="text-h6">Health Map</v-list-item-title>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list-item @click="router.push('/dashboard'); mobileMenuOpen = false">
+          <v-list-item-icon>
+            <v-icon>mdi-view-dashboard</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Dashboard</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="router.push('/map'); mobileMenuOpen = false">
+          <v-list-item-icon>
+            <v-icon>mdi-map</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Map View</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
   </v-app>
 </template>
 
@@ -830,10 +858,153 @@ onMounted(() => {
 }
 
 @media (max-width: 600px) {
-          .v-carousel {
-            height: 200px !important;
-          }
-        }
+  .v-carousel {
+    height: 200px !important;
+  }
+}
 
+/* New mobile responsive styles */
+@media (max-width: 960px) {
+  .flex-column-mobile {
+    flex-direction: column-reverse !important;
+  }
+
+  .mobile-container {
+    padding: 8px !important;
+  }
+
+  .responsive-carousel {
+    height: 180px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .mobile-calendar {
+    padding: 12px !important;
+    margin-bottom: 16px;
+  }
+
+  .mobile-calendar-header {
+    padding: 8px !important;
+    font-size: 16px !important;
+  }
+
+  .mobile-month {
+    font-size: 16px !important;
+  }
+
+  .mobile-weekdays {
+    gap: 4px !important;
+    font-size: 12px !important;
+  }
+
+  .mobile-days {
+    gap: 4px !important;
+  }
+
+  .mobile-day {
+    padding: 5px !important;
+    font-size: 12px !important;
+    min-height: 30px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .mobile-card {
+    margin-bottom: 16px !important;
+  }
+
+  .mobile-title {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  .mobile-text {
+    font-size: 14px !important;
+  }
+
+  .mobile-desc {
+    font-size: 13px !important;
+  }
+
+  .mobile-info {
+    font-size: 12px !important;
+  }
+
+  .mobile-service-card {
+    padding: 8px !important;
+  }
+
+  .mobile-buttons {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mobile-btn {
+    margin: 4px !important;
+    width: 100px;
+  }
+
+  .mobile-dialog {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 0 auto;
+  }
+
+  .mobile-time-inputs {
+    flex-direction: column !important;
+  }
+
+  .hide-on-small {
+    display: none !important;
+  }
+
+  .show-on-small {
+    display: none !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .show-on-small {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .v-toolbar-title {
+    font-size: 18px !important;
+  }
+
+  .mobile-day {
+    padding: 3px !important;
+    font-size: 10px !important;
+    min-height: 24px !important;
+  }
+
+  .service-dot {
+    width: 6px !important;
+    height: 6px !important;
+  }
+
+  .responsive-carousel {
+    height: 150px !important;
+  }
+}
+
+/* Fix for smaller iPhones */
+@media (max-width: 375px) {
+  .mobile-calendar {
+    padding: 8px !important;
+  }
+
+  .mobile-days {
+    gap: 2px !important;
+  }
+
+  .mobile-day {
+    padding: 2px !important;
+    font-size: 9px !important;
+    min-height: 22px !important;
+  }
+}
 </style>
-
