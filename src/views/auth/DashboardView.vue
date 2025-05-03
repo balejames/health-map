@@ -74,14 +74,28 @@ const blankDays = computed(() => {
   return Array.from({ length: firstDay }, (_, i) => i)
 })
 
+// FIXED: Updated getDate function to properly format date without timezone issues
 const getDate = (day) => {
+  // Create date object using local timezone
   const date = new Date(currentYear.value, currentMonth.value, day)
-  return date.toISOString().split('T')[0]
+
+  // Format to YYYY-MM-DD ensuring we don't lose a day due to timezone conversion
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const dayStr = String(day).padStart(2, '0')
+
+  // Return in YYYY-MM-DD format
+  return `${year}-${month}-${dayStr}`
 }
 
+// FIXED: Updated isToday function to use the same date formatting approach
 const isToday = (dateString) => {
-  const todayDate = new Date()
-  const todayFormatted = todayDate.toISOString().split('T')[0]
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  const todayFormatted = `${year}-${month}-${day}`
+
   return dateString === todayFormatted
 }
 
@@ -292,10 +306,14 @@ const setupRealtimeSubscription = () => {
     .subscribe()
 }
 
-// On component mount
+// On component mount - FIXED: Updated to use consistent date formatting
 onMounted(() => {
-  // Set default selected date to today
-  selectedDate.value = new Date().toISOString().split('T')[0]
+  // Set default selected date to today using consistent date format
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  selectedDate.value = `${year}-${month}-${day}`
 
   // Fetch services
   fetchServices()
