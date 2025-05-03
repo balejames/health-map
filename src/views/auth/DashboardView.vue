@@ -2,7 +2,6 @@
 import { formActionDefault, supabase } from '@/utils/supabase.js'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 
 const drawer = ref(true)
 const router = useRouter()
@@ -150,8 +149,13 @@ const addService = async () => {
     const endTimestamptz = endDateTime.toISOString()
 
     // Form validation
-    if (!newService.value.title || !newService.value.barangay || !serviceDate ||
-        !newService.value.startTime || !newService.value.endTime) {
+    if (
+      !newService.value.title ||
+      !newService.value.barangay ||
+      !serviceDate ||
+      !newService.value.startTime ||
+      !newService.value.endTime
+    ) {
       alert('Please fill in all required fields (title, barangay, date, start and end time)')
       return
     }
@@ -266,8 +270,8 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      // Use the shared update function
-      updateProfileImage(reader.result)
+      profileImage.value = reader.result
+      localStorage.setItem('profileImage', profileImage.value)
     }
     reader.readAsDataURL(file)
   }
@@ -296,13 +300,10 @@ const goToNextMonth = () => {
 const setupRealtimeSubscription = () => {
   supabase
     .channel('services-changes')
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'services' },
-      (payload) => {
-        console.log('Realtime update:', payload)
-        fetchServices() // Refresh services when there's a change
-      }
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update:', payload)
+      fetchServices() // Refresh services when there's a change
+    })
     .subscribe()
 }
 
@@ -399,7 +400,7 @@ onMounted(() => {
         <!-- Carousel -->
         <v-carousel>
           <v-carousel-item src="/images/CAROUSELWELCOME.png" cover></v-carousel-item>
-          <v-carousel-item src="/images/CAROUSEL2.png" cover></v-carousel-item>
+          <v-carousel-item src="/images/CAROUSELWELCOME2.png" cover></v-carousel-item>
         </v-carousel>
 
         <v-row>
@@ -408,7 +409,11 @@ onMounted(() => {
             <!-- Services Card -->
             <v-card class="mb-4">
               <v-card-title class="service-title">
-                {{ selectedDate === new Date().toISOString().split('T')[0] ? 'Service Today' : 'Services for ' + selectedDate }}
+                {{
+                  selectedDate === new Date().toISOString().split('T')[0]
+                    ? 'Service Today'
+                    : 'Services for ' + selectedDate
+                }}
                 <v-spacer />
               </v-card-title>
 
@@ -448,7 +453,14 @@ onMounted(() => {
 
                 <div class="d-flex mt-4" v-if="selectedDate">
                   <v-btn color="#5da8ca" small class="mr-2" @click="openServiceDialog"> Add </v-btn>
-                  <v-btn color="error" small @click="openDeleteServiceDialog" :disabled="!dailyServices.length"> Delete </v-btn>
+                  <v-btn
+                    color="error"
+                    small
+                    @click="openDeleteServiceDialog"
+                    :disabled="!dailyServices.length"
+                  >
+                    Delete
+                  </v-btn>
                 </div>
               </v-card-text>
             </v-card>
@@ -542,7 +554,7 @@ onMounted(() => {
                 :items="barangayOptions"
                 label="Barangay"
                 required
-                :rules="[v => !!v || 'Barangay is required']"
+                :rules="[(v) => !!v || 'Barangay is required']"
               />
 
               <!-- Add date picker -->
