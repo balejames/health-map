@@ -36,7 +36,7 @@ const onFileSelected = (e) => {
 const barangayCoordinates = {
   Ambago: [8.9724, 125.4946],
   Ampayon: [8.9592, 125.615],
-  'Baan Km. 3': [8.9491, 125.57809],  // Updated to match dashboard
+  BaanKM3: [8.9491, 125.57809],
   Antongalon: [8.9493, 125.6209],
   Taligaman: [8.9409, 125.6289],
   Maon: [8.9316, 125.5447],
@@ -80,7 +80,7 @@ const showServiceDetails = (barangay) => {
 
   // Find all services for this barangay on the selected date
   const servicesForBarangay = todaysServices.value.filter(
-    (s) => normalize(s.barangay) === normalizedBarangay
+    (s) => normalize(s.barangay) === normalizedBarangay,
   )
 
   if (servicesForBarangay.length > 0) {
@@ -93,14 +93,14 @@ const showServiceDetails = (barangay) => {
       description: service.description,
       startTime: formatTime(service.start_date_time),
       endTime: formatTime(service.end_date_time),
-      totalServices: servicesForBarangay.length
+      totalServices: servicesForBarangay.length,
     }
   } else {
     selectedService.value = {
       barangay: barangay,
-      service: "No services scheduled",
-      description: "",
-      totalServices: 0
+      service: 'No services scheduled',
+      description: '',
+      totalServices: 0,
     }
   }
 
@@ -140,11 +140,13 @@ const showBarangayMarkers = () => {
         className: 'custom-div-icon',
         html: `<div class="marker-pin ${hasService ? 'active' : ''}"></div>`,
         iconSize: [30, 42],
-        iconAnchor: [15, 42]
-      })
+        iconAnchor: [15, 42],
+      }),
     })
       .addTo(mapRef.value)
-      .bindPopup(`<b>Barangay ${name}</b>${hasService ? '<br><span class="service-available">Has service today</span>' : ''}`)
+      .bindPopup(
+        `<b>Barangay ${name}</b>${hasService ? '<br><span class="service-available">Has service today</span>' : ''}`,
+      )
       .on('click', () => showServiceDetails(name))
 
     markers.value[normalizedName] = marker
@@ -156,7 +158,7 @@ const showBarangayMarkers = () => {
         color: '#f44336',
         fillColor: '#f44336',
         fillOpacity: 0.4,
-        weight: 2
+        weight: 2,
       })
         .addTo(mapRef.value)
         .on('click', () => showServiceDetails(name))
@@ -196,13 +198,10 @@ const fetchServices = async () => {
 const setupRealtimeSubscription = () => {
   supabase
     .channel('services-changes')
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'services' },
-      (payload) => {
-        console.log('Realtime update received:', payload)
-        fetchServices() // Refresh services when there's a change
-      }
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
+      console.log('Realtime update received:', payload)
+      fetchServices() // Refresh services when there's a change
+    })
     .subscribe((status) => {
       console.log('Subscription status:', status)
     })
@@ -222,11 +221,6 @@ onMounted(() => {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map)
-
-  L.marker([8.9475, 125.5406])
-    .addTo(map)
-    .bindPopup('📍 Butuan City, Mindanao')
-    .openPopup()
 
   // Fetch services and set up real-time updates
   fetchServices()
@@ -291,8 +285,13 @@ const goToNextWeek = () => {
       <!-- Date Controls -->
       <div class="date-filter mr-4">
         <span class="mr-2 date-label">View services for: </span>
-        <v-btn size="small" color="white" variant="text" @click="goToToday"
-               :class="{'v-btn--active': selectedDate === new Date().toISOString().split('T')[0]}">
+        <v-btn
+          size="small"
+          color="white"
+          variant="text"
+          @click="goToToday"
+          :class="{ 'v-btn--active': selectedDate === new Date().toISOString().split('T')[0] }"
+        >
           Today
         </v-btn>
         <v-btn size="small" color="white" variant="text" @click="goToTomorrow">Tomorrow</v-btn>
@@ -382,7 +381,9 @@ const goToNextWeek = () => {
 
         <v-card-text v-if="selectedService?.totalServices > 0">
           <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
-            <div class="text-primary font-weight-bold text-h6 mb-2">{{ selectedService?.service }}</div>
+            <div class="text-primary font-weight-bold text-h6 mb-2">
+              {{ selectedService?.service }}
+            </div>
             <div class="mb-3">{{ selectedService?.description }}</div>
 
             <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
@@ -392,9 +393,7 @@ const goToNextWeek = () => {
 
             <div class="d-flex align-center">
               <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-              <span>
-                {{ selectedService?.startTime }} - {{ selectedService?.endTime }}
-              </span>
+              <span> {{ selectedService?.startTime }} - {{ selectedService?.endTime }} </span>
             </div>
           </v-card>
 
