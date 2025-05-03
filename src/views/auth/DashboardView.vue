@@ -21,11 +21,6 @@ const logout = async () => {
   router.replace('/')
 }
 
-// File Input for Profile Image
-const fileInput = ref(null)
-function editAccount() {
-  fileInput.value.click()
-}
 // Check if there are services for a given date
 const hasServices = (date) => {
   return services.value[date] && services.value[date].length > 0
@@ -232,10 +227,12 @@ const deleteSelectedServices = async () => {
 
 // Profile image logic (as before)
 const profileImage = ref('/images/TemporaryProfile.jpg')
+const fileInput = ref(null)
 const showChangePicture = ref(false)
+const isProfileMenuOpen = ref(false)
 
 const toggleChangePicture = () => {
-  showChangePicture.value = !showChangePicture.value
+  fileInput.value.click()
 }
 
 const onFileSelected = (e) => {
@@ -250,13 +247,14 @@ const onFileSelected = (e) => {
   }
 }
 
-// On Mounted, fetch services
+// Load saved profile image on mount
 onMounted(() => {
   const storedImage = localStorage.getItem('profileImage')
   if (storedImage) {
     profileImage.value = storedImage
   }
-  fetchServices() // Fetch services on component mount
+  // Your existing fetchServices() call remains here
+  fetchServices()
 })
 
 // Calendar Navigation
