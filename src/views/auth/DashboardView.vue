@@ -184,7 +184,6 @@ const resetServiceForm = () => {
   newService.value.endTime = ''
 }
 
-// Multiple Delete Support
 const deleteDialog = ref(false)
 const selectedServices = ref([])
 
@@ -195,7 +194,6 @@ const openDeleteServiceDialog = () => {
 
 const deleteSelectedServices = async () => {
   try {
-    // Get the IDs of services to delete
     const servicesToDelete = selectedServices.value
       .map((i) => dailyServices.value[i]?.id)
       .filter(Boolean)
@@ -204,8 +202,6 @@ const deleteSelectedServices = async () => {
       console.log('No services selected for deletion')
       return
     }
-
-    // Delete from Supabase without browser confirmation
     const { error } = await supabase.from('services').delete().in('id', servicesToDelete)
 
     if (error) {
@@ -217,7 +213,6 @@ const deleteSelectedServices = async () => {
     console.log(`${servicesToDelete.length} service(s) deleted successfully`)
     deleteDialog.value = false
 
-    // Refresh services list after deletion
     await fetchServices()
   } catch (e) {
     console.error('Unexpected error while deleting services:', e)

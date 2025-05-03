@@ -40,7 +40,7 @@ const router = createRouter({
       path: '/residentdashboard',
       name: 'residentdashboard',
       component: ResidentView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, role: 'Resident' },
     },
   ],
 })
@@ -60,7 +60,10 @@ router.beforeEach(async (to) => {
   }
 
   // Logged in but accessing a route not allowed by their role
-  if (to.meta.role && to.meta.role !== role) {
+  if (session && to.meta.requiresAuth && to.meta.role && to.meta.role !== role) {
+    console.log(
+      `Access denied: User with role '${role}' tried to access route requiring '${to.meta.role}'`,
+    )
     return { name: role === 'Resident' ? 'residentdashboard' : 'dashboard' }
   }
 
