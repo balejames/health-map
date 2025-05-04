@@ -196,7 +196,7 @@ const fetchServices = async () => {
   })
 
   services.value = grouped
-  getServicesForDate() // Update daily services for the selected date
+  getServicesForDate()
 }
 
 // Reset Service Form
@@ -260,7 +260,6 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      // Use the shared update function
       updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
@@ -292,21 +291,31 @@ const setupRealtimeSubscription = () => {
     .channel('services-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
       console.log('Realtime update:', payload)
-      fetchServices() // Refresh services when there's a change
+      fetchServices()
     })
     .subscribe()
 }
-
+// Set user email
+const userEmail = ref('')
 // On component mount
-onMounted(() => {
-  // Set default selected date to today
+onMounted(async () => {
   selectedDate.value = new Date().toISOString().split('T')[0]
-
-  // Fetch services
   fetchServices()
-
-  // Set up realtime updates
   setupRealtimeSubscription()
+
+  // Fetch user data (email)
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  if (error) {
+    console.error('Failed to get user:', error.message)
+    return
+  }
+
+  // Set user email
+  userEmail.value = user?.email || 'No email'
 })
 </script>
 <template>
@@ -357,16 +366,27 @@ onMounted(() => {
         </template>
 
         <v-card class="w-64 pa-2">
-          <v-list>
+          <v-list class="d-flex flex-column align-center justify-center">
             <!-- Profile Picture -->
-            <v-list-item>
-              <v-avatar size="64" class="mx-auto mb-2">
-                <v-img :src="profileImage" alt="Profile Picture" />
-              </v-avatar>
+            <v-row justify="center" align="center">
+              <v-col cols="12" class="d-flex justify-center">
+                <v-avatar size="100" class="mb-2">
+                  <v-img :src="profileImage" alt="Profile Picture" />
+                </v-avatar>
+              </v-col>
+            </v-row>
+            <!-- Email and Caption below profile picture -->
+            <v-list-item class="text-center">
+              <v-list-item-title class="text-h6 font-weight-bold">{{
+                userEmail
+              }}</v-list-item-title>
+              <v-list-item-subtitle class="text-caption text-grey"
+                >Your registered email</v-list-item-subtitle
+              >
             </v-list-item>
 
             <!-- Trigger File Input -->
-            <v-list-item link @click="toggleChangePicture">
+            <v-list-item link @click="toggleChangePicture" class="text-center">
               <v-list-item-title>Change Profile Picture</v-list-item-title>
             </v-list-item>
 
@@ -382,7 +402,7 @@ onMounted(() => {
             <v-divider></v-divider>
 
             <!-- Logout -->
-            <v-list-item link @click="logout">
+            <v-list-item link @click="logout" class="text-center">
               <v-list-item-title class="text-red">Logout</v-list-item-title>
             </v-list-item>
           </v-list>
