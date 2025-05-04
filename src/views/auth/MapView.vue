@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-
 import { supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
 import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
@@ -81,6 +80,26 @@ const formatTime = (timeInput) => {
     })
   } catch (e) {
     console.error('Error formatting time:', e)
+    return ''
+  }
+}
+
+// Format Date function
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date)) return ''
+
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (e) {
+    console.error('Error formatting date:', e)
     return ''
   }
 }
@@ -229,8 +248,27 @@ watch(selectedDate, (newDate) => {
   todaysServices.value = services.value[newDate] || []
   showBarangayMarkers()
 })
+// Set user email
+const userEmail = ref('')
 
-onMounted(() => {
+onMounted(async () => {
+  selectedDate.value = new Date().toISOString().split('T')[0]
+  fetchServices()
+  setupRealtimeSubscription()
+
+  // Fetch user data (email)
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  if (error) {
+    console.error('Failed to get user:', error.message)
+    return
+  }
+
+  // Set user email
+  userEmail.value = user?.email || 'No email'
   // Initialize the map
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
@@ -245,12 +283,12 @@ onMounted(() => {
 
   // Add window resize listener
   window.addEventListener('resize', handleResize)
-  handleResize() // Initialize on mount
+  handleResize()
 
   // Set up a polling mechanism as backup in case realtime doesn't catch all changes
   const pollingInterval = setInterval(() => {
     fetchServices()
-  }, 30000) // Poll every 30 seconds
+  }, 30000)
 
   // Clean up on component unmount
   return () => {
@@ -350,15 +388,27 @@ const navigateTo = (route) => {
         </template>
 
         <v-card class="w-64 pa-2">
-          <v-list>
-            <v-list-item>
-              <v-avatar size="64" class="mx-auto mb-2">
-                <v-img :src="profileImage" alt="Profile Picture" />
-              </v-avatar>
+          <v-list class="d-flex flex-column align-center justify-center">
+            <!-- Profile Picture -->
+            <v-row justify="center" align="center">
+              <v-col cols="12" class="d-flex justify-center">
+                <v-avatar size="100" class="mb-2">
+                  <v-img :src="profileImage" alt="Profile Picture" />
+                </v-avatar>
+              </v-col>
+            </v-row>
+            <!-- Email and Caption below profile picture -->
+            <v-list-item class="text-center">
+              <v-list-item-title class="text-h6 font-weight-bold">{{
+                userEmail
+              }}</v-list-item-title>
+              <v-list-item-subtitle class="text-caption text-grey"
+                >Your registered email</v-list-item-subtitle
+              >
             </v-list-item>
 
             <!-- Trigger File Input -->
-            <v-list-item link @click="toggleChangePicture">
+            <v-list-item link @click="toggleChangePicture" class="text-center">
               <v-list-item-title>Change Profile Picture</v-list-item-title>
             </v-list-item>
 
@@ -371,9 +421,10 @@ const navigateTo = (route) => {
               style="display: none"
             />
 
-            <v-divider />
+            <v-divider></v-divider>
 
-            <v-list-item link @click="logout">
+            <!-- Logout -->
+            <v-list-item link @click="logout" class="text-center">
               <v-list-item-title class="text-red">Logout</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -533,10 +584,17 @@ const navigateTo = (route) => {
 
         <v-card-text v-if="selectedService?.totalServices > 0">
           <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
+
             <div class="text-primary font-weight-bold text-h6 mb-2">
               {{ selectedService?.service }}
             </div>
-            <div class="mb-3">{{ selectedService?.description }}</div>
+            <div class="mb-3">{{ selectedService?.description }}
+            </div>
+
+            <div class="d-flex align-center mb-2">
+              <v-icon small class="mr-2">mdi-calendar</v-icon>
+              <span>{{ formatDate(selectedDate) }}</span>
+            </div>
 
             <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-account</v-icon>
@@ -614,8 +672,8 @@ const navigateTo = (route) => {
 
 .map-legend {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
+  top: 80px;
+  right: 10px;
   background-color: white;
   padding: 10px 15px;
   border-radius: 8px;
@@ -626,16 +684,16 @@ const navigateTo = (route) => {
 }
 
 .map-legend-mobile {
-  bottom: 10px;
+  top: 70px;
   right: 10px;
   padding: 8px;
-  max-width: 180px;
+  max-width: 220px;
   font-size: 12px;
 }
 
 .legend-title {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .map-legend-mobile .legend-title {
@@ -646,7 +704,7 @@ const navigateTo = (route) => {
 .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .map-legend-mobile .legend-item {
@@ -655,10 +713,10 @@ const navigateTo = (route) => {
 }
 
 .legend-marker {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background-color: #bbb;
+  background-color: #ccc;
   margin-right: 8px;
 }
 
@@ -670,7 +728,6 @@ const navigateTo = (route) => {
 
 .legend-marker.active {
   background-color: #f44336;
-  border: 1px solid #d32f2f;
 }
 
 /* Custom marker styles - these will be applied globally but scoped to the markers */

@@ -12,12 +12,12 @@ const logout = async () => {
   await supabase.auth.signOut()
   router.push({ name: 'login' })
 }
-
+const userEmail = ref('')
 const fileInput = ref(null)
 const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
-const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
-const mobileDrawerOpen = ref(false) // For mobile navigation drawer
+const isMobile = ref(window.innerWidth < 768)
+const mobileDrawerOpen = ref(false)
 
 // Watch for window resize to update mobile state
 const handleResize = () => {
@@ -81,6 +81,26 @@ const formatTime = (timeInput) => {
     })
   } catch (e) {
     console.error('Error formatting time:', e)
+    return ''
+  }
+}
+
+// Format Date function
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date)) return ''
+
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (e) {
+    console.error('Error formatting date:', e)
     return ''
   }
 }
@@ -230,7 +250,17 @@ watch(selectedDate, (newDate) => {
   showBarangayMarkers()
 })
 
-onMounted(() => {
+onMounted(async () => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (session && session.user) {
+    userEmail.value = session.user.email
+    console.log('Logged-in user email:', userEmail.value)
+  } else {
+    console.warn('No active session found.')
+  }
   // Initialize the map
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
@@ -347,15 +377,27 @@ const navigateTo = (route) => {
         </template>
 
         <v-card class="w-64 pa-2">
-          <v-list>
-            <v-list-item>
-              <v-avatar size="64" class="mx-auto mb-2">
-                <v-img :src="profileImage" alt="Profile Picture" />
-              </v-avatar>
+          <v-list class="d-flex flex-column align-center justify-center">
+            <!-- Profile Picture -->
+            <v-row justify="center" align="center">
+              <v-col cols="12" class="d-flex justify-center">
+                <v-avatar size="100" class="mb-2">
+                  <v-img :src="profileImage" alt="Profile Picture" />
+                </v-avatar>
+              </v-col>
+            </v-row>
+            <!-- Email and Caption below profile picture -->
+            <v-list-item class="text-center">
+              <v-list-item-title class="text-h6 font-weight-bold">{{
+                userEmail
+              }}</v-list-item-title>
+              <v-list-item-subtitle class="text-caption text-grey"
+                >Your registered email</v-list-item-subtitle
+              >
             </v-list-item>
 
             <!-- Trigger File Input -->
-            <v-list-item link @click="toggleChangePicture">
+            <v-list-item link @click="toggleChangePicture" class="text-center">
               <v-list-item-title>Change Profile Picture</v-list-item-title>
             </v-list-item>
 
@@ -368,9 +410,10 @@ const navigateTo = (route) => {
               style="display: none"
             />
 
-            <v-divider />
+            <v-divider></v-divider>
 
-            <v-list-item link @click="logout">
+            <!-- Logout -->
+            <v-list-item link @click="logout" class="text-center">
               <v-list-item-title class="text-red">Logout</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -524,6 +567,11 @@ const navigateTo = (route) => {
               {{ selectedService?.service }}
             </div>
             <div class="mb-3">{{ selectedService?.description }}</div>
+
+            <div class="d-flex align-center mb-2">
+              <v-icon small class="mr-2">mdi-calendar</v-icon>
+              <span>{{ formatDate(selectedDate) }}</span>
+            </div>
 
             <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-account</v-icon>

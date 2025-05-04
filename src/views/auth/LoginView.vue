@@ -219,7 +219,7 @@ const onFormSubmit = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url('/images/LogInBackground.png');
+  background: url(/images/LOG-IN_BACKGROUND.png);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;

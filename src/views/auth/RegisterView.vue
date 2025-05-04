@@ -90,6 +90,53 @@ const onFormSubmit = () => {
 </script>
 <template>
   <div class="create-account-wrapper">
+    <!-- Cloud animation elements -->
+    <div class="clouds-container">
+      <!-- SVG Clouds - Left side (original) -->
+      <svg class="cloud cloud-1" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M25,50 C25,30 45,30 45,30 L55,30 C55,30 75,25 75,45 C75,60 65,60 65,60 L35,60 C35,60 25,60 25,50 Z" fill="rgba(255, 255, 255, 0.7)"/>
+      </svg>
+
+      <svg class="cloud cloud-2" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M20,50 C20,35 35,35 40,35 L60,35 C70,35 80,30 80,50 C80,65 70,65 65,65 L35,65 C25,65 20,60 20,50 Z" fill="rgba(255, 255, 255, 0.8)"/>
+      </svg>
+
+      <svg class="cloud cloud-3" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M15,55 C15,40 30,40 40,40 L60,40 C75,40 85,35 85,50 C85,65 75,65 65,65 L30,65 C20,65 15,65 15,55 Z" fill="rgba(255, 255, 255, 0.6)"/>
+      </svg>
+
+      <!-- Additional left side clouds -->
+      <svg class="cloud cloud-6" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M20,45 C20,30 35,30 45,30 L55,30 C65,30 80,30 80,45 C80,60 70,60 60,60 L40,60 C30,60 20,60 20,45 Z" fill="rgba(255, 255, 255, 0.55)"/>
+      </svg>
+
+      <svg class="cloud cloud-7" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M30,40 C30,25 40,25 50,25 L60,25 C70,25 75,30 75,40 C75,50 65,55 55,55 L45,55 C35,55 30,50 30,40 Z" fill="rgba(255, 255, 255, 0.65)"/>
+      </svg>
+
+      <!-- SVG Clouds - Right side (original) -->
+      <svg class="cloud cloud-4" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M10,50 C10,30 30,30 40,30 L70,30 C80,30 90,35 90,50 C90,70 75,70 60,70 L30,70 C15,70 10,65 10,50 Z" fill="rgba(255, 255, 255, 0.75)"/>
+      </svg>
+
+      <svg class="cloud cloud-5" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M15,45 C15,30 30,30 40,30 L65,30 C75,30 85,35 85,50 C85,65 70,65 60,65 L30,65 C20,65 15,55 15,45 Z" fill="rgba(255, 255, 255, 0.65)"/>
+      </svg>
+
+      <!-- Additional right side clouds -->
+      <svg class="cloud cloud-8" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M15,55 C15,40 25,35 40,35 L60,35 C75,35 85,40 85,55 C85,70 75,70 60,70 L35,70 C20,70 15,70 15,55 Z" fill="rgba(255, 255, 255, 0.7)"/>
+      </svg>
+
+      <svg class="cloud cloud-9" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M25,45 C25,30 35,30 45,30 L65,30 C75,30 80,35 80,45 C80,60 70,60 60,60 L35,60 C25,60 25,55 25,45 Z" fill="rgba(255, 255, 255, 0.6)"/>
+      </svg>
+
+      <svg class="cloud cloud-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M20,50 C20,35 30,35 40,35 L55,35 C65,35 75,40 75,50 C75,65 65,65 55,65 L30,65 C20,65 20,60 20,50 Z" fill="rgba(255, 255, 255, 0.5)"/>
+      </svg>
+    </div>
+
     <v-container class="fill-height" fluid>
       <v-row justify="center" align="center">
         <v-col cols="12" sm="10" md="8" lg="6" xl="4" class="d-flex justify-center">
@@ -226,7 +273,7 @@ const onFormSubmit = () => {
 .create-account-wrapper {
   min-height: 100vh;
   width: 100%;
-  background-image: url('/images/LogInBackground.png');
+  background-image: url(/images/SIGN-UP_BACKGROUND.png);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -237,8 +284,125 @@ const onFormSubmit = () => {
   padding: 16px;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
 }
 
+/* Cloud container */
+.clouds-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Cloud elements - SVG clouds */
+.cloud {
+  position: absolute;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+/* Original left side clouds */
+.cloud-1 {
+  width: 180px;
+  height: 100px;
+  top: 10%;
+  left: -180px;
+  animation: cloud-move-left 80s linear infinite;
+}
+
+.cloud-2 {
+  width: 250px;
+  height: 140px;
+  top: 30%;
+  left: -250px;
+  animation: cloud-move-left 60s linear infinite;
+}
+
+.cloud-3 {
+  width: 150px;
+  height: 80px;
+  top: 50%;
+  left: -150px;
+  animation: cloud-move-left 70s linear infinite;
+}
+
+/* Original right side clouds */
+.cloud-4 {
+  width: 220px;
+  height: 120px;
+  top: 70%;
+  right: -220px;
+  animation: cloud-move-right 90s linear infinite;
+}
+
+.cloud-5 {
+  width: 200px;
+  height: 110px;
+  top: 85%;
+  right: -200px;
+  animation: cloud-move-right 75s linear infinite;
+}
+
+/* New left side clouds */
+.cloud-6 {
+  width: 160px;
+  height: 90px;
+  top: 20%;
+  left: -160px;
+  animation: cloud-move-left 65s linear infinite 2s; /* Delay of 2s */
+}
+
+.cloud-7 {
+  width: 180px;
+  height: 100px;
+  top: 65%;
+  left: -180px;
+  animation: cloud-move-left 75s linear infinite 5s; /* Delay of 5s */
+}
+
+/* New right side clouds */
+.cloud-8 {
+  width: 230px;
+  height: 130px;
+  top: 15%;
+  right: -230px;
+  animation: cloud-move-right 85s linear infinite 3s; /* Delay of 3s */
+}
+
+.cloud-9 {
+  width: 190px;
+  height: 110px;
+  top: 40%;
+  right: -190px;
+  animation: cloud-move-right 70s linear infinite 8s; /* Delay of 8s */
+}
+
+.cloud-10 {
+  width: 170px;
+  height: 95px;
+  top: 60%;
+  right: -170px;
+  animation: cloud-move-right 80s linear infinite 12s; /* Delay of 12s */
+}
+
+/* Cloud animations */
+@keyframes cloud-move-left {
+  0% { left: -180px; }
+  50% { left: 50%; } /* Stop at the middle */
+  100% { left: -180px; } /* Return to start for looping */
+}
+
+@keyframes cloud-move-right {
+  0% { right: -220px; }
+  50% { right: 50%; } /* Stop at the middle */
+  100% { right: -220px; } /* Return to start for looping */
+}
+
+/* Card and form styling */
 .title {
   font-family: 'Times New Roman', Times, serif;
   font-size: 35px;
@@ -270,5 +434,7 @@ const onFormSubmit = () => {
   overflow-y: auto;
   border-radius: 16px;
   background-color: #ffffff;
+  position: relative;
+  z-index: 2;
 }
 </style>
