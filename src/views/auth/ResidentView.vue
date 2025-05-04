@@ -85,7 +85,7 @@ const initLoadingAnimation = () => {
       size: Math.random() * 3 + 1,
       speedX: Math.random() * 1 - 0.5,
       speedY: Math.random() * 1 - 0.5,
-      opacity: Math.random() * 0.5 + 0.5
+      opacity: Math.random() * 0.5 + 0.5,
     })
   }
 
@@ -96,7 +96,7 @@ const initLoadingAnimation = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Draw particles
-    particles.forEach(p => {
+    particles.forEach((p) => {
       ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
