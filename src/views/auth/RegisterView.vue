@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import AlertNotification from '@/components/layout/AlertNotification.vue'
 import { supabase, formActionDefault } from '@/utils/supabase.js'
 import {
@@ -14,6 +14,8 @@ const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
 const refVForm = ref()
 const router = useRouter()
+const isLoading = ref(true) // Add state to control loading screen visibility
+const loadingCanvasRef = ref(null) // Add ref for the canvas element
 
 const formDataDefault = {
   firstName: '',
@@ -26,6 +28,82 @@ const formDataDefault = {
 
 const formData = ref({ ...formDataDefault })
 const formAction = ref({ ...formActionDefault })
+
+// Loading animation function
+const setupLoadingAnimation = () => {
+  const canvas = loadingCanvasRef.value
+  if (!canvas) return
+
+  const ctx = canvas.getContext('2d')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  // Particles array for animation
+  const particles = []
+  const particleCount = 50
+
+  // Create particles
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 4 + 2,
+      color: `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`,
+      speedX: Math.random() * 2 - 1,
+      speedY: Math.random() * 2 - 1
+    })
+  }
+
+  // Animation function
+  const animate = () => {
+    if (!isLoading.value) return
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw and update particles
+    particles.forEach(particle => {
+      ctx.beginPath()
+      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+      ctx.fillStyle = particle.color
+      ctx.fill()
+
+      // Update position
+      particle.x += particle.speedX
+      particle.y += particle.speedY
+
+      // Wrap around canvas
+      if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1
+      if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1
+    })
+
+    requestAnimationFrame(animate)
+  }
+
+  animate()
+}
+
+// Handle window resize for canvas
+const handleResize = () => {
+  if (loadingCanvasRef.value) {
+    loadingCanvasRef.value.width = window.innerWidth
+    loadingCanvasRef.value.height = window.innerHeight
+  }
+}
+
+onMounted(() => {
+  // Set up loading animation
+  setupLoadingAnimation()
+  window.addEventListener('resize', handleResize)
+
+  // Simulate loading completion after 2 seconds
+  setTimeout(() => {
+    isLoading.value = false
+  }, 2000)
+
+  return () => {
+    window.removeEventListener('resize', handleResize)
+  }
+})
 
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
@@ -89,7 +167,16 @@ const onFormSubmit = () => {
 }
 </script>
 <template>
-  <div class="create-account-wrapper">
+  <!-- Loading Screen -->
+  <div v-if="isLoading" class="loading-screen">
+    <canvas ref="loadingCanvasRef" class="loading-canvas"></canvas>
+    <div class="loading-content">
+      <div class="loading-text">Loading...</div>
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
+  <div v-else class="create-account-wrapper">
     <!-- Cloud animation elements -->
     <div class="clouds-container">
       <!-- SVG Clouds - Left side (original) -->
@@ -270,6 +357,80 @@ const onFormSubmit = () => {
   </div>
 </template>
 <style scoped>
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0dceda;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
 .create-account-wrapper {
   min-height: 100vh;
   width: 100%;

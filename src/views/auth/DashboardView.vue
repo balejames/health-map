@@ -1,6 +1,6 @@
 <script setup>
 import { formActionDefault, supabase } from '@/utils/supabase.js'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
 import { VCarousel, VCarouselItem } from 'vuetify/components'
@@ -9,6 +9,78 @@ const drawer = ref(true)
 const router = useRouter()
 const formAction = ref({ ...formActionDefault })
 const mobileMenuOpen = ref(false)
+const isLoading = ref(true)
+const loadingCanvasRef = ref(null)
+
+// Loading Screen Animation
+let animationFrameId = null
+let particles = []
+
+const initLoadingScreen = () => {
+  const canvas = loadingCanvasRef.value
+  if (!canvas) return
+
+  const ctx = canvas.getContext('2d')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  // Create particles
+  particles = []
+  for (let i = 0; i < 50; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 5 + 1,
+      color: `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`,
+      vx: Math.random() * 2 - 1,
+      vy: Math.random() * 2 - 1
+    })
+  }
+
+  const animate = () => {
+    if (!isLoading.value) {
+      cancelAnimationFrame(animationFrameId)
+      return
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw gradient background
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
+    gradient.addColorStop(0, '#0dceda')
+    gradient.addColorStop(1, '#42a5f5')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Draw and update particles
+    particles.forEach(particle => {
+      ctx.beginPath()
+      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+      ctx.fillStyle = particle.color
+      ctx.fill()
+
+      // Update position
+      particle.x += particle.vx
+      particle.y += particle.vy
+
+      // Bounce off walls
+      if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1
+      if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1
+    })
+
+    animationFrameId = requestAnimationFrame(animate)
+  }
+
+  animate()
+}
+
+// Handle window resize for canvas
+const handleResize = () => {
+  if (loadingCanvasRef.value) {
+    loadingCanvasRef.value.width = window.innerWidth
+    loadingCanvasRef.value.height = window.innerHeight
+  }
+}
 
 // Logout Logic
 const logout = async () => {
@@ -299,8 +371,17 @@ const setupRealtimeSubscription = () => {
 const userEmail = ref('')
 // On component mount
 onMounted(async () => {
+  // Initialize loading screen
+  window.addEventListener('resize', handleResize)
+  initLoadingScreen()
+
+  // Simulate loading (you can adjust timing or use actual data fetch completion)
+  setTimeout(() => {
+    isLoading.value = false
+  }, 2500)
+
   selectedDate.value = new Date().toISOString().split('T')[0]
-  fetchServices()
+  await fetchServices()
   setupRealtimeSubscription()
 
   // Fetch user data (email)
@@ -317,8 +398,25 @@ onMounted(async () => {
   // Set user email
   userEmail.value = user?.email || 'No email'
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId)
+  }
+})
 </script>
+
 <template>
+  <!-- Loading Screen -->
+  <div v-if="isLoading" class="loading-screen">
+    <canvas ref="loadingCanvasRef" class="loading-canvas"></canvas>
+    <div class="loading-content">
+      <div class="loading-text">Loading...</div>
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
   <v-app class="dashboard-bg">
     <!-- Top Bar -->
     <v-app-bar app color="#9bd1f8" dark elevate-on-scroll>
@@ -640,6 +738,78 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0dceda;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .dashboard-bg {
   background-image: url('/images/DashboardBackground.png');
   background-attachment: fixed;
