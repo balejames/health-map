@@ -13,10 +13,10 @@ const logout = async () => {
 }
 
 const fileInput = ref(null)
-const showChangePicture = ref(false)
+// const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
-const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
-const mobileDrawerOpen = ref(false) // For mobile navigation drawer
+const isMobile = ref(window.innerWidth < 768)
+const mobileDrawerOpen = ref(false)
 
 // Loading screen state
 const isLoading = ref(true)
@@ -40,7 +40,6 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      // Use the shared update function from eventBus
       updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
@@ -57,11 +56,11 @@ const barangayCoordinates = {
 }
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
-const services = ref({}) // All services grouped by date
+const services = ref({})
 const todaysServices = ref([])
 
 const mapRef = ref(null)
-const markers = ref({}) // Store markers for easy removal/update
+const markers = ref({})
 
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
@@ -86,7 +85,7 @@ const initLoadingAnimation = () => {
       size: Math.random() * 3 + 1,
       speedX: Math.random() * 1 - 0.5,
       speedY: Math.random() * 1 - 0.5,
-      opacity: Math.random() * 0.5 + 0.5
+      opacity: Math.random() * 0.5 + 0.5,
     })
   }
 
@@ -97,7 +96,7 @@ const initLoadingAnimation = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Draw particles
-    particles.forEach(p => {
+    particles.forEach((p) => {
       ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
