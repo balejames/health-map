@@ -10,7 +10,7 @@ export const supabase = createClient(
 export const formActionDefault = {
   formProcess: false,
   formStatus: 200,
-  formErrorMEssage: '',
+  formErrorMessage: '',
   formSuccessMessage: '',
 }
 // Returns the session object, not just true/false
