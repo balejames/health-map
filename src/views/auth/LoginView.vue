@@ -104,9 +104,9 @@ const onFormSubmit = () => {
 
         <!-- Login Form -->
         <v-col cols="12" sm="10" md="6" lg="4">
-          <v-card class="mx-auto" elevation="24">
+          <v-card class="mx-auto" elevation="24 ">
             <template v-slot:title>
-              <h2 class="text-center pt-4">Log In</h2>
+              <h2 class="text-center pt-4">Log in</h2>
             </template>
 
             <AlertNotification
@@ -114,7 +114,7 @@ const onFormSubmit = () => {
               :form-error-message="formAction.formErrorMessage"
             ></AlertNotification>
 
-            <v-card-text>
+            <v-card-text class="scrollable-form">
               <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.email"
@@ -199,7 +199,6 @@ const onFormSubmit = () => {
     </v-container>
   </div>
 </template>
-
 <style scoped>
 .custom-login {
   height: 50px;
@@ -208,14 +207,8 @@ const onFormSubmit = () => {
   border-radius: 8px;
 }
 
-.v-card {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  background-color: #ebfffa;
-}
-
 .login-wrapper {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,6 +217,25 @@ const onFormSubmit = () => {
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+.v-card {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  background-color: #ebfffa;
+  border-radius: 16px;
+  overflow-y: auto;
+  max-height: none;
+  position: relative;
+  z-index: 2;
+}
+@media (max-width: 600px) {
+  .v-card {
+    max-height: 90vh; /* Only restrict height on small devices */
+    overflow-y: auto;
+  }
 }
 
 .header {
