@@ -104,15 +104,15 @@ class CloudParticle {
 
     // Add some bumps to make it look more like a cloud
     this.ctx.beginPath()
-    this.ctx.arc(this.x - this.size/2, this.y - this.size/4, this.size/2, 0, Math.PI * 2)
+    this.ctx.arc(this.x - this.size / 2, this.y - this.size / 4, this.size / 2, 0, Math.PI * 2)
     this.ctx.fill()
 
     this.ctx.beginPath()
-    this.ctx.arc(this.x + this.size/2, this.y - this.size/6, this.size/2.5, 0, Math.PI * 2)
+    this.ctx.arc(this.x + this.size / 2, this.y - this.size / 6, this.size / 2.5, 0, Math.PI * 2)
     this.ctx.fill()
 
     this.ctx.beginPath()
-    this.ctx.arc(this.x, this.y - this.size/3, this.size/3, 0, Math.PI * 2)
+    this.ctx.arc(this.x, this.y - this.size / 3, this.size / 3, 0, Math.PI * 2)
     this.ctx.fill()
   }
 }
@@ -144,7 +144,7 @@ const initLoadingParticles = () => {
   const animateLoading = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    loadingParticles.value.forEach(particle => {
+    loadingParticles.value.forEach((particle) => {
       particle.update()
       particle.draw()
     })
@@ -162,15 +162,15 @@ class Particle {
     this.ctx = canvas.getContext('2d')
     this.x = Math.random() * canvas.width
     this.y = Math.random() * canvas.height
-    this.size = Math.random() * 5 + 2  // Slightly larger particles
-    this.speedX = (Math.random() - 0.5) * 1.5  // Adjusted speed
-    this.speedY = (Math.random() - 0.5) * 1.5  // Adjusted speed
+    this.size = Math.random() * 5 + 2 // Slightly larger particles
+    this.speedX = (Math.random() - 0.5) * 1.5 // Adjusted speed
+    this.speedY = (Math.random() - 0.5) * 1.5 // Adjusted speed
     this.color = getRandomColor()
     this.pulseSpeed = 0.03 + Math.random() * 0.02
     this.pulseDirection = 1
     this.pulseAmount = 0
     this.originalSize = this.size
-    this.opacity = Math.random() * 0.5 + 0.3  // Add opacity variation
+    this.opacity = Math.random() * 0.5 + 0.3 // Add opacity variation
   }
 
   update() {
@@ -195,16 +195,13 @@ class Particle {
 
   draw() {
     // Create a glowing effect
-    const gradient = this.ctx.createRadialGradient(
-      this.x, this.y, 0,
-      this.x, this.y, this.size * 2
-    )
+    const gradient = this.ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2)
 
     // Extract base color for glow
     const baseColor = this.color.substring(0, this.color.lastIndexOf(','))
 
     gradient.addColorStop(0, this.color)
-    gradient.addColorStop(0.5, baseColor + ', ' + (this.opacity * 0.5) + ')')
+    gradient.addColorStop(0.5, baseColor + ', ' + this.opacity * 0.5 + ')')
     gradient.addColorStop(1, baseColor + ', 0)')
 
     this.ctx.fillStyle = gradient
@@ -224,14 +221,14 @@ class Particle {
 function getRandomColor() {
   // Main theme color: #0dceda (13, 206, 218)
   const colors = [
-    'rgba(13, 206, 218, 0.9)',   // Main theme color - brighter
-    'rgba(13, 206, 218, 0.7)',   // Main theme color
-    'rgba(13, 206, 218, 0.5)',   // Lighter theme
-    'rgba(11, 185, 196, 0.7)',   // Slightly darker theme
-    'rgba(10, 164, 174, 0.6)',   // Darker theme
-    'rgba(153, 236, 242, 0.6)',  // Light teal
-    'rgba(202, 245, 248, 0.5)',  // Very light teal
-    'rgba(235, 255, 250, 0.7)',  // Card background color
+    'rgba(13, 206, 218, 0.9)', // Main theme color - brighter
+    'rgba(13, 206, 218, 0.7)', // Main theme color
+    'rgba(13, 206, 218, 0.5)', // Lighter theme
+    'rgba(11, 185, 196, 0.7)', // Slightly darker theme
+    'rgba(10, 164, 174, 0.6)', // Darker theme
+    'rgba(153, 236, 242, 0.6)', // Light teal
+    'rgba(202, 245, 248, 0.5)', // Very light teal
+    'rgba(235, 255, 250, 0.7)', // Card background color
   ]
   return colors[Math.floor(Math.random() * colors.length)]
 }
@@ -264,7 +261,7 @@ const initParticlesAnimation = () => {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.02)'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    particles.value.forEach(particle => {
+    particles.value.forEach((particle) => {
       particle.update()
       particle.draw()
     })
@@ -362,7 +359,11 @@ const onFormSubmit = () => {
     <v-container fluid>
       <v-row class="fill-height pa-4" align="center" justify="center" style="gap: 2rem">
         <v-col cols="12" class="d-md-none text-center mb-4">
-          <img src="/images/LoginIcon.png" class="mobile-logo enhanced-floating-animation" alt="Health Map Logo" />
+          <img
+            src="/images/LoginIcon.png"
+            class="mobile-logo enhanced-floating-animation"
+            alt="Health Map Logo"
+          />
         </v-col>
 
         <!--Logo-->
@@ -571,7 +572,9 @@ const onFormSubmit = () => {
   background-color: #ebfffa;
   position: relative;
   z-index: 10;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .v-card:hover {

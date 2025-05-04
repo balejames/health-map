@@ -151,7 +151,7 @@ const formatDate = (dateString) => {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   } catch (e) {
     console.error('Error formatting date:', e)
