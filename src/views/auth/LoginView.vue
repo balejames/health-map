@@ -378,9 +378,9 @@ const onFormSubmit = () => {
 
         <!-- Login Form -->
         <v-col cols="12" sm="10" md="6" lg="4">
-          <v-card class="mx-auto" elevation="24 ">
+          <v-card class="mx-auto" elevation="24">
             <template v-slot:title>
-              <h2 class="text-center pt-4">Log in</h2>
+              <h2 class="text-center pt-4">Log In</h2>
             </template>
 
             <AlertNotification
@@ -388,7 +388,7 @@ const onFormSubmit = () => {
               :form-error-message="formAction.formErrorMessage"
             ></AlertNotification>
 
-            <v-card-text class="scrollable-form">
+            <v-card-text>
               <v-form class="mt-5" ref="refVForm" @submit.prevent="onFormSubmit">
                 <v-text-field
                   v-model="formData.email"
@@ -473,6 +473,7 @@ const onFormSubmit = () => {
     </v-container>
   </div>
 </template>
+
 <style scoped>
 .loading-screen {
   position: fixed;
@@ -565,8 +566,24 @@ const onFormSubmit = () => {
   transform: translateY(1px);
 }
 
+.v-card {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background-color: #ebfffa;
+  position: relative;
+  z-index: 10;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.v-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(13, 206, 218, 0.15);
+}
+
 .login-wrapper {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -575,25 +592,18 @@ const onFormSubmit = () => {
   background-repeat: no-repeat;
   background-position: center;
   background-attachment: fixed;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-.v-card {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
-  background-color: #ebfffa;
-  border-radius: 16px;
-  overflow-y: auto;
-  max-height: none;
   position: relative;
-  z-index: 2;
+  overflow: hidden; /* Ensure particles stay contained */
 }
-@media (max-width: 600px) {
-  .v-card {
-    max-height: 90vh; /* Only restrict height on small devices */
-    overflow-y: auto;
-  }
+
+.particles-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none; /* This allows clicks to pass through the canvas */
 }
 
 .header {
