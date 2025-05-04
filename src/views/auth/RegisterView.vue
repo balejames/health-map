@@ -226,7 +226,7 @@ const onFormSubmit = () => {
 .create-account-wrapper {
   min-height: 100vh;
   width: 100%;
-  background-image: url('/images/LogInBackground.png');
+  background-image: url(/images/SIGN-UP_BACKGROUND.png);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
