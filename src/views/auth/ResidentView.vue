@@ -12,12 +12,12 @@ const logout = async () => {
   await supabase.auth.signOut()
   router.push({ name: 'login' })
 }
-
+const userEmail = ref('')
 const fileInput = ref(null)
 const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
-const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
-const mobileDrawerOpen = ref(false) // For mobile navigation drawer
+const isMobile = ref(window.innerWidth < 768)
+const mobileDrawerOpen = ref(false)
 
 // Watch for window resize to update mobile state
 const handleResize = () => {
@@ -230,7 +230,17 @@ watch(selectedDate, (newDate) => {
   showBarangayMarkers()
 })
 
-onMounted(() => {
+onMounted(async () => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (session && session.user) {
+    userEmail.value = session.user.email
+    console.log('Logged-in user email:', userEmail.value)
+  } else {
+    console.warn('No active session found.')
+  }
   // Initialize the map
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
@@ -347,15 +357,27 @@ const navigateTo = (route) => {
         </template>
 
         <v-card class="w-64 pa-2">
-          <v-list>
-            <v-list-item>
-              <v-avatar size="64" class="mx-auto mb-2">
-                <v-img :src="profileImage" alt="Profile Picture" />
-              </v-avatar>
+          <v-list class="d-flex flex-column align-center justify-center">
+            <!-- Profile Picture -->
+            <v-row justify="center" align="center">
+              <v-col cols="12" class="d-flex justify-center">
+                <v-avatar size="100" class="mb-2">
+                  <v-img :src="profileImage" alt="Profile Picture" />
+                </v-avatar>
+              </v-col>
+            </v-row>
+            <!-- Email and Caption below profile picture -->
+            <v-list-item class="text-center">
+              <v-list-item-title class="text-h6 font-weight-bold">{{
+                userEmail
+              }}</v-list-item-title>
+              <v-list-item-subtitle class="text-caption text-grey"
+                >Your registered email</v-list-item-subtitle
+              >
             </v-list-item>
 
             <!-- Trigger File Input -->
-            <v-list-item link @click="toggleChangePicture">
+            <v-list-item link @click="toggleChangePicture" class="text-center">
               <v-list-item-title>Change Profile Picture</v-list-item-title>
             </v-list-item>
 
@@ -368,9 +390,10 @@ const navigateTo = (route) => {
               style="display: none"
             />
 
-            <v-divider />
+            <v-divider></v-divider>
 
-            <v-list-item link @click="logout">
+            <!-- Logout -->
+            <v-list-item link @click="logout" class="text-center">
               <v-list-item-title class="text-red">Logout</v-list-item-title>
             </v-list-item>
           </v-list>
