@@ -94,46 +94,76 @@ const onFormSubmit = () => {
     <div class="clouds-container">
       <!-- SVG Clouds - Left side (original) -->
       <svg class="cloud cloud-1" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M25,50 C25,30 45,30 45,30 L55,30 C55,30 75,25 75,45 C75,60 65,60 65,60 L35,60 C35,60 25,60 25,50 Z" fill="rgba(255, 255, 255, 0.7)"/>
+        <path
+          d="M25,50 C25,30 45,30 45,30 L55,30 C55,30 75,25 75,45 C75,60 65,60 65,60 L35,60 C35,60 25,60 25,50 Z"
+          fill="rgba(255, 255, 255, 0.7)"
+        />
       </svg>
 
       <svg class="cloud cloud-2" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M20,50 C20,35 35,35 40,35 L60,35 C70,35 80,30 80,50 C80,65 70,65 65,65 L35,65 C25,65 20,60 20,50 Z" fill="rgba(255, 255, 255, 0.8)"/>
+        <path
+          d="M20,50 C20,35 35,35 40,35 L60,35 C70,35 80,30 80,50 C80,65 70,65 65,65 L35,65 C25,65 20,60 20,50 Z"
+          fill="rgba(255, 255, 255, 0.8)"
+        />
       </svg>
 
       <svg class="cloud cloud-3" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M15,55 C15,40 30,40 40,40 L60,40 C75,40 85,35 85,50 C85,65 75,65 65,65 L30,65 C20,65 15,65 15,55 Z" fill="rgba(255, 255, 255, 0.6)"/>
+        <path
+          d="M15,55 C15,40 30,40 40,40 L60,40 C75,40 85,35 85,50 C85,65 75,65 65,65 L30,65 C20,65 15,65 15,55 Z"
+          fill="rgba(255, 255, 255, 0.6)"
+        />
       </svg>
 
       <!-- Additional left side clouds -->
       <svg class="cloud cloud-6" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M20,45 C20,30 35,30 45,30 L55,30 C65,30 80,30 80,45 C80,60 70,60 60,60 L40,60 C30,60 20,60 20,45 Z" fill="rgba(255, 255, 255, 0.55)"/>
+        <path
+          d="M20,45 C20,30 35,30 45,30 L55,30 C65,30 80,30 80,45 C80,60 70,60 60,60 L40,60 C30,60 20,60 20,45 Z"
+          fill="rgba(255, 255, 255, 0.55)"
+        />
       </svg>
 
       <svg class="cloud cloud-7" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M30,40 C30,25 40,25 50,25 L60,25 C70,25 75,30 75,40 C75,50 65,55 55,55 L45,55 C35,55 30,50 30,40 Z" fill="rgba(255, 255, 255, 0.65)"/>
+        <path
+          d="M30,40 C30,25 40,25 50,25 L60,25 C70,25 75,30 75,40 C75,50 65,55 55,55 L45,55 C35,55 30,50 30,40 Z"
+          fill="rgba(255, 255, 255, 0.65)"
+        />
       </svg>
 
       <!-- SVG Clouds - Right side (original) -->
       <svg class="cloud cloud-4" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M10,50 C10,30 30,30 40,30 L70,30 C80,30 90,35 90,50 C90,70 75,70 60,70 L30,70 C15,70 10,65 10,50 Z" fill="rgba(255, 255, 255, 0.75)"/>
+        <path
+          d="M10,50 C10,30 30,30 40,30 L70,30 C80,30 90,35 90,50 C90,70 75,70 60,70 L30,70 C15,70 10,65 10,50 Z"
+          fill="rgba(255, 255, 255, 0.75)"
+        />
       </svg>
 
       <svg class="cloud cloud-5" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M15,45 C15,30 30,30 40,30 L65,30 C75,30 85,35 85,50 C85,65 70,65 60,65 L30,65 C20,65 15,55 15,45 Z" fill="rgba(255, 255, 255, 0.65)"/>
+        <path
+          d="M15,45 C15,30 30,30 40,30 L65,30 C75,30 85,35 85,50 C85,65 70,65 60,65 L30,65 C20,65 15,55 15,45 Z"
+          fill="rgba(255, 255, 255, 0.65)"
+        />
       </svg>
 
       <!-- Additional right side clouds -->
       <svg class="cloud cloud-8" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M15,55 C15,40 25,35 40,35 L60,35 C75,35 85,40 85,55 C85,70 75,70 60,70 L35,70 C20,70 15,70 15,55 Z" fill="rgba(255, 255, 255, 0.7)"/>
+        <path
+          d="M15,55 C15,40 25,35 40,35 L60,35 C75,35 85,40 85,55 C85,70 75,70 60,70 L35,70 C20,70 15,70 15,55 Z"
+          fill="rgba(255, 255, 255, 0.7)"
+        />
       </svg>
 
       <svg class="cloud cloud-9" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M25,45 C25,30 35,30 45,30 L65,30 C75,30 80,35 80,45 C80,60 70,60 60,60 L35,60 C25,60 25,55 25,45 Z" fill="rgba(255, 255, 255, 0.6)"/>
+        <path
+          d="M25,45 C25,30 35,30 45,30 L65,30 C75,30 80,35 80,45 C80,60 70,60 60,60 L35,60 C25,60 25,55 25,45 Z"
+          fill="rgba(255, 255, 255, 0.6)"
+        />
       </svg>
 
       <svg class="cloud cloud-10" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M20,50 C20,35 30,35 40,35 L55,35 C65,35 75,40 75,50 C75,65 65,65 55,65 L30,65 C20,65 20,60 20,50 Z" fill="rgba(255, 255, 255, 0.5)"/>
+        <path
+          d="M20,50 C20,35 30,35 40,35 L55,35 C65,35 75,40 75,50 C75,65 65,65 55,65 L30,65 C20,65 20,60 20,50 Z"
+          fill="rgba(255, 255, 255, 0.5)"
+        />
       </svg>
     </div>
 
@@ -143,7 +173,7 @@ const onFormSubmit = () => {
           <v-card class="pa-4 w-100" elevation="12">
             <template v-slot:title>
               <div class="text-center">
-                <h2 class="title" style="color: #0dceda">Create your account</h2>
+                <h2 class="title" style="color: #0dceda">Sign up</h2>
               </div>
             </template>
 
@@ -391,15 +421,27 @@ const onFormSubmit = () => {
 
 /* Cloud animations */
 @keyframes cloud-move-left {
-  0% { left: -180px; }
-  50% { left: 50%; } /* Stop at the middle */
-  100% { left: -180px; } /* Return to start for looping */
+  0% {
+    left: -180px;
+  }
+  50% {
+    left: 50%;
+  } /* Stop at the middle */
+  100% {
+    left: -180px;
+  } /* Return to start for looping */
 }
 
 @keyframes cloud-move-right {
-  0% { right: -220px; }
-  50% { right: 50%; } /* Stop at the middle */
-  100% { right: -220px; } /* Return to start for looping */
+  0% {
+    right: -220px;
+  }
+  50% {
+    right: 50%;
+  } /* Stop at the middle */
+  100% {
+    right: -220px;
+  } /* Return to start for looping */
 }
 
 /* Card and form styling */
