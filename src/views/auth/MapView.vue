@@ -96,7 +96,7 @@ const formatDate = (dateString) => {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   } catch (e) {
     console.error('Error formatting date:', e)
@@ -584,12 +584,10 @@ const navigateTo = (route) => {
 
         <v-card-text v-if="selectedService?.totalServices > 0">
           <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
-
             <div class="text-primary font-weight-bold text-h6 mb-2">
               {{ selectedService?.service }}
             </div>
-            <div class="mb-3">{{ selectedService?.description }}
-            </div>
+            <div class="mb-3">{{ selectedService?.description }}</div>
 
             <div class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-calendar</v-icon>
