@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import AlertNotification from '@/components/layout/AlertNotification.vue'
 import { supabase, formActionDefault } from '@/utils/supabase.js'
 import {
@@ -14,6 +14,8 @@ const isPasswordVisible = ref(false)
 const isPasswordConfirmVisible = ref(false)
 const refVForm = ref()
 const router = useRouter()
+const isLoading = ref(true) // Add state to control loading screen visibility
+const loadingCanvasRef = ref(null) // Add ref for the canvas element
 
 const formDataDefault = {
   firstName: '',
@@ -26,6 +28,82 @@ const formDataDefault = {
 
 const formData = ref({ ...formDataDefault })
 const formAction = ref({ ...formActionDefault })
+
+// Loading animation function
+const setupLoadingAnimation = () => {
+  const canvas = loadingCanvasRef.value
+  if (!canvas) return
+
+  const ctx = canvas.getContext('2d')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  // Particles array for animation
+  const particles = []
+  const particleCount = 50
+
+  // Create particles
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 4 + 2,
+      color: `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`,
+      speedX: Math.random() * 2 - 1,
+      speedY: Math.random() * 2 - 1
+    })
+  }
+
+  // Animation function
+  const animate = () => {
+    if (!isLoading.value) return
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw and update particles
+    particles.forEach(particle => {
+      ctx.beginPath()
+      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+      ctx.fillStyle = particle.color
+      ctx.fill()
+
+      // Update position
+      particle.x += particle.speedX
+      particle.y += particle.speedY
+
+      // Wrap around canvas
+      if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1
+      if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1
+    })
+
+    requestAnimationFrame(animate)
+  }
+
+  animate()
+}
+
+// Handle window resize for canvas
+const handleResize = () => {
+  if (loadingCanvasRef.value) {
+    loadingCanvasRef.value.width = window.innerWidth
+    loadingCanvasRef.value.height = window.innerHeight
+  }
+}
+
+onMounted(() => {
+  // Set up loading animation
+  setupLoadingAnimation()
+  window.addEventListener('resize', handleResize)
+
+  // Simulate loading completion after 2 seconds
+  setTimeout(() => {
+    isLoading.value = false
+  }, 2000)
+
+  return () => {
+    window.removeEventListener('resize', handleResize)
+  }
+})
 
 const onSubmit = async () => {
   formAction.value = { ...formActionDefault }
@@ -89,51 +167,90 @@ const onFormSubmit = () => {
 }
 </script>
 <template>
-  <div class="create-account-wrapper">
+  <!-- Loading Screen -->
+  <div v-if="isLoading" class="loading-screen">
+    <canvas ref="loadingCanvasRef" class="loading-canvas"></canvas>
+    <div class="loading-content">
+      <div class="loading-text">Loading...</div>
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
+  <div v-else class="create-account-wrapper">
     <!-- Cloud animation elements -->
     <div class="clouds-container">
       <!-- SVG Clouds - Left side (original) -->
       <svg class="cloud cloud-1" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M25,50 C25,30 45,30 45,30 L55,30 C55,30 75,25 75,45 C75,60 65,60 65,60 L35,60 C35,60 25,60 25,50 Z" fill="rgba(255, 255, 255, 0.7)"/>
+        <path
+          d="M25,50 C25,30 45,30 45,30 L55,30 C55,30 75,25 75,45 C75,60 65,60 65,60 L35,60 C35,60 25,60 25,50 Z"
+          fill="rgba(255, 255, 255, 0.7)"
+        />
       </svg>
 
       <svg class="cloud cloud-2" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M20,50 C20,35 35,35 40,35 L60,35 C70,35 80,30 80,50 C80,65 70,65 65,65 L35,65 C25,65 20,60 20,50 Z" fill="rgba(255, 255, 255, 0.8)"/>
+        <path
+          d="M20,50 C20,35 35,35 40,35 L60,35 C70,35 80,30 80,50 C80,65 70,65 65,65 L35,65 C25,65 20,60 20,50 Z"
+          fill="rgba(255, 255, 255, 0.8)"
+        />
       </svg>
 
       <svg class="cloud cloud-3" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M15,55 C15,40 30,40 40,40 L60,40 C75,40 85,35 85,50 C85,65 75,65 65,65 L30,65 C20,65 15,65 15,55 Z" fill="rgba(255, 255, 255, 0.6)"/>
+        <path
+          d="M15,55 C15,40 30,40 40,40 L60,40 C75,40 85,35 85,50 C85,65 75,65 65,65 L30,65 C20,65 15,65 15,55 Z"
+          fill="rgba(255, 255, 255, 0.6)"
+        />
       </svg>
 
       <!-- Additional left side clouds -->
       <svg class="cloud cloud-6" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M20,45 C20,30 35,30 45,30 L55,30 C65,30 80,30 80,45 C80,60 70,60 60,60 L40,60 C30,60 20,60 20,45 Z" fill="rgba(255, 255, 255, 0.55)"/>
+        <path
+          d="M20,45 C20,30 35,30 45,30 L55,30 C65,30 80,30 80,45 C80,60 70,60 60,60 L40,60 C30,60 20,60 20,45 Z"
+          fill="rgba(255, 255, 255, 0.55)"
+        />
       </svg>
 
       <svg class="cloud cloud-7" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M30,40 C30,25 40,25 50,25 L60,25 C70,25 75,30 75,40 C75,50 65,55 55,55 L45,55 C35,55 30,50 30,40 Z" fill="rgba(255, 255, 255, 0.65)"/>
+        <path
+          d="M30,40 C30,25 40,25 50,25 L60,25 C70,25 75,30 75,40 C75,50 65,55 55,55 L45,55 C35,55 30,50 30,40 Z"
+          fill="rgba(255, 255, 255, 0.65)"
+        />
       </svg>
 
       <!-- SVG Clouds - Right side (original) -->
       <svg class="cloud cloud-4" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M10,50 C10,30 30,30 40,30 L70,30 C80,30 90,35 90,50 C90,70 75,70 60,70 L30,70 C15,70 10,65 10,50 Z" fill="rgba(255, 255, 255, 0.75)"/>
+        <path
+          d="M10,50 C10,30 30,30 40,30 L70,30 C80,30 90,35 90,50 C90,70 75,70 60,70 L30,70 C15,70 10,65 10,50 Z"
+          fill="rgba(255, 255, 255, 0.75)"
+        />
       </svg>
 
       <svg class="cloud cloud-5" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M15,45 C15,30 30,30 40,30 L65,30 C75,30 85,35 85,50 C85,65 70,65 60,65 L30,65 C20,65 15,55 15,45 Z" fill="rgba(255, 255, 255, 0.65)"/>
+        <path
+          d="M15,45 C15,30 30,30 40,30 L65,30 C75,30 85,35 85,50 C85,65 70,65 60,65 L30,65 C20,65 15,55 15,45 Z"
+          fill="rgba(255, 255, 255, 0.65)"
+        />
       </svg>
 
       <!-- Additional right side clouds -->
       <svg class="cloud cloud-8" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M15,55 C15,40 25,35 40,35 L60,35 C75,35 85,40 85,55 C85,70 75,70 60,70 L35,70 C20,70 15,70 15,55 Z" fill="rgba(255, 255, 255, 0.7)"/>
+        <path
+          d="M15,55 C15,40 25,35 40,35 L60,35 C75,35 85,40 85,55 C85,70 75,70 60,70 L35,70 C20,70 15,70 15,55 Z"
+          fill="rgba(255, 255, 255, 0.7)"
+        />
       </svg>
 
       <svg class="cloud cloud-9" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M25,45 C25,30 35,30 45,30 L65,30 C75,30 80,35 80,45 C80,60 70,60 60,60 L35,60 C25,60 25,55 25,45 Z" fill="rgba(255, 255, 255, 0.6)"/>
+        <path
+          d="M25,45 C25,30 35,30 45,30 L65,30 C75,30 80,35 80,45 C80,60 70,60 60,60 L35,60 C25,60 25,55 25,45 Z"
+          fill="rgba(255, 255, 255, 0.6)"
+        />
       </svg>
 
       <svg class="cloud cloud-10" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M20,50 C20,35 30,35 40,35 L55,35 C65,35 75,40 75,50 C75,65 65,65 55,65 L30,65 C20,65 20,60 20,50 Z" fill="rgba(255, 255, 255, 0.5)"/>
+        <path
+          d="M20,50 C20,35 30,35 40,35 L55,35 C65,35 75,40 75,50 C75,65 65,65 55,65 L30,65 C20,65 20,60 20,50 Z"
+          fill="rgba(255, 255, 255, 0.5)"
+        />
       </svg>
     </div>
 
@@ -143,7 +260,7 @@ const onFormSubmit = () => {
           <v-card class="pa-4 w-100" elevation="12">
             <template v-slot:title>
               <div class="text-center">
-                <h2 class="title" style="color: #0dceda">Create your account</h2>
+                <h2 class="title" style="color: #0dceda">Sign up</h2>
               </div>
             </template>
 
@@ -270,6 +387,80 @@ const onFormSubmit = () => {
   </div>
 </template>
 <style scoped>
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0dceda;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
 .create-account-wrapper {
   min-height: 100vh;
   width: 100%;
@@ -391,15 +582,27 @@ const onFormSubmit = () => {
 
 /* Cloud animations */
 @keyframes cloud-move-left {
-  0% { left: -180px; }
-  50% { left: 50%; } /* Stop at the middle */
-  100% { left: -180px; } /* Return to start for looping */
+  0% {
+    left: -180px;
+  }
+  50% {
+    left: 50%;
+  } /* Stop at the middle */
+  100% {
+    left: -180px;
+  } /* Return to start for looping */
 }
 
 @keyframes cloud-move-right {
-  0% { right: -220px; }
-  50% { right: 50%; } /* Stop at the middle */
-  100% { right: -220px; } /* Return to start for looping */
+  0% {
+    right: -220px;
+  }
+  50% {
+    right: 50%;
+  } /* Stop at the middle */
+  100% {
+    right: -220px;
+  } /* Return to start for looping */
 }
 
 /* Card and form styling */

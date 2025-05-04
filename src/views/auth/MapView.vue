@@ -18,6 +18,10 @@ const isProfileMenuOpen = ref(false)
 const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
 const mobileDrawerOpen = ref(false) // For mobile navigation drawer
 
+// Loading screen state
+const isLoading = ref(true)
+const loadingCanvasRef = ref(null)
+
 // Watch for window resize to update mobile state
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768
@@ -64,6 +68,58 @@ const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 const serviceDialog = ref(false)
 const selectedService = ref(null)
 
+// Loading screen animation
+const initLoadingAnimation = () => {
+  if (!loadingCanvasRef.value) return
+
+  const canvas = loadingCanvasRef.value
+  const ctx = canvas.getContext('2d')
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  // Create particles
+  const particles = []
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 3 + 1,
+      speedX: Math.random() * 1 - 0.5,
+      speedY: Math.random() * 1 - 0.5,
+      opacity: Math.random() * 0.5 + 0.5
+    })
+  }
+
+  // Animation function
+  const animate = () => {
+    if (!isLoading.value) return
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw particles
+    particles.forEach(p => {
+      ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+      ctx.fill()
+
+      // Move particles
+      p.x += p.speedX
+      p.y += p.speedY
+
+      // Loop particles
+      if (p.x < 0) p.x = canvas.width
+      if (p.x > canvas.width) p.x = 0
+      if (p.y < 0) p.y = canvas.height
+      if (p.y > canvas.height) p.y = 0
+    })
+
+    requestAnimationFrame(animate)
+  }
+
+  animate()
+}
+
 // Format Time for Display
 const formatTime = (timeInput) => {
   if (!timeInput) return ''
@@ -96,7 +152,7 @@ const formatDate = (dateString) => {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     })
   } catch (e) {
     console.error('Error formatting date:', e)
@@ -252,8 +308,11 @@ watch(selectedDate, (newDate) => {
 const userEmail = ref('')
 
 onMounted(async () => {
+  // Initialize loading screen
+  initLoadingAnimation()
+
   selectedDate.value = new Date().toISOString().split('T')[0]
-  fetchServices()
+  await fetchServices()
   setupRealtimeSubscription()
 
   // Fetch user data (email)
@@ -269,6 +328,7 @@ onMounted(async () => {
 
   // Set user email
   userEmail.value = user?.email || 'No email'
+
   // Initialize the map
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
@@ -284,6 +344,11 @@ onMounted(async () => {
   // Add window resize listener
   window.addEventListener('resize', handleResize)
   handleResize()
+
+  // Hide loading screen after everything is loaded
+  setTimeout(() => {
+    isLoading.value = false
+  }, 1500) // Add a small delay to ensure everything is loaded
 
   // Set up a polling mechanism as backup in case realtime doesn't catch all changes
   const pollingInterval = setInterval(() => {
@@ -336,6 +401,15 @@ const navigateTo = (route) => {
 </script>
 
 <template>
+  <!-- Loading Screen -->
+  <div v-if="isLoading" class="loading-screen">
+    <canvas ref="loadingCanvasRef" class="loading-canvas"></canvas>
+    <div class="loading-content">
+      <div class="loading-text">Checking map...</div>
+      <div class="loading-spinner"></div>
+    </div>
+  </div>
+
   <v-app>
     <!-- Desktop App Bar -->
     <v-app-bar app color="#9bd1f8" dark v-if="!isMobile">
@@ -584,12 +658,10 @@ const navigateTo = (route) => {
 
         <v-card-text v-if="selectedService?.totalServices > 0">
           <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
-
             <div class="text-primary font-weight-bold text-h6 mb-2">
               {{ selectedService?.service }}
             </div>
-            <div class="mb-3">{{ selectedService?.description }}
-            </div>
+            <div class="mb-3">{{ selectedService?.description }}</div>
 
             <div class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-calendar</v-icon>
@@ -624,6 +696,77 @@ const navigateTo = (route) => {
 </template>
 
 <style scoped>
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0dceda;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 .map-container {
   width: 100%;
   height: 100vh;
