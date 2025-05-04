@@ -8,7 +8,7 @@ import { VCarousel, VCarouselItem } from 'vuetify/components'
 const drawer = ref(true)
 const router = useRouter()
 const formAction = ref({ ...formActionDefault })
-const mobileMenuOpen = ref(false) // For mobile navigation
+const mobileMenuOpen = ref(false)
 
 // Logout Logic
 const logout = async () => {
@@ -38,10 +38,11 @@ const newService = ref({
   doctor: '',
   startTime: '',
   endTime: '',
-  date: '', // Add date field to the form
+  date: '',
 })
-const services = ref({}) // Grouped services by date
-const dailyServices = ref([]) // Services for the selected date
+
+const services = ref({})
+const dailyServices = ref([])
 const dialog = ref(false)
 
 // Barangay List (Dropdown)
@@ -604,27 +605,13 @@ onMounted(() => {
 
         <v-divider></v-divider>
 
-        <v-list-item
-          @click="
-            router.push('/dashboard')
-            mobileMenuOpen = false
-          "
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-view-dashboard</v-icon>
-          </v-list-item-icon>
+        <v-list-item @click="(router.push('/dashboard'), (mobileMenuOpen = false))">
+          <v-icon class="mr-2" icon="mdi-view-dashboard" />
           <v-list-item-title>Dashboard</v-list-item-title>
         </v-list-item>
 
-        <v-list-item
-          @click="
-            router.push('/map')
-            mobileMenuOpen = false
-          "
-        >
-          <v-list-item-icon>
-            <v-icon>mdi-map</v-icon>
-          </v-list-item-icon>
+        <v-list-item @click="(router.push('/map'), (mobileMenuOpen = false))">
+          <v-icon class="mr-2" icon="mdi-map" />
           <v-list-item-title>Map View</v-list-item-title>
         </v-list-item>
       </v-list>
