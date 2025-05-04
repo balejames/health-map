@@ -1,4 +1,3 @@
-
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -14,10 +13,10 @@ const logout = async () => {
 }
 
 const fileInput = ref(null)
-// const showChangePicture = ref(false)
+const showChangePicture = ref(false)
 const isProfileMenuOpen = ref(false)
-const isMobile = ref(window.innerWidth < 768)
-const mobileDrawerOpen = ref(false)
+const isMobile = ref(window.innerWidth < 768) // Track if we're on mobile
+const mobileDrawerOpen = ref(false) // For mobile navigation drawer
 
 // Loading screen state
 const isLoading = ref(true)
@@ -41,6 +40,7 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
+      // Use the shared update function from eventBus
       updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
@@ -56,12 +56,24 @@ const barangayCoordinates = {
   Maon: [8.9316, 125.5447],
 }
 
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+// Fixed: Use getFormattedDate to ensure consistent date format
+const getFormattedDate = (dateObj) => {
+  return (
+    dateObj.getFullYear() +
+    '-' +
+    String(dateObj.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(dateObj.getDate()).padStart(2, '0')
+  )
+}
+
+// Initialize with today's date in the correct format
+const selectedDate = ref(getFormattedDate(new Date()))
 const services = ref({}) // All services grouped by date
 const todaysServices = ref([])
 
 const mapRef = ref(null)
-const markers = ref({})
+const markers = ref({}) // Store markers for easy removal/update
 
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
@@ -173,12 +185,12 @@ const showServiceDetails = (barangay) => {
 
   if (servicesForBarangay.length > 0) {
     // Store all services for this barangay with formatted times
-    selectedBarangayServices.value = servicesForBarangay.map(service => ({
+    selectedBarangayServices.value = servicesForBarangay.map((service) => ({
       title: service.title,
       description: service.description,
       doctor: service.doctor,
       startTime: formatTime(service.start_date_time),
-      endTime: formatTime(service.end_date_time)
+      endTime: formatTime(service.end_date_time),
     }))
   } else {
     selectedBarangayServices.value = []
