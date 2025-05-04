@@ -1,7 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-
 import { supabase } from '@/utils/supabase.js'
 import L from 'leaflet'
 import { profileImage, updateProfileImage } from '@/utils/eventBus.js'
@@ -81,6 +80,26 @@ const formatTime = (timeInput) => {
     })
   } catch (e) {
     console.error('Error formatting time:', e)
+    return ''
+  }
+}
+
+// Format Date function
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date)) return ''
+
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (e) {
+    console.error('Error formatting date:', e)
     return ''
   }
 }
@@ -264,12 +283,12 @@ onMounted(async () => {
 
   // Add window resize listener
   window.addEventListener('resize', handleResize)
-  handleResize() // Initialize on mount
+  handleResize()
 
   // Set up a polling mechanism as backup in case realtime doesn't catch all changes
   const pollingInterval = setInterval(() => {
     fetchServices()
-  }, 30000) // Poll every 30 seconds
+  }, 30000)
 
   // Clean up on component unmount
   return () => {
@@ -565,10 +584,17 @@ const navigateTo = (route) => {
 
         <v-card-text v-if="selectedService?.totalServices > 0">
           <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
+
             <div class="text-primary font-weight-bold text-h6 mb-2">
               {{ selectedService?.service }}
             </div>
-            <div class="mb-3">{{ selectedService?.description }}</div>
+            <div class="mb-3">{{ selectedService?.description }}
+            </div>
+
+            <div class="d-flex align-center mb-2">
+              <v-icon small class="mr-2">mdi-calendar</v-icon>
+              <span>{{ formatDate(selectedDate) }}</span>
+            </div>
 
             <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-account</v-icon>
