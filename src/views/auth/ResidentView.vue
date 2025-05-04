@@ -85,6 +85,26 @@ const formatTime = (timeInput) => {
   }
 }
 
+// Format Date function
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date)) return ''
+
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  } catch (e) {
+    console.error('Error formatting date:', e)
+    return ''
+  }
+}
+
 const showServiceDetails = (barangay) => {
   const normalizedBarangay = normalize(barangay)
   const today = selectedDate.value
@@ -547,6 +567,11 @@ const navigateTo = (route) => {
               {{ selectedService?.service }}
             </div>
             <div class="mb-3">{{ selectedService?.description }}</div>
+
+            <div class="d-flex align-center mb-2">
+              <v-icon small class="mr-2">mdi-calendar</v-icon>
+              <span>{{ formatDate(selectedDate) }}</span>
+            </div>
 
             <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-account</v-icon>
