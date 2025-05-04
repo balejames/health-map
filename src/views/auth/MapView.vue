@@ -1,3 +1,4 @@
+
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -76,7 +77,8 @@ const markers = ref({}) // Store markers for easy removal/update
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
 const serviceDialog = ref(false)
-const selectedService = ref(null)
+const selectedBarangayServices = ref([])
+const selectedBarangayName = ref('')
 
 // Loading screen animation
 const initLoadingAnimation = () => {
@@ -178,25 +180,19 @@ const showServiceDetails = (barangay) => {
     (s) => normalize(s.barangay) === normalizedBarangay,
   )
 
+  selectedBarangayName.value = barangay
+
   if (servicesForBarangay.length > 0) {
-    // If multiple services, show the first one with info about total count
-    const service = servicesForBarangay[0]
-    selectedService.value = {
-      barangay: service.barangay,
-      service: service.title,
-      doctor: service.doctor,
+    // Store all services for this barangay with formatted times
+    selectedBarangayServices.value = servicesForBarangay.map(service => ({
+      title: service.title,
       description: service.description,
+      doctor: service.doctor,
       startTime: formatTime(service.start_date_time),
-      endTime: formatTime(service.end_date_time),
-      totalServices: servicesForBarangay.length,
-    }
+      endTime: formatTime(service.end_date_time)
+    }))
   } else {
-    selectedService.value = {
-      barangay: barangay,
-      service: 'No services scheduled',
-      description: '',
-      totalServices: 0,
-    }
+    selectedBarangayServices.value = []
   }
 
   serviceDialog.value = true
@@ -675,41 +671,43 @@ const navigateTo = (route) => {
     <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
       <v-card>
         <v-card-title class="service-title">
-          <span v-if="selectedService?.totalServices === 0">No Services</span>
-          <span v-else-if="selectedService?.totalServices === 1">Service Details</span>
-          <span v-else>{{ selectedService?.totalServices }} Services Available</span>
+          <span v-if="selectedBarangayServices.length === 0">No Services</span>
+          <span v-else-if="selectedBarangayServices.length === 1">Service Details</span>
+          <span v-else>{{ selectedBarangayServices.length }} Services Available</span>
         </v-card-title>
 
-        <v-card-subtitle>Barangay {{ selectedService?.barangay }}</v-card-subtitle>
+        <v-card-subtitle>Barangay {{ selectedBarangayName }}</v-card-subtitle>
 
-        <v-card-text v-if="selectedService?.totalServices > 0">
-          <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
+        <v-card-text v-if="selectedBarangayServices.length > 0">
+          <!-- Display all services in this barangay -->
+          <v-card
+            v-for="(service, index) in selectedBarangayServices"
+            :key="index"
+            class="pa-4 mb-3"
+            color="#e6f2fc"
+            flat
+            rounded
+          >
             <div class="text-primary font-weight-bold text-h6 mb-2">
-              {{ selectedService?.service }}
+              {{ service.title }}
             </div>
-            <div class="mb-3">{{ selectedService?.description }}</div>
+            <div class="mb-3">{{ service.description }}</div>
 
             <div class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-calendar</v-icon>
               <span>{{ formatDate(selectedDate) }}</span>
             </div>
 
-            <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
+            <div v-if="service.doctor" class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-account</v-icon>
-              <span>{{ selectedService?.doctor }}</span>
+              <span>{{ service.doctor }}</span>
             </div>
 
             <div class="d-flex align-center">
               <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-              <span> {{ selectedService?.startTime }} - {{ selectedService?.endTime }} </span>
+              <span> {{ service.startTime }} - {{ service.endTime }} </span>
             </div>
           </v-card>
-
-          <div v-if="selectedService?.totalServices > 1" class="text-center">
-            <v-btn color="primary" @click="navigateTo('/dashboard')">
-              View All Services on Dashboard
-            </v-btn>
-          </div>
         </v-card-text>
 
         <v-card-actions>
