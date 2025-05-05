@@ -369,10 +369,10 @@ const goToNextWeek = () => {
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
-// const navigateTo = (route) => {
-//   router.push(route)
-//   if (isMobile.value) mobileDrawerOpen.value = false
-// }
+const navigateTo = (route) => {
+  router.push(route)
+  if (isMobile.value) mobileDrawerOpen.value = false
+}
 </script>
 
 <template>
