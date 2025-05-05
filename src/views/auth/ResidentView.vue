@@ -21,7 +21,6 @@ const isProfileMenuOpen = ref(false)
 const isMobile = ref(window.innerWidth < 768)
 const mobileDrawerOpen = ref(false)
 
-// Watch for window resize to update mobile state
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768
 }
@@ -39,7 +38,6 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      // Use the shared update function from eventBus
       updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
@@ -55,17 +53,24 @@ const barangayCoordinates = {
   Maon: [8.9316, 125.5447],
 }
 
-const selectedDate = ref(new Date().toISOString().split('T')[0])
-const services = ref({}) // All services grouped by date
+// FIX: Get today's date in YYYY-MM-DD format without timezone issues
+const getLocalDate = (date) => {
+  const d = date || new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+// Initialize selected date with correct local date
+const selectedDate = ref(getLocalDate())
+const services = ref({})
 const todaysServices = ref([])
 
 const mapRef = ref(null)
-const markers = ref({}) // Store markers for easy removal/update
-
+const markers = ref({})
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
 const serviceDialog = ref(false)
 const selectedService = ref(null)
+const barangayServices = ref([])
 
 // Loading screen animation
 const initLoadingAnimation = () => {
@@ -85,7 +90,7 @@ const initLoadingAnimation = () => {
       size: Math.random() * 3 + 1,
       speedX: Math.random() * 1 - 0.5,
       speedY: Math.random() * 1 - 0.5,
-      opacity: Math.random() * 0.5 + 0.5
+      opacity: Math.random() * 0.5 + 0.5,
     })
   }
 
@@ -95,18 +100,15 @@ const initLoadingAnimation = () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Draw particles
-    particles.forEach(p => {
+    particles.forEach((p) => {
       ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
       ctx.fill()
 
-      // Move particles
       p.x += p.speedX
       p.y += p.speedY
 
-      // Loop particles
       if (p.x < 0) p.x = canvas.width
       if (p.x > canvas.width) p.x = 0
       if (p.y < 0) p.y = canvas.height
@@ -124,9 +126,8 @@ const formatTime = (timeInput) => {
   if (!timeInput) return ''
 
   try {
-    // Handle ISO string format from Supabase timestamptz
     const date = new Date(timeInput)
-    if (isNaN(date)) return '' // Invalid date
+    if (isNaN(date)) return ''
 
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -162,14 +163,12 @@ const formatDate = (dateString) => {
 const showServiceDetails = (barangay) => {
   const normalizedBarangay = normalize(barangay)
   const today = selectedDate.value
-
-  // Find all services for this barangay on the selected date
   const servicesForBarangay = todaysServices.value.filter(
     (s) => normalize(s.barangay) === normalizedBarangay,
   )
+  barangayServices.value = servicesForBarangay
 
   if (servicesForBarangay.length > 0) {
-    // If multiple services, show the first one with info about total count
     const service = servicesForBarangay[0]
     selectedService.value = {
       barangay: service.barangay,
@@ -207,19 +206,16 @@ const showBarangayMarkers = () => {
 
   const activeBarangays = new Set()
 
-  // Get all unique barangays with services for today
   todaysServices.value.forEach((service) => {
     if (service.barangay) {
       activeBarangays.add(normalize(service.barangay.trim()))
     }
   })
 
-  // Add a normal marker for each barangay
   for (const [name, coords] of Object.entries(barangayCoordinates)) {
     const normalizedName = normalize(name)
     const hasService = activeBarangays.has(normalizedName)
 
-    // Create a marker for each barangay
     const marker = L.marker(coords, {
       icon: L.divIcon({
         className: 'custom-div-icon',
@@ -236,7 +232,6 @@ const showBarangayMarkers = () => {
 
     markers.value[normalizedName] = marker
 
-    // Add a red circle indicator for barangays with services
     if (hasService) {
       const circleMarker = L.circleMarker(coords, {
         radius: 15,
@@ -248,7 +243,6 @@ const showBarangayMarkers = () => {
         .addTo(mapRef.value)
         .on('click', () => showServiceDetails(name))
 
-      // Store the circle marker too
       markers.value[`${normalizedName}-circle`] = circleMarker
     }
   }
@@ -261,10 +255,8 @@ const fetchServices = async () => {
     return
   }
 
-  // Group services by date for easy access
   const grouped = {}
   data.forEach((service) => {
-    // Ensure we have a valid date
     if (service.date) {
       if (!grouped[service.date]) {
         grouped[service.date] = []
@@ -274,10 +266,12 @@ const fetchServices = async () => {
   })
 
   services.value = grouped
-  // Update today's services
-  todaysServices.value = grouped[selectedDate.value] || []
+  console.log('All services by date:', services.value)
+  console.log('Current selected date:', selectedDate.value)
 
-  // Update markers after fetching services
+  todaysServices.value = grouped[selectedDate.value] || []
+  console.log('Services for selected date:', todaysServices.value)
+
   if (mapRef.value) {
     showBarangayMarkers()
   }
@@ -285,12 +279,10 @@ const fetchServices = async () => {
 
 // Set up Supabase real-time subscription for service changes
 const setupRealtimeSubscription = () => {
-  // First, unsubscribe if there's an existing subscription
   const channel = supabase
     .channel('services-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
       console.log('Realtime update received:', payload)
-      // Always fetch all services when any change happens
       fetchServices()
     })
     .subscribe((status) => {
@@ -300,12 +292,13 @@ const setupRealtimeSubscription = () => {
 
 // Watch for date changes
 watch(selectedDate, (newDate) => {
+  console.log('Date changed to:', newDate)
   todaysServices.value = services.value[newDate] || []
+  console.log('Updated services for this date:', todaysServices.value)
   showBarangayMarkers()
 })
 
 onMounted(async () => {
-  // Initialize loading screen animation
   initLoadingAnimation()
 
   const {
@@ -318,8 +311,6 @@ onMounted(async () => {
   } else {
     console.warn('No active session found.')
   }
-
-  // Initialize the map
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
 
@@ -327,25 +318,20 @@ onMounted(async () => {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map)
 
-  // Fetch services and set up real-time updates
   fetchServices()
   setupRealtimeSubscription()
 
-  // Add window resize listener
   window.addEventListener('resize', handleResize)
-  handleResize() // Initialize on mount
+  handleResize()
 
-  // Set up a polling mechanism as backup in case realtime doesn't catch all changes
   const pollingInterval = setInterval(() => {
     fetchServices()
-  }, 30000) // Poll every 30 seconds
+  }, 30000)
 
-  // Hide loading screen after a short delay
   setTimeout(() => {
     isLoading.value = false
   }, 2000)
 
-  // Clean up on component unmount
   return () => {
     clearInterval(pollingInterval)
     window.removeEventListener('resize', handleResize)
@@ -364,30 +350,29 @@ const resetView = () => {
   mapRef.value.setView([8.9475, 125.5406], 13)
 }
 
-// Change selected date
 const goToToday = () => {
-  selectedDate.value = new Date().toISOString().split('T')[0]
+  selectedDate.value = getLocalDate()
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToTomorrow = () => {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
-  selectedDate.value = tomorrow.toISOString().split('T')[0]
+  selectedDate.value = getLocalDate(tomorrow)
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToNextWeek = () => {
   const nextWeek = new Date()
   nextWeek.setDate(nextWeek.getDate() + 7)
-  selectedDate.value = nextWeek.toISOString().split('T')[0]
+  selectedDate.value = getLocalDate(nextWeek)
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
-const navigateTo = (route) => {
-  router.push(route)
-  if (isMobile.value) mobileDrawerOpen.value = false
-}
+// const navigateTo = (route) => {
+//   router.push(route)
+//   if (isMobile.value) mobileDrawerOpen.value = false
+// }
 </script>
 
 <template>
@@ -429,7 +414,7 @@ const navigateTo = (route) => {
           color="white"
           variant="text"
           @click="goToToday"
-          :class="{ 'v-btn--active': selectedDate === new Date().toISOString().split('T')[0] }"
+          :class="{ 'v-btn--active': selectedDate === getLocalDate() }"
         >
           Today
         </v-btn>
@@ -556,10 +541,7 @@ const navigateTo = (route) => {
 
         <v-list-item-title class="px-4 py-2 text-subtitle-2">View services for:</v-list-item-title>
 
-        <v-list-item
-          @click="goToToday"
-          :active="selectedDate === new Date().toISOString().split('T')[0]"
-        >
+        <v-list-item @click="goToToday" :active="selectedDate === getLocalDate()">
           <v-list-item-title>Today</v-list-item-title>
         </v-list-item>
 
@@ -621,18 +603,21 @@ const navigateTo = (route) => {
       </v-container>
     </v-main>
 
-    <!-- Service Details Dialog - Responsive -->
+    <!-- Service Details Dialog - Updated to show all services -->
     <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
       <v-card>
         <v-card-title class="service-title">
-          <span v-if="selectedService?.totalServices === 0">No Services</span>
-          <span v-else-if="selectedService?.totalServices === 1">Service Details</span>
-          <span v-else>{{ selectedService?.totalServices }} Services Available</span>
+          <span v-if="barangayServices.length === 0">No Services</span>
+          <span v-else-if="barangayServices.length === 1">Service Details</span>
+          <span v-else>{{ barangayServices.length }} Services Available</span>
         </v-card-title>
 
-        <v-card-subtitle>Barangay {{ selectedService?.barangay }}</v-card-subtitle>
+        <v-card-subtitle>
+          Barangay <span class="text-h6 font-weight-bold">{{ selectedService?.barangay }}</span>
+        </v-card-subtitle>
 
-        <v-card-text v-if="selectedService?.totalServices > 0">
+        <v-card-text v-if="barangayServices.length > 0">
+          <!-- First service highlight -->
           <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
             <div class="text-primary font-weight-bold text-h6 mb-2">
               {{ selectedService?.service }}
@@ -651,15 +636,40 @@ const navigateTo = (route) => {
 
             <div class="d-flex align-center">
               <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-              <span> {{ selectedService?.startTime }} - {{ selectedService?.endTime }} </span>
+              <span>{{ selectedService?.startTime }} - {{ selectedService?.endTime }}</span>
             </div>
           </v-card>
 
-          <div v-if="selectedService?.totalServices > 1" class="text-center">
-            <v-btn color="primary" @click="navigateTo('/dashboard')">
-              View All Services on Dashboard
-            </v-btn>
-          </div>
+          <!-- All services with same design -->
+          <template v-if="barangayServices.length > 1">
+            <v-card
+              v-for="(service, index) in barangayServices.slice(1)"
+              :key="index"
+              class="pa-4 mb-3"
+              color="#e6f2fc"
+              flat
+              rounded
+            >
+              <div class="text-primary font-weight-bold text-h6 mb-2">{{ service.title }}</div>
+              <div class="mb-3">{{ service.description }}</div>
+              <div class="d-flex align-center mb-2">
+                <v-icon small class="mr-2">mdi-calendar</v-icon>
+                <span>{{ formatDate(selectedDate) }}</span>
+              </div>
+              <div v-if="service.doctor" class="d-flex align-center mb-2">
+                <v-icon small class="mr-2">mdi-account</v-icon>
+                <span>{{ service.doctor }}</span>
+              </div>
+
+              <div class="d-flex align-center">
+                <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
+                <span
+                  >{{ formatTime(service.start_date_time) }} -
+                  {{ formatTime(service.end_date_time) }}</span
+                >
+              </div>
+            </v-card>
+          </template>
         </v-card-text>
 
         <v-card-actions>
@@ -790,11 +800,10 @@ const navigateTo = (route) => {
   background-color: #0288d1;
 }
 
-/* Updated map-legend positioning to top-right */
 .map-legend {
   position: absolute;
   top: 80px;
-  right: 10px; /* Changed from left to right */
+  right: 10px;
   background-color: white;
   padding: 10px 15px;
   border-radius: 8px;
@@ -805,7 +814,7 @@ const navigateTo = (route) => {
 }
 
 .map-legend-mobile {
-  top: 70px; /* Adjusted top position for mobile */
+  top: 70px;
   right: 10px;
   padding: 8px;
   max-width: 180px;
@@ -851,8 +860,6 @@ const navigateTo = (route) => {
   background-color: #f44336;
   border: 1px solid #d32f2f;
 }
-
-/* Custom marker styles - these will be applied globally but scoped to the markers */
 :global(.custom-div-icon) {
   background: transparent;
   border: none;

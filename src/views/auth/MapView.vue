@@ -56,7 +56,19 @@ const barangayCoordinates = {
   Maon: [8.9316, 125.5447],
 }
 
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+// Fixed: Use getFormattedDate to ensure consistent date format
+const getFormattedDate = (dateObj) => {
+  return (
+    dateObj.getFullYear() +
+    '-' +
+    String(dateObj.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(dateObj.getDate()).padStart(2, '0')
+  )
+}
+
+// Initialize with today's date in the correct format
+const selectedDate = ref(getFormattedDate(new Date()))
 const services = ref({}) // All services grouped by date
 const todaysServices = ref([])
 
@@ -66,7 +78,8 @@ const markers = ref({}) // Store markers for easy removal/update
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
 const serviceDialog = ref(false)
-const selectedService = ref(null)
+const selectedBarangayServices = ref([])
+const selectedBarangayName = ref('')
 
 // Loading screen animation
 const initLoadingAnimation = () => {
@@ -86,7 +99,7 @@ const initLoadingAnimation = () => {
       size: Math.random() * 3 + 1,
       speedX: Math.random() * 1 - 0.5,
       speedY: Math.random() * 1 - 0.5,
-      opacity: Math.random() * 0.5 + 0.5
+      opacity: Math.random() * 0.5 + 0.5,
     })
   }
 
@@ -97,7 +110,7 @@ const initLoadingAnimation = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Draw particles
-    particles.forEach(p => {
+    particles.forEach((p) => {
       ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
@@ -162,32 +175,25 @@ const formatDate = (dateString) => {
 
 const showServiceDetails = (barangay) => {
   const normalizedBarangay = normalize(barangay)
-  const today = selectedDate.value
 
   // Find all services for this barangay on the selected date
   const servicesForBarangay = todaysServices.value.filter(
     (s) => normalize(s.barangay) === normalizedBarangay,
   )
 
+  selectedBarangayName.value = barangay
+
   if (servicesForBarangay.length > 0) {
-    // If multiple services, show the first one with info about total count
-    const service = servicesForBarangay[0]
-    selectedService.value = {
-      barangay: service.barangay,
-      service: service.title,
-      doctor: service.doctor,
+    // Store all services for this barangay with formatted times
+    selectedBarangayServices.value = servicesForBarangay.map((service) => ({
+      title: service.title,
       description: service.description,
+      doctor: service.doctor,
       startTime: formatTime(service.start_date_time),
       endTime: formatTime(service.end_date_time),
-      totalServices: servicesForBarangay.length,
-    }
+    }))
   } else {
-    selectedService.value = {
-      barangay: barangay,
-      service: 'No services scheduled',
-      description: '',
-      totalServices: 0,
-    }
+    selectedBarangayServices.value = []
   }
 
   serviceDialog.value = true
@@ -262,23 +268,33 @@ const fetchServices = async () => {
     return
   }
 
+  console.log('All services from API:', data)
+
   // Group services by date for easy access
   const grouped = {}
   data.forEach((service) => {
     // Ensure we have a valid date
     if (service.date) {
-      if (!grouped[service.date]) {
-        grouped[service.date] = []
+      // Normalize the date format to match what we use in the UI
+      const dateKey = service.date
+
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = []
       }
-      grouped[service.date].push(service)
+      grouped[dateKey].push(service)
     }
   })
+
+  console.log('Grouped services by date:', grouped)
+  console.log('Current selected date:', selectedDate.value)
 
   services.value = grouped
   // Update today's services
   todaysServices.value = grouped[selectedDate.value] || []
 
-  // Update markers after fetching services
+  console.log("Today's services:", todaysServices.value)
+
+  // Update markers after fetching services - IMPORTANT: Only call if map is initialized
   if (mapRef.value) {
     showBarangayMarkers()
   }
@@ -301,9 +317,12 @@ const setupRealtimeSubscription = () => {
 
 // Watch for date changes
 watch(selectedDate, (newDate) => {
+  console.log('Date changed to:', newDate)
   todaysServices.value = services.value[newDate] || []
+  console.log('Updated services list:', todaysServices.value)
   showBarangayMarkers()
 })
+
 // Set user email
 const userEmail = ref('')
 
@@ -311,8 +330,24 @@ onMounted(async () => {
   // Initialize loading screen
   initLoadingAnimation()
 
-  selectedDate.value = new Date().toISOString().split('T')[0]
+  // Make sure selectedDate is initialized with the proper format
+  selectedDate.value = getFormattedDate(new Date())
+  console.log('Initial selectedDate:', selectedDate.value)
+
+  // Initialize the map first
+  const map = L.map('map').setView([8.9475, 125.5406], 13)
+  mapRef.value = map
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map)
+
+  // Fetch services first - IMPORTANT: await this to ensure data is loaded
   await fetchServices()
+
+  // Now that we have the data and map initialized, explicitly show markers
+  showBarangayMarkers()
+
   setupRealtimeSubscription()
 
   // Fetch user data (email)
@@ -328,18 +363,6 @@ onMounted(async () => {
 
   // Set user email
   userEmail.value = user?.email || 'No email'
-
-  // Initialize the map
-  const map = L.map('map').setView([8.9475, 125.5406], 13)
-  mapRef.value = map
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map)
-
-  // Fetch services and set up real-time updates
-  fetchServices()
-  setupRealtimeSubscription()
 
   // Add window resize listener
   window.addEventListener('resize', handleResize)
@@ -374,23 +397,23 @@ const resetView = () => {
   mapRef.value.setView([8.9475, 125.5406], 13)
 }
 
-// Change selected date
+// Change selected date with consistent formatting
 const goToToday = () => {
-  selectedDate.value = new Date().toISOString().split('T')[0]
+  selectedDate.value = getFormattedDate(new Date())
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToTomorrow = () => {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
-  selectedDate.value = tomorrow.toISOString().split('T')[0]
+  selectedDate.value = getFormattedDate(tomorrow)
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
 const goToNextWeek = () => {
   const nextWeek = new Date()
   nextWeek.setDate(nextWeek.getDate() + 7)
-  selectedDate.value = nextWeek.toISOString().split('T')[0]
+  selectedDate.value = getFormattedDate(nextWeek)
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
@@ -443,7 +466,7 @@ const navigateTo = (route) => {
           color="white"
           variant="text"
           @click="goToToday"
-          :class="{ 'v-btn--active': selectedDate === new Date().toISOString().split('T')[0] }"
+          :class="{ 'v-btn--active': selectedDate === getFormattedDate(new Date()) }"
         >
           Today
         </v-btn>
@@ -580,10 +603,7 @@ const navigateTo = (route) => {
 
         <v-list-item-title class="px-4 py-2 text-subtitle-2">View services for:</v-list-item-title>
 
-        <v-list-item
-          @click="goToToday"
-          :active="selectedDate === new Date().toISOString().split('T')[0]"
-        >
+        <v-list-item @click="goToToday" :active="selectedDate === getFormattedDate(new Date())">
           <v-list-item-title>Today</v-list-item-title>
         </v-list-item>
 
@@ -649,41 +669,43 @@ const navigateTo = (route) => {
     <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
       <v-card>
         <v-card-title class="service-title">
-          <span v-if="selectedService?.totalServices === 0">No Services</span>
-          <span v-else-if="selectedService?.totalServices === 1">Service Details</span>
-          <span v-else>{{ selectedService?.totalServices }} Services Available</span>
+          <span v-if="selectedBarangayServices.length === 0">No Services</span>
+          <span v-else-if="selectedBarangayServices.length === 1">Service Details</span>
+          <span v-else>{{ selectedBarangayServices.length }} Services Available</span>
         </v-card-title>
 
-        <v-card-subtitle>Barangay {{ selectedService?.barangay }}</v-card-subtitle>
+        <v-card-subtitle>Barangay {{ selectedBarangayName }}</v-card-subtitle>
 
-        <v-card-text v-if="selectedService?.totalServices > 0">
-          <v-card class="pa-4 mb-3" color="#e6f2fc" flat rounded>
+        <v-card-text v-if="selectedBarangayServices.length > 0">
+          <!-- Display all services in this barangay -->
+          <v-card
+            v-for="(service, index) in selectedBarangayServices"
+            :key="index"
+            class="pa-4 mb-3"
+            color="#e6f2fc"
+            flat
+            rounded
+          >
             <div class="text-primary font-weight-bold text-h6 mb-2">
-              {{ selectedService?.service }}
+              {{ service.title }}
             </div>
-            <div class="mb-3">{{ selectedService?.description }}</div>
+            <div class="mb-3">{{ service.description }}</div>
 
             <div class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-calendar</v-icon>
               <span>{{ formatDate(selectedDate) }}</span>
             </div>
 
-            <div v-if="selectedService?.doctor" class="d-flex align-center mb-2">
+            <div v-if="service.doctor" class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-account</v-icon>
-              <span>{{ selectedService?.doctor }}</span>
+              <span>{{ service.doctor }}</span>
             </div>
 
             <div class="d-flex align-center">
               <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-              <span> {{ selectedService?.startTime }} - {{ selectedService?.endTime }} </span>
+              <span> {{ service.startTime }} - {{ service.endTime }} </span>
             </div>
           </v-card>
-
-          <div v-if="selectedService?.totalServices > 1" class="text-center">
-            <v-btn color="primary" @click="navigateTo('/dashboard')">
-              View All Services on Dashboard
-            </v-btn>
-          </div>
         </v-card-text>
 
         <v-card-actions>

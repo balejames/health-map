@@ -33,7 +33,7 @@ const initLoadingScreen = () => {
       radius: Math.random() * 5 + 1,
       color: `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`,
       vx: Math.random() * 2 - 1,
-      vy: Math.random() * 2 - 1
+      vy: Math.random() * 2 - 1,
     })
   }
 
@@ -53,7 +53,7 @@ const initLoadingScreen = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     // Draw and update particles
-    particles.forEach(particle => {
+    particles.forEach((particle) => {
       ctx.beginPath()
       ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
       ctx.fillStyle = particle.color
@@ -149,23 +149,49 @@ const blankDays = computed(() => {
   return Array.from({ length: firstDay }, (_, i) => i)
 })
 
+// Updated getDate function that correctly handles day conversions
 const getDate = (day) => {
+  // Create a date object with the specified year, month, and day
   const date = new Date(currentYear.value, currentMonth.value, day)
-  return date.toISOString().split('T')[0]
+
+  // Format using local methods to avoid timezone issues
+  const formattedDate =
+    date.getFullYear() +
+    '-' +
+    String(date.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(date.getDate()).padStart(2, '0')
+
+  return formattedDate
 }
 
+// Function to get today's date string in Philippines timezone
+const getToday = () => {
+  const today = new Date()
+  return (
+    today.getFullYear() +
+    '-' +
+    String(today.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(today.getDate()).padStart(2, '0')
+  )
+}
+
+// Updated isToday function that uses local timezone
 const isToday = (dateString) => {
-  const todayDate = new Date()
-  const todayFormatted = todayDate.toISOString().split('T')[0]
-  return dateString === todayFormatted
+  return dateString === getToday()
 }
 
+// Make sure onDateClick is handling the date correctly
 const onDateClick = (date) => {
+  console.log('Clicked date:', date) // Add this for debugging
   selectedDate.value = date
   getServicesForDate()
 }
 
+// Ensure getServicesForDate is also working as expected
 const getServicesForDate = () => {
+  console.log('Getting services for:', selectedDate.value) // Add this for debugging
   dailyServices.value = services.value[selectedDate.value] || []
 }
 
@@ -523,11 +549,7 @@ onBeforeUnmount(() => {
             <!-- Services Card -->
             <v-card class="mb-4 mobile-card">
               <v-card-title class="service-title mobile-title">
-                {{
-                  selectedDate === new Date().toISOString().split('T')[0]
-                    ? 'Service Today'
-                    : 'Services for ' + selectedDate
-                }}
+                {{ selectedDate === getToday() ? 'Service Today' : 'Services for ' + selectedDate }}
                 <v-spacer />
               </v-card-title>
 
@@ -895,7 +917,7 @@ onBeforeUnmount(() => {
   transform: translateX(-50%);
   width: 8px;
   height: 8px;
-  background-color: rgb(84, 101, 255);
+  background-color: rgb(255, 0, 0);
   border-radius: 50%;
 }
 
