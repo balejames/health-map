@@ -667,29 +667,31 @@ const navigateTo = (route) => {
 
     <!-- Service Details Dialog - Responsive -->
     <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
-      <v-card>
-        <v-card-title class="service-title">
+      <v-card class="text-center">
+        <v-card-title class="service-title text-center">
           <span v-if="selectedBarangayServices.length === 0">No Services</span>
           <span v-else-if="selectedBarangayServices.length === 1">Service Details</span>
           <span v-else>{{ selectedBarangayServices.length }} Services Available</span>
         </v-card-title>
 
-        <v-card-subtitle>Barangay {{ selectedBarangayName }}</v-card-subtitle>
+        <v-card-subtitle>
+          Barangay <span class="text-h6 font-weight-bold">{{ selectedBarangayName }}</span>
+        </v-card-subtitle>
 
         <v-card-text v-if="selectedBarangayServices.length > 0">
           <!-- Display all services in this barangay -->
           <v-card
             v-for="(service, index) in selectedBarangayServices"
             :key="index"
-            class="pa-4 mb-3"
+            class="pa-4 mb-3 mx-auto"
             color="#e6f2fc"
             flat
             rounded
           >
-            <div class="text-primary font-weight-bold text-h6 mb-2">
+            <div class="text-primary font-weight-bold text-h6 mb-2 text-start">
               {{ service.title }}
             </div>
-            <div class="mb-3">{{ service.description }}</div>
+            <div class="mb-3 text-start">{{ service.description }}</div>
 
             <div class="d-flex align-center mb-2">
               <v-icon small class="mr-2">mdi-calendar</v-icon>
