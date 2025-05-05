@@ -612,7 +612,9 @@ const goToNextWeek = () => {
           <span v-else>{{ barangayServices.length }} Services Available</span>
         </v-card-title>
 
-        <v-card-subtitle>Barangay {{ selectedService?.barangay }}</v-card-subtitle>
+        <v-card-subtitle>
+          Barangay <span class="text-h6 font-weight-bold">{{ selectedService?.barangay }}</span>
+        </v-card-subtitle>
 
         <v-card-text v-if="barangayServices.length > 0">
           <!-- First service highlight -->
@@ -634,34 +636,37 @@ const goToNextWeek = () => {
 
             <div class="d-flex align-center">
               <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
-              <span> {{ selectedService?.startTime }} - {{ selectedService?.endTime }} </span>
+              <span>{{ selectedService?.startTime }} - {{ selectedService?.endTime }}</span>
             </div>
           </v-card>
 
-          <!-- Additional services if there are more than 1 -->
+          <!-- All services with same design -->
           <template v-if="barangayServices.length > 1">
-            <div class="text-h6 mb-3 text-center">Additional Services</div>
-
             <v-card
               v-for="(service, index) in barangayServices.slice(1)"
               :key="index"
-              class="pa-3 mb-2"
-              color="#f5f5f5"
+              class="pa-4 mb-3"
+              color="#e6f2fc"
               flat
               rounded
             >
-              <div class="font-weight-bold">{{ service.title }}</div>
-              <div class="mb-2 text-caption">{{ service.description }}</div>
+              <div class="text-primary font-weight-bold text-h6 mb-2">{{ service.title }}</div>
+              <div class="mb-3">{{ service.description }}</div>
+              <div class="d-flex align-center mb-2">
+                <v-icon small class="mr-2">mdi-calendar</v-icon>
+                <span>{{ formatDate(selectedDate) }}</span>
+              </div>
+              <div v-if="service.doctor" class="d-flex align-center mb-2">
+                <v-icon small class="mr-2">mdi-account</v-icon>
+                <span>{{ service.doctor }}</span>
+              </div>
 
-              <div class="d-flex justify-space-between">
-                <div v-if="service.doctor" class="text-caption">
-                  <v-icon x-small>mdi-account</v-icon> {{ service.doctor }}
-                </div>
-                <div class="text-caption">
-                  <v-icon x-small>mdi-clock-time-four</v-icon>
-                  {{ formatTime(service.start_date_time) }} -
-                  {{ formatTime(service.end_date_time) }}
-                </div>
+              <div class="d-flex align-center">
+                <v-icon small class="mr-2">mdi-clock-time-four</v-icon>
+                <span
+                  >{{ formatTime(service.start_date_time) }} -
+                  {{ formatTime(service.end_date_time) }}</span
+                >
               </div>
             </v-card>
           </template>
