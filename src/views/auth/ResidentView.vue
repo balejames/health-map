@@ -21,7 +21,6 @@ const isProfileMenuOpen = ref(false)
 const isMobile = ref(window.innerWidth < 768)
 const mobileDrawerOpen = ref(false)
 
-// Watch for window resize to update mobile state
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768
 }
@@ -39,7 +38,6 @@ const onFileSelected = (e) => {
   if (file) {
     const reader = new FileReader()
     reader.onload = () => {
-      // Use the shared update function from eventBus
       updateProfileImage(reader.result)
     }
     reader.readAsDataURL(file)
@@ -63,17 +61,16 @@ const getLocalDate = (date) => {
 
 // Initialize selected date with correct local date
 const selectedDate = ref(getLocalDate())
-const services = ref({}) // All services grouped by date
+const services = ref({})
 const todaysServices = ref([])
 
 const mapRef = ref(null)
-const markers = ref({}) // Store markers for easy removal/update
-
+const markers = ref({})
 const normalize = (name) => name.toLowerCase().replace(/\s+/g, '')
 
 const serviceDialog = ref(false)
 const selectedService = ref(null)
-const barangayServices = ref([])  // Add this to store all services for the selected barangay
+const barangayServices = ref([])
 
 // Loading screen animation
 const initLoadingAnimation = () => {
@@ -103,18 +100,15 @@ const initLoadingAnimation = () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Draw particles
     particles.forEach((p) => {
       ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`
       ctx.beginPath()
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
       ctx.fill()
 
-      // Move particles
       p.x += p.speedX
       p.y += p.speedY
 
-      // Loop particles
       if (p.x < 0) p.x = canvas.width
       if (p.x > canvas.width) p.x = 0
       if (p.y < 0) p.y = canvas.height
@@ -132,9 +126,8 @@ const formatTime = (timeInput) => {
   if (!timeInput) return ''
 
   try {
-    // Handle ISO string format from Supabase timestamptz
     const date = new Date(timeInput)
-    if (isNaN(date)) return '' // Invalid date
+    if (isNaN(date)) return ''
 
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -170,17 +163,12 @@ const formatDate = (dateString) => {
 const showServiceDetails = (barangay) => {
   const normalizedBarangay = normalize(barangay)
   const today = selectedDate.value
-
-  // Find all services for this barangay on the selected date
   const servicesForBarangay = todaysServices.value.filter(
     (s) => normalize(s.barangay) === normalizedBarangay,
   )
-
-  // Store all services for this barangay
   barangayServices.value = servicesForBarangay
 
   if (servicesForBarangay.length > 0) {
-    // Display first service but indicate there are more
     const service = servicesForBarangay[0]
     selectedService.value = {
       barangay: service.barangay,
@@ -218,19 +206,16 @@ const showBarangayMarkers = () => {
 
   const activeBarangays = new Set()
 
-  // Get all unique barangays with services for today
   todaysServices.value.forEach((service) => {
     if (service.barangay) {
       activeBarangays.add(normalize(service.barangay.trim()))
     }
   })
 
-  // Add a normal marker for each barangay
   for (const [name, coords] of Object.entries(barangayCoordinates)) {
     const normalizedName = normalize(name)
     const hasService = activeBarangays.has(normalizedName)
 
-    // Create a marker for each barangay
     const marker = L.marker(coords, {
       icon: L.divIcon({
         className: 'custom-div-icon',
@@ -247,7 +232,6 @@ const showBarangayMarkers = () => {
 
     markers.value[normalizedName] = marker
 
-    // Add a red circle indicator for barangays with services
     if (hasService) {
       const circleMarker = L.circleMarker(coords, {
         radius: 15,
@@ -259,7 +243,6 @@ const showBarangayMarkers = () => {
         .addTo(mapRef.value)
         .on('click', () => showServiceDetails(name))
 
-      // Store the circle marker too
       markers.value[`${normalizedName}-circle`] = circleMarker
     }
   }
@@ -272,10 +255,8 @@ const fetchServices = async () => {
     return
   }
 
-  // Group services by date for easy access
   const grouped = {}
   data.forEach((service) => {
-    // Ensure we have a valid date
     if (service.date) {
       if (!grouped[service.date]) {
         grouped[service.date] = []
@@ -288,11 +269,9 @@ const fetchServices = async () => {
   console.log('All services by date:', services.value)
   console.log('Current selected date:', selectedDate.value)
 
-  // Update today's services
   todaysServices.value = grouped[selectedDate.value] || []
   console.log('Services for selected date:', todaysServices.value)
 
-  // Update markers after fetching services
   if (mapRef.value) {
     showBarangayMarkers()
   }
@@ -300,12 +279,10 @@ const fetchServices = async () => {
 
 // Set up Supabase real-time subscription for service changes
 const setupRealtimeSubscription = () => {
-  // First, unsubscribe if there's an existing subscription
   const channel = supabase
     .channel('services-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, (payload) => {
       console.log('Realtime update received:', payload)
-      // Always fetch all services when any change happens
       fetchServices()
     })
     .subscribe((status) => {
@@ -322,7 +299,6 @@ watch(selectedDate, (newDate) => {
 })
 
 onMounted(async () => {
-  // Initialize loading screen animation
   initLoadingAnimation()
 
   const {
@@ -335,8 +311,6 @@ onMounted(async () => {
   } else {
     console.warn('No active session found.')
   }
-
-  // Initialize the map
   const map = L.map('map').setView([8.9475, 125.5406], 13)
   mapRef.value = map
 
@@ -344,25 +318,20 @@ onMounted(async () => {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map)
 
-  // Fetch services and set up real-time updates
   fetchServices()
   setupRealtimeSubscription()
 
-  // Add window resize listener
   window.addEventListener('resize', handleResize)
-  handleResize() // Initialize on mount
+  handleResize()
 
-  // Set up a polling mechanism as backup in case realtime doesn't catch all changes
   const pollingInterval = setInterval(() => {
     fetchServices()
-  }, 30000) // Poll every 30 seconds
+  }, 30000)
 
-  // Hide loading screen after a short delay
   setTimeout(() => {
     isLoading.value = false
   }, 2000)
 
-  // Clean up on component unmount
   return () => {
     clearInterval(pollingInterval)
     window.removeEventListener('resize', handleResize)
@@ -381,7 +350,6 @@ const resetView = () => {
   mapRef.value.setView([8.9475, 125.5406], 13)
 }
 
-// Change selected date - FIX: Use getLocalDate for consistent date formatting
 const goToToday = () => {
   selectedDate.value = getLocalDate()
   if (isMobile.value) mobileDrawerOpen.value = false
@@ -401,10 +369,10 @@ const goToNextWeek = () => {
   if (isMobile.value) mobileDrawerOpen.value = false
 }
 
-const navigateTo = (route) => {
-  router.push(route)
-  if (isMobile.value) mobileDrawerOpen.value = false
-}
+// const navigateTo = (route) => {
+//   router.push(route)
+//   if (isMobile.value) mobileDrawerOpen.value = false
+// }
 </script>
 
 <template>
@@ -573,10 +541,7 @@ const navigateTo = (route) => {
 
         <v-list-item-title class="px-4 py-2 text-subtitle-2">View services for:</v-list-item-title>
 
-        <v-list-item
-          @click="goToToday"
-          :active="selectedDate === getLocalDate()"
-        >
+        <v-list-item @click="goToToday" :active="selectedDate === getLocalDate()">
           <v-list-item-title>Today</v-list-item-title>
         </v-list-item>
 
@@ -677,7 +642,14 @@ const navigateTo = (route) => {
           <template v-if="barangayServices.length > 1">
             <div class="text-h6 mb-3 text-center">Additional Services</div>
 
-            <v-card v-for="(service, index) in barangayServices.slice(1)" :key="index" class="pa-3 mb-2" color="#f5f5f5" flat rounded>
+            <v-card
+              v-for="(service, index) in barangayServices.slice(1)"
+              :key="index"
+              class="pa-3 mb-2"
+              color="#f5f5f5"
+              flat
+              rounded
+            >
               <div class="font-weight-bold">{{ service.title }}</div>
               <div class="mb-2 text-caption">{{ service.description }}</div>
 
@@ -687,7 +659,8 @@ const navigateTo = (route) => {
                 </div>
                 <div class="text-caption">
                   <v-icon x-small>mdi-clock-time-four</v-icon>
-                  {{ formatTime(service.start_date_time) }} - {{ formatTime(service.end_date_time) }}
+                  {{ formatTime(service.start_date_time) }} -
+                  {{ formatTime(service.end_date_time) }}
                 </div>
               </div>
             </v-card>
@@ -822,11 +795,10 @@ const navigateTo = (route) => {
   background-color: #0288d1;
 }
 
-/* Updated map-legend positioning to top-right */
 .map-legend {
   position: absolute;
   top: 80px;
-  right: 10px; /* Changed from left to right */
+  right: 10px;
   background-color: white;
   padding: 10px 15px;
   border-radius: 8px;
@@ -837,7 +809,7 @@ const navigateTo = (route) => {
 }
 
 .map-legend-mobile {
-  top: 70px; /* Adjusted top position for mobile */
+  top: 70px;
   right: 10px;
   padding: 8px;
   max-width: 180px;
@@ -883,8 +855,6 @@ const navigateTo = (route) => {
   background-color: #f44336;
   border: 1px solid #d32f2f;
 }
-
-/* Custom marker styles - these will be applied globally but scoped to the markers */
 :global(.custom-div-icon) {
   background: transparent;
   border: none;
