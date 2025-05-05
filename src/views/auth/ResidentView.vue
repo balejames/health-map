@@ -606,14 +606,15 @@ const navigateTo = (route) => {
     <!-- Service Details Dialog - Updated to show all services -->
     <v-dialog v-model="serviceDialog" :max-width="isMobile ? '95%' : '600px'">
       <v-card>
-        <v-card-title class="service-title">
+        <v-card-title class="service-title text-center">
           <span v-if="barangayServices.length === 0">No Services</span>
           <span v-else-if="barangayServices.length === 1">Service Details</span>
           <span v-else>{{ barangayServices.length }} Services Available</span>
         </v-card-title>
 
-        <v-card-subtitle>
-          Barangay <span class="text-h6 font-weight-bold">{{ selectedService?.barangay }}</span>
+        <v-card-subtitle class="text-center">
+          Barangay
+          <span class="text-h6 font-weight-bold">{{ selectedService?.barangay }}</span>
         </v-card-subtitle>
 
         <v-card-text v-if="barangayServices.length > 0">
